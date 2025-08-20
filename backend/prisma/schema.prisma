@@ -1,0 +1,40 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id    Int     @id @default(autoincrement())
+  name  String
+  accounts Account[]
+}
+
+model Owner {
+  id    Int     @id @default(autoincrement())
+  name  String  @unique
+  accounts Account[]
+}
+
+enum AccountType {
+  nubank
+  boleto
+  outro_cartao
+}
+
+model Account {
+  id          Int         @id @default(autoincrement())
+  description String
+  value       Decimal     @db.Decimal(10,2)
+  installment String?     // ex: "3/6" ou "X"
+  type        AccountType
+  owner       Owner?      @relation(fields: [ownerId], references: [id])
+  ownerId     Int?
+  user        User?       @relation(fields: [userId], references: [id])
+  userId      Int?
+  dueDate     DateTime?
+  createdAt   DateTime    @default(now())
+}

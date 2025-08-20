@@ -1,0 +1,70 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Altura total */
+html,
+body,
+#root {
+  height: 100%;
+}
+
+/* Temas */
+body {
+  @apply bg-slate-50 text-slate-800 dark:bg-slate-900 dark:text-slate-100;
+}
+
+/* Layout base */
+.container-app {
+  @apply mx-auto max-w-6xl px-4;
+}
+
+/* Componentes utilitários */
+.card {
+  @apply rounded-2xl bg-white shadow-soft border border-slate-100
+         dark:bg-slate-800 dark:border-slate-700 dark:shadow-lg;
+}
+
+.btn {
+  @apply inline-flex items-center gap-2 rounded-xl px-4 py-2 font-medium transition;
+}
+.btn-primary {
+  @apply bg-brand-600 text-white hover:bg-brand-700;
+}
+.btn-ghost {
+  @apply hover:bg-slate-100 text-slate-700 dark:hover:bg-slate-800 dark:text-slate-200;
+}
+.input,
+.select {
+  @apply w-full rounded-xl border border-slate-200 px-3 py-2 bg-white
+         focus:outline-none focus:ring-2 focus:ring-brand-500
+         dark:bg-slate-900 dark:border-slate-700;
+}
+
+/* Tabela */
+.table {
+  @apply w-full text-sm;
+}
+.table th {
+  @apply text-left font-semibold text-slate-600 border-b border-slate-200 pb-2 dark:text-slate-300 dark:border-slate-700;
+}
+.table td {
+  @apply border-b border-slate-100 py-2 dark:border-slate-800;
+}
+
+.badge {
+  @apply inline-flex items-center rounded-lg px-2 py-0.5 text-xs font-medium bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-200;
+}
+
+/* ===== Select com seta custom e respiro ===== */
+.select {
+  appearance: none; /* esconde seta nativa */
+  padding-right: 2.75rem; /* dá espaço p/ seta (mais à esquerda) */
+  background-image: url("data:image/svg+xml,%3Csvg width='20' height='20' viewBox='0 0 20 20' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M5.5 7.5L10 12l4.5-4.5' stroke='%236B7280' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 0.75rem center; /* seta vem mais para a esquerda */
+  background-size: 16px 16px;
+}
+.dark .select {
+  background-image: url("data:image/svg+xml,%3Csvg width='20' height='20' viewBox='0 0 20 20' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M5.5 7.5L10 12l4.5-4.5' stroke='%23CBD5E1' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+}

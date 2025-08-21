@@ -143,9 +143,9 @@ export default function FinanceTable({
                 }
               >
                 <td className="px-3 py-3 font-medium">{f.description}</td>
-                <td className="px-3 py-3">{brl(Number(f.value))}</td>
-                <td className="px-3 py-3">{parcelaLabel(f, currentComp)}</td>
-                <td className="px-3 py-3">
+                <td className="py-3">{brl(Number(f.value))}</td>
+                <td className="py-3">{parcelaLabel(f, currentComp)}</td>
+                <td className="py-3">
                   <span
                     className={
                       'px-2 py-1 rounded-full text-xs font-semibold ' +

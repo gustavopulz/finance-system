@@ -1,9 +1,9 @@
+// src/lib/storage.ts
 import type { Finance, Competencia, Account } from './types';
 import { todayComp, monthsDiff } from './date';
 
 const KEY = 'moai-financas-v3';
 
-/** ---------- persistência local (legado) ---------- */
 export function loadFinances(): Finance[] {
   const raw = localStorage.getItem(KEY);
   if (!raw) {
@@ -19,25 +19,8 @@ export function saveFinances(list: Finance[]) {
   localStorage.setItem(KEY, JSON.stringify(list));
 }
 
-/** Pega a competência de início tanto do modelo antigo (Finance) quanto do novo (Account) */
-function getStartComp(f: Finance | Account): Competencia | null {
-  if ('start' in f) {
-    return f.start ?? null; // Finance (legado)
-  }
-  // Account (novo) — início é year/month
-  if ('year' in f && 'month' in f) {
-    return { year: f.year, month: f.month };
-  }
-  return null;
-}
-
-/** Aparece no mês filtrado?
- * Regras:
- * - quitado: não aparece
- * - precisa ter um início (start para Finance, ou {year,month} para Account)
- * - se mês filtrado < início => não aparece
- * - indeterminada (X no legado ou null no novo): aparece a partir do início
- * - parcelado (número): aparece do início até (início + total - 1)
+/**
+ * Deve APARECER no mês filtrado?
  */
 export function isVisibleInMonth(
   f: Finance | Account,
@@ -45,64 +28,81 @@ export function isVisibleInMonth(
 ): boolean {
   if (f.status === 'quitado') return false;
 
-  const start = getStartComp(f);
-  if (!start) return false;
+  if (isAccountLike(f)) {
+    const start = { year: Number(f.year), month: Number(f.month) };
 
-  const diff = monthsDiff(start, month);
-  if (diff < 0) return false; // antes do início não aparece
+    // mês/ano inválidos -> não exibe
+    if (!start.year || !start.month || start.month < 1 || start.month > 12) {
+      return false;
+    }
 
-  // Indeterminada
-  const isIndet =
-    ('parcelasTotal' in f && (f as any).parcelasTotal === null) ||
-    (f as any).parcelasTotal === 'X';
+    const diff = monthsDiff(start, month);
+    if (diff < 0) return false; // antes do início, não mostra
 
-  if (isIndet) return true;
+    // Trate  null, undefined, '' e 0 como indeterminada
+    const p = f.parcelasTotal;
+    const total =
+      p === null || p === undefined || String(p) === '' ? null : Number(p);
 
-  // Número de parcelas
-  const total =
-    typeof (f as any).parcelasTotal === 'number'
-      ? (f as any).parcelasTotal
-      : null;
+    if (total === null || !Number.isFinite(total) || total <= 0) {
+      // Indeterminada: aparece de start em diante
+      return true;
+    }
 
-  if (total !== null) {
     return diff <= total - 1;
   }
 
-  return false;
+  // --- modelo Finance antigo (localStorage) ---
+  if (!f.start) return false;
+  const diff = monthsDiff(f.start, month);
+  if (diff < 0) return false;
+  if ((f as Finance).parcelasTotal === 'X') return true;
+  const total = Number((f as Finance).parcelasTotal);
+  return Number.isFinite(total) && diff <= total - 1;
 }
 
-/** Entra no total do mês filtrado? (igual às regras de visibilidade, mas ignora cancelado/quitado) */
+/**
+ * Deve ENTRAR NO TOTAL do mês filtrado?
+ */
 export function willCountInMonth(
   f: Finance | Account,
   month: Competencia
 ): boolean {
   if (f.status === 'cancelado' || f.status === 'quitado') return false;
 
-  const start = getStartComp(f);
-  if (!start) return false;
+  if (isAccountLike(f)) {
+    const start = { year: num(f.year), month: num(f.month) };
+    const diff = monthsDiff(start, month);
+    if (diff < 0) return false;
 
-  const diff = monthsDiff(start, month);
-  if (diff < 0) return false;
-
-  const isIndet =
-    ('parcelasTotal' in f && (f as any).parcelasTotal === null) ||
-    (f as any).parcelasTotal === 'X';
-
-  if (isIndet) return true;
-
-  const total =
-    typeof (f as any).parcelasTotal === 'number'
-      ? (f as any).parcelasTotal
-      : null;
-
-  if (total !== null) {
-    return diff <= total - 1;
+    if (f.parcelasTotal == null) return true;
+    return diff <= num(f.parcelasTotal) - 1;
   }
 
-  return false;
+  if (!f.start) return false;
+  const diff = monthsDiff(f.start, month);
+  if (diff < 0) return false;
+  if (f.parcelasTotal === 'X') return true;
+  return diff <= (f.parcelasTotal as number) - 1;
 }
 
-/** ---------- internos (legado/seed) ---------- */
+/* ---------------- internos ---------------- */
+
+function isAccountLike(x: any): x is Account {
+  // mais tolerante: basta ter as chaves e elas serem coeríveis a número
+  return (
+    x &&
+    typeof x === 'object' &&
+    'month' in x &&
+    'year' in x &&
+    !Number.isNaN(num((x as any).month)) &&
+    !Number.isNaN(num((x as any).year))
+  );
+}
+
+function num(v: any): number {
+  return typeof v === 'number' ? v : Number(v);
+}
 
 function safeJSON<T = unknown>(s: string): T | null {
   try {
@@ -112,6 +112,7 @@ function safeJSON<T = unknown>(s: string): T | null {
   }
 }
 
+/** SEED (modelo Finance, só para localStorage antigo) */
 function seedData(): Finance[] {
   const start = todayComp();
   const nowISO = new Date().toISOString();
@@ -139,7 +140,6 @@ function seedData(): Finance[] {
   ];
 }
 
-/** Migração do modelo antigo (parcela "n/m" ou "X") */
 function migrate(items: Finance[]): Finance[] {
   return items.map((f) => {
     const anyF = f as any;

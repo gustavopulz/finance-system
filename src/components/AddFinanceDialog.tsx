@@ -40,7 +40,8 @@ const schema = z.object({
   status: z.enum(['ativo', 'cancelado', 'quitado']),
 });
 
-type FormData = z.infer<typeof schema>;
+// Use the input type for FormData to match the raw form values before Zod preprocessing
+type FormData = z.input<typeof schema>;
 
 export default function AddFinanceDialog({
   collaborators,

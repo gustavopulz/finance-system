@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import type { Account, Collaborator } from '../lib/types';
 import { MONTHS_PT, brl } from '../lib/format';
 import { todayComp } from '../lib/date';
@@ -15,6 +15,33 @@ type DialogState =
   | { mode: 'editAccount'; account: Account }
   | { mode: 'addCollab' };
 
+// Normaliza o que vem do backend (evita “8”/“2025” como string)
+// Normaliza o que vem do backend (tolerante a '', null e strings)
+function normalizeAccount(a: any): Account {
+  const toNum = (v: any, fallback = 0) =>
+    v === '' || v === null || v === undefined ? fallback : Number(v);
+
+  const toMaybeNum = (v: any) =>
+    v === '' || v === null || v === undefined ? null : Number(v);
+
+  return {
+    id: toNum(a.id),
+    collaboratorId: toNum(a.collaboratorId),
+    collaboratorName: a.collaboratorName ?? '',
+    description: String(a.description ?? ''),
+    value: toNum(a.value), // já em reais
+    // null = indeterminada; 0 também vamos tratar como indeterminada no filtro
+    parcelasTotal: toMaybeNum(a.parcelasTotal),
+    // garante 1..12 e ano razoável
+    month: Math.min(12, Math.max(1, toNum(a.month, 1))),
+    year: Math.max(1900, toNum(a.year, new Date().getFullYear())),
+    status: (a.status as Account['status']) ?? 'ativo',
+    createdAt: a.createdAt ?? '',
+    updatedAt: a.updatedAt ?? '',
+    cancelledAt: a.cancelledAt ?? undefined,
+  };
+}
+
 export default function HomePage() {
   const now = todayComp();
   const [month, setMonth] = useState(now.month);
@@ -23,29 +50,53 @@ export default function HomePage() {
   const [dlg, setDlg] = useState<DialogState>({ mode: 'closed' });
   const [collabs, setCollabs] = useState<Collaborator[]>([]);
   const [accounts, setAccounts] = useState<Account[]>([]);
+  const [loading, setLoading] = useState(false);
+
+  // Mantém um snapshot das contas visíveis para evitar “piscar” enquanto carrega
+  const visibleSnapshotRef = useRef<Account[]>([]);
 
   async function load() {
-    const [c, a] = await Promise.all([
-      api.listCollabs(),
-      api.listAccounts(month, year),
-    ]);
-    setCollabs(c as Collaborator[]);
-    setAccounts(a as Account[]);
+    setLoading(true);
+    try {
+      const [c, a] = await Promise.all([
+        api.listCollabs(),
+        api.listAccounts(month, year),
+      ]);
+      setCollabs((c as Collaborator[]) || []);
+      const normalized = (a as any[]).map(normalizeAccount);
+      setAccounts(normalized);
+    } finally {
+      setLoading(false);
+    }
   }
 
   useEffect(() => {
     load();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [month, year]);
 
-  const currentComp = { year, month };
+  // Filtra os que são visíveis para a competência atual
+  const visibleAccounts = useMemo(
+    () => accounts.filter((acc) => isVisibleInMonth(acc, { year, month })),
+    [accounts, year, month]
+  );
+
+  // Atualiza o snapshot quando terminar o carregamento com um resultado novo
+  useEffect(() => {
+    if (!loading) {
+      // só troca o snapshot quando temos a resposta final daquele filtro
+      visibleSnapshotRef.current = visibleAccounts;
+    }
+  }, [loading, visibleAccounts]);
+
+  // Enquanto carrega, usa o snapshot anterior (evita “Sem lançamentos” no meio)
+  const stableVisible = loading ? visibleSnapshotRef.current : visibleAccounts;
 
   const byCollab = (id: number) =>
-    accounts.filter(
-      (a) => a.collaboratorId === id && isVisibleInMonth(a, currentComp)
-    );
+    stableVisible.filter((a) => Number(a.collaboratorId) === Number(id));
 
-  const totalGeral = accounts
-    .filter((a) => a.status !== 'cancelado' && isVisibleInMonth(a, currentComp))
+  const totalGeral = stableVisible
+    .filter((f) => f.status !== 'cancelado')
     .reduce((s, a) => s + Number(a.value), 0);
 
   // CRUD handlers
@@ -135,7 +186,7 @@ export default function HomePage() {
             collaboratorId={c.id}
             title={c.name}
             items={byCollab(c.id)}
-            currentComp={currentComp}
+            currentComp={{ year, month }}
             onDelete={(id) => {
               removeAccount(id);
             }}
@@ -144,7 +195,7 @@ export default function HomePage() {
               toggleCancel(id);
             }}
             onCollabDeleted={(id) => {
-              // remove o card sem F5
+              // 🔥 atualiza o state e some o card sem F5
               setCollabs((prev) => prev.filter((cc) => cc.id !== id));
             }}
           />

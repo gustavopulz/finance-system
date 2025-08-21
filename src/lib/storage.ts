@@ -1,10 +1,9 @@
-// src/lib/storage.ts
-import type { Finance, Competencia } from './types';
+import type { Finance, Competencia, Account } from './types';
 import { todayComp, monthsDiff } from './date';
 
 const KEY = 'moai-financas-v3';
 
-/** Carrega + migra o modelo antigo para {start, parcelasTotal} */
+/** ---------- persistência local (legado) ---------- */
 export function loadFinances(): Finance[] {
   const raw = localStorage.getItem(KEY);
   if (!raw) {
@@ -20,53 +19,90 @@ export function saveFinances(list: Finance[]) {
   localStorage.setItem(KEY, JSON.stringify(list));
 }
 
-/** Item deve APARECER no mês filtrado?
- * - cancelado: aparece (não soma) — pedido do usuário
- * - indeterminada: aparece em todo mês >= start
- * - parcelado: aparece de start..end (end = start + total - 1)
- * - sem start com número (legado corrompido): NÃO aparece (evita “14/10”)
+/** Pega a competência de início tanto do modelo antigo (Finance) quanto do novo (Account) */
+function getStartComp(f: Finance | Account): Competencia | null {
+  if ('start' in f) {
+    return f.start ?? null; // Finance (legado)
+  }
+  // Account (novo) — início é year/month
+  if ('year' in f && 'month' in f) {
+    return { year: f.year, month: f.month };
+  }
+  return null;
+}
+
+/** Aparece no mês filtrado?
+ * Regras:
+ * - quitado: não aparece
+ * - precisa ter um início (start para Finance, ou {year,month} para Account)
+ * - se mês filtrado < início => não aparece
+ * - indeterminada (X no legado ou null no novo): aparece a partir do início
+ * - parcelado (número): aparece do início até (início + total - 1)
  */
-export function isVisibleInMonth(f: Finance, month: Competencia): boolean {
+export function isVisibleInMonth(
+  f: Finance | Account,
+  month: Competencia
+): boolean {
   if (f.status === 'quitado') return false;
 
-  if (f.parcelasTotal === 'X') {
-    if (!f.start) return false;
-    return monthsDiff(f.start, month) >= 0;
+  const start = getStartComp(f);
+  if (!start) return false;
+
+  const diff = monthsDiff(start, month);
+  if (diff < 0) return false; // antes do início não aparece
+
+  // Indeterminada
+  const isIndet =
+    ('parcelasTotal' in f && (f as any).parcelasTotal === null) ||
+    (f as any).parcelasTotal === 'X';
+
+  if (isIndet) return true;
+
+  // Número de parcelas
+  const total =
+    typeof (f as any).parcelasTotal === 'number'
+      ? (f as any).parcelasTotal
+      : null;
+
+  if (total !== null) {
+    return diff <= total - 1;
   }
 
-  if (typeof f.parcelasTotal === 'number') {
-    if (!f.start) return false; // precisa do início
-    const diff = monthsDiff(f.start, month);
-    return diff >= 0 && diff <= f.parcelasTotal - 1;
-  }
-
-  // sem controle de parcelas: mostra (caso muito legado)
-  return true;
+  return false;
 }
 
-/** Item deve ENTRAR NO TOTAL do mês filtrado?
- * - não soma se cancelado
- * - indeterminada: soma em todo mês >= start
- * - parcelado: soma apenas se dentro do range de parcelas
- */
-export function willCountInMonth(f: Finance, month: Competencia): boolean {
+/** Entra no total do mês filtrado? (igual às regras de visibilidade, mas ignora cancelado/quitado) */
+export function willCountInMonth(
+  f: Finance | Account,
+  month: Competencia
+): boolean {
   if (f.status === 'cancelado' || f.status === 'quitado') return false;
 
-  if (f.parcelasTotal === 'X') {
-    if (!f.start) return false;
-    return monthsDiff(f.start, month) >= 0;
+  const start = getStartComp(f);
+  if (!start) return false;
+
+  const diff = monthsDiff(start, month);
+  if (diff < 0) return false;
+
+  const isIndet =
+    ('parcelasTotal' in f && (f as any).parcelasTotal === null) ||
+    (f as any).parcelasTotal === 'X';
+
+  if (isIndet) return true;
+
+  const total =
+    typeof (f as any).parcelasTotal === 'number'
+      ? (f as any).parcelasTotal
+      : null;
+
+  if (total !== null) {
+    return diff <= total - 1;
   }
 
-  if (typeof f.parcelasTotal === 'number') {
-    if (!f.start) return false;
-    const diff = monthsDiff(f.start, month);
-    return diff >= 0 && diff <= f.parcelasTotal - 1;
-  }
-
-  return true;
+  return false;
 }
 
-/** ---------- internos ---------- */
+/** ---------- internos (legado/seed) ---------- */
 
 function safeJSON<T = unknown>(s: string): T | null {
   try {
@@ -76,7 +112,6 @@ function safeJSON<T = unknown>(s: string): T | null {
   }
 }
 
-/** SEED INICIAL (exemplo) */
 function seedData(): Finance[] {
   const start = todayComp();
   const nowISO = new Date().toISOString();
@@ -101,36 +136,6 @@ function seedData(): Finance[] {
       status: 'ativo',
       createdAt: nowISO,
     },
-    {
-      id: crypto.randomUUID(),
-      pessoa: 'Gustavo',
-      descricao: 'Vivo',
-      valor: 95.0,
-      start,
-      parcelasTotal: 'X',
-      status: 'ativo',
-      createdAt: nowISO,
-    },
-    {
-      id: crypto.randomUUID(),
-      pessoa: 'CartaoMae',
-      descricao: 'Revisão',
-      valor: 140.0,
-      start,
-      parcelasTotal: 6,
-      status: 'ativo',
-      createdAt: nowISO,
-    },
-    {
-      id: crypto.randomUUID(),
-      pessoa: 'Outros',
-      descricao: 'Wesley',
-      valor: 172.0,
-      start,
-      parcelasTotal: 6,
-      status: 'ativo',
-      createdAt: nowISO,
-    },
   ];
 }
 
@@ -143,28 +148,12 @@ function migrate(items: Finance[]): Finance[] {
       const x = String(anyF.parcela).trim().toUpperCase() === 'X';
       if (m) {
         const total = Number(m[2]);
-        const start =
-          f.competencia ?? guessStartFromProgress(f, Number(m[1]), total);
-        return { ...f, start, parcelasTotal: total };
+        return { ...f, start: todayComp(), parcelasTotal: total };
       }
       if (x) {
-        const start = f.competencia ?? todayComp();
-        return { ...f, start, parcelasTotal: 'X' as const };
+        return { ...f, start: todayComp(), parcelasTotal: 'X' as const };
       }
     }
     return f;
   });
-}
-
-/** Deduz início: now - (n-1) meses */
-function guessStartFromProgress(
-  f: Finance,
-  current: number,
-  total: number
-): Competencia {
-  const now = f.competencia ?? todayComp();
-  const idx = now.year * 12 + (now.month - 1) - Math.max(0, current - 1);
-  const year = Math.floor(idx / 12);
-  const month = (idx % 12) + 1;
-  return { year, month };
 }

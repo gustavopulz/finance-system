@@ -1,10 +1,11 @@
 // src/lib/format.ts
-import type { Competencia, Finance } from './types';
 import { monthsDiff } from './date';
+import type { Account, Competencia } from './types';
 
 export const brl = (n: number) =>
   n.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
 
+// Mantido para compatibilidade (retorna número em REAIS)
 export const parseBRL = (s: string) =>
   Number(
     String(s)
@@ -27,17 +28,25 @@ export const MONTHS_PT = [
   '12 - Dezembro',
 ];
 
-/** Texto da coluna "Parcela" no mês filtrado (sem extrapolar tipo 14/10) */
-export function parcelaLabel(f: Finance, inMonth: Competencia): string {
+/**
+ * Rótulo de parcela para o modelo novo (Account) considerando a competência atual.
+ * - cancelado -> "—"
+ * - parcelasTotal === null -> "Indeterminada"
+ * - parcelasTotal = número -> "k/N", onde k = monthsDiff(início, atual) + 1 (clamp 1..N)
+ * - se k > N -> "Quitado"
+ * OBS: visibilidade é controlada por isVisibleInMonth; aqui é só o rótulo.
+ */
+export function parcelaLabel(f: Account, inMonth: Competencia): string {
   if (f.status === 'cancelado') return '—';
-  if (f.parcelasTotal === 'X') return 'Indeterminada';
-  if (typeof f.parcelasTotal === 'number' && f.start) {
-    const k = monthsDiff(f.start, inMonth) + 1; // 1..N
+  if (f.parcelasTotal === null) return 'Indeterminada';
+
+  if (typeof f.parcelasTotal === 'number') {
+    const start = { year: f.year, month: f.month };
+    const k = monthsDiff(start, inMonth) + 1; // 1..N
     if (k < 1) return `1/${f.parcelasTotal}`;
     if (k > f.parcelasTotal) return 'Quitado';
-    // clamp para não mostrar 14/10
-    const shown = Math.min(k, f.parcelasTotal);
-    return `${shown}/${f.parcelasTotal}`;
+    return `${Math.min(k, f.parcelasTotal)}/${f.parcelasTotal}`;
   }
+
   return '-';
 }

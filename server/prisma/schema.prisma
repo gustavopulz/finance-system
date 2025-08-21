@@ -1,0 +1,41 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+enum Status {
+  ativo
+  cancelado
+  quitado
+}
+
+model Collaborator {
+  id        Int       @id @default(autoincrement())
+  name      String
+  createdAt DateTime  @default(now())
+  accounts  Account[]
+}
+
+model Account {
+  id             Int       @id @default(autoincrement())
+  collaboratorId Int
+  description    String
+  value          Decimal    @db.Decimal(10,2)
+
+  // parcelamento: se NULL => indeterminada
+  parcelasTotal  Int?
+  startMonth     Int        // 1..12
+  startYear      Int
+
+  status         Status     @default(ativo)
+  createdAt      DateTime   @default(now())
+
+  collaborator   Collaborator @relation(fields: [collaboratorId], references: [id])
+
+  @@index([collaboratorId])
+  @@index([startYear, startMonth])
+}

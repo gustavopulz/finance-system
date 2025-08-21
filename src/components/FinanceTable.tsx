@@ -1,61 +1,149 @@
-// src/components/FinanceTable.tsx
 import { parcelaLabel, brl } from '../lib/format';
-import type { Finance } from '../lib/types';
-import { Pencil, Trash2, Ban } from 'lucide-react';
-import { willCountInMonth } from '../lib/storage';
+import type { Account } from '../lib/types';
+import { ArrowUpDown, Trash2 } from 'lucide-react';
+import { useMemo, useState } from 'react';
+import { deleteCollab } from '../lib/api';
 
-type Props = {
-  title: string;
-  items: Finance[];
-  currentComp: { year: number; month: number };
-  onDelete: (id: string) => void;
-  onEdit: (f: Finance) => void;
-  onCancelToggle: (id: string) => void; // toggle cancelado/ativo
-};
+type SortKey = 'description' | 'value' | 'parcelas' | 'status';
+type SortDir = 'asc' | 'desc';
 
 export default function FinanceTable({
+  collaboratorId,
   title,
   items,
   currentComp,
   onDelete,
   onEdit,
   onCancelToggle,
-}: Props) {
-  const total = items
-    .filter((f) => willCountInMonth(f, currentComp))
-    .reduce((acc, f) => acc + f.valor, 0);
+  onCollabDeleted,
+}: {
+  collaboratorId: number;
+  title: string;
+  items: Account[];
+  currentComp: { year: number; month: number };
+  onDelete: (id: number) => void;
+  onEdit: (a: Account) => void;
+  onCancelToggle: (id: number) => void;
+  onCollabDeleted: (id: number) => void;
+}) {
+  const [sortKey, setSortKey] = useState<SortKey>('description');
+  const [sortDir, setSortDir] = useState<SortDir>('asc');
+  const [showConfirm, setShowConfirm] = useState(false);
+  const [toast, setToast] = useState<string | null>(null);
+
+  function toggleSort(key: SortKey) {
+    if (key === sortKey) setSortDir((d) => (d === 'asc' ? 'desc' : 'asc'));
+    else {
+      setSortKey(key);
+      setSortDir('desc');
+    }
+  }
+
+  const data = useMemo(() => {
+    const copy = [...items];
+    copy.sort((a, b) => {
+      let va: any, vb: any;
+      switch (sortKey) {
+        case 'value':
+          va = a.value;
+          vb = b.value;
+          break;
+        case 'status':
+          va = a.status;
+          vb = b.status;
+          break;
+        case 'parcelas': {
+          const la = parcelaLabel(a, currentComp);
+          const lb = parcelaLabel(b, currentComp);
+          va =
+            la === 'Indeterminada'
+              ? Number.MAX_SAFE_INTEGER
+              : Number(la.split('/')[0]) || 0;
+          vb =
+            lb === 'Indeterminada'
+              ? Number.MAX_SAFE_INTEGER
+              : Number(lb.split('/')[0]) || 0;
+          break;
+        }
+        default:
+          va = a.description.toLowerCase();
+          vb = b.description.toLowerCase();
+      }
+      if (va < vb) return sortDir === 'asc' ? -1 : 1;
+      if (va > vb) return sortDir === 'asc' ? 1 : -1;
+      return 0;
+    });
+    return copy;
+  }, [items, sortKey, sortDir, currentComp]);
+
+  const total = data
+    .filter((f) => f.status !== 'cancelado')
+    .reduce((acc, f) => acc + Number(f.value), 0);
+
+  const Th = ({ label, keyName }: { label: string; keyName: SortKey }) => (
+    <th
+      className="cursor-pointer select-none"
+      onClick={() => toggleSort(keyName)}
+    >
+      <span className="inline-flex items-center gap-1">
+        {label}
+        <ArrowUpDown size={14} />
+      </span>
+    </th>
+  );
+
+  async function confirmDelete() {
+    await deleteCollab(collaboratorId);
+    onCollabDeleted(collaboratorId);
+
+    setShowConfirm(false);
+    setToast(`Colaborador "${title}" excluído com sucesso ✅`);
+
+    // Remove toast depois de 3s
+    setTimeout(() => setToast(null), 3000);
+  }
 
   return (
-    <section className="card p-4">
-      <div className="flex items-center justify-between">
+    <section className="card p-4 relative">
+      {/* Cabeçalho */}
+      <div className="flex items-center justify-between mb-2">
         <h3 className="text-lg font-semibold">{title}</h3>
-        <div className="badge">Total: {brl(total)}</div>
+
+        <div className="flex items-center gap-2">
+          <div className="badge">Total: {brl(Number(total))}</div>
+          <button
+            onClick={() => setShowConfirm(true)}
+            className="text-red-500 hover:text-red-700 text-sm font-medium flex items-center gap-1"
+          >
+            <Trash2 size={16} /> Excluir colaborador
+          </button>
+        </div>
       </div>
 
-      <div className="overflow-x-auto mt-3">
+      {/* Tabela */}
+      <div className="overflow-x-auto">
         <table className="table">
           <thead>
             <tr>
-              <th>Descrição</th>
-              <th className="w-28">Valor</th>
-              <th className="w-28">Parcela</th>
-              <th className="w-24">Status</th>
+              <Th label="Descrição" keyName="description" />
+              <Th label="Valor" keyName="value" />
+              <Th label="Parcela" keyName="parcelas" />
+              <Th label="Status" keyName="status" />
               <th className="w-36"></th>
             </tr>
           </thead>
           <tbody>
-            {items.map((f, idx) => (
+            {data.map((f, idx) => (
               <tr
                 key={f.id}
                 className={
-                  'align-middle ' +
-                  (idx % 2 === 0
+                  idx % 2 === 0
                     ? 'bg-slate-50 dark:bg-slate-900/40'
-                    : 'bg-white dark:bg-slate-800/40')
+                    : 'bg-white dark:bg-slate-800/40'
                 }
               >
-                <td className="font-medium px-3 py-3">{f.descricao}</td>
-                <td className="px-3 py-3">{brl(f.valor)}</td>
+                <td className="px-3 py-3 font-medium">{f.description}</td>
+                <td className="px-3 py-3">{brl(Number(f.value))}</td>
                 <td className="px-3 py-3">{parcelaLabel(f, currentComp)}</td>
                 <td className="px-3 py-3">
                   <span
@@ -68,40 +156,35 @@ export default function FinanceTable({
                           : 'bg-gray-200 text-gray-700 dark:bg-gray-600 dark:text-gray-300')
                     }
                   >
-                    {f.status ?? 'ativo'}
+                    {f.status}
                   </span>
                 </td>
-
-                <td className="flex gap-1 px-3 py-3">
+                <td className="px-3 py-3 flex gap-1">
                   <button
                     className="btn btn-ghost"
-                    title="Editar"
                     onClick={() => onEdit(f)}
+                    title="Editar"
                   >
-                    <Pencil size={18} />
+                    ✏️
                   </button>
                   <button
                     className="btn btn-ghost"
-                    title={
-                      f.status === 'cancelado'
-                        ? 'Ativar novamente'
-                        : 'Cancelar (não soma)'
-                    }
                     onClick={() => onCancelToggle(f.id)}
+                    title="Cancelar / Ativar"
                   >
-                    <Ban size={18} />
+                    🚫
                   </button>
                   <button
                     className="btn btn-ghost"
-                    title="Excluir (remove do histórico)"
                     onClick={() => onDelete(f.id)}
+                    title="Excluir lançamento"
                   >
-                    <Trash2 size={18} />
+                    🗑️
                   </button>
                 </td>
               </tr>
             ))}
-            {items.length === 0 && (
+            {data.length === 0 && (
               <tr>
                 <td colSpan={5} className="py-6 text-center text-slate-500">
                   Sem lançamentos
@@ -111,6 +194,40 @@ export default function FinanceTable({
           </tbody>
         </table>
       </div>
+
+      {/* Modal de confirmação */}
+      {showConfirm && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+          <div className="bg-white dark:bg-slate-800 rounded-lg p-6 shadow-lg max-w-sm w-full">
+            <h2 className="text-lg font-semibold mb-4">Excluir colaborador</h2>
+            <p className="mb-6">
+              Tem certeza que deseja excluir <b>{title}</b>? Essa ação não pode
+              ser desfeita.
+            </p>
+            <div className="flex justify-end gap-2">
+              <button
+                onClick={() => setShowConfirm(false)}
+                className="px-4 py-2 rounded bg-gray-200 dark:bg-slate-700"
+              >
+                Cancelar
+              </button>
+              <button
+                onClick={confirmDelete}
+                className="px-4 py-2 rounded bg-red-600 text-white"
+              >
+                Excluir
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Toast */}
+      {toast && (
+        <div className="fixed bottom-5 right-5 bg-green-600 text-white px-4 py-2 rounded shadow-lg z-50">
+          {toast}
+        </div>
+      )}
     </section>
   );
 }

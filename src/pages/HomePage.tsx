@@ -1,85 +1,98 @@
-// src/pages/HomePage.tsx
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useState } from 'react';
+import type { Account, Collaborator } from '../lib/types';
+import { MONTHS_PT, brl } from '../lib/format';
+import { todayComp } from '../lib/date';
 import FinanceTable from '../components/FinanceTable';
 import FinanceDialog from '../components/AddFinanceDialog';
-import {
-  loadFinances,
-  saveFinances,
-  isVisibleInMonth,
-  willCountInMonth,
-} from '../lib/storage';
-import type { Finance } from '../lib/types';
-import { brl, MONTHS_PT } from '../lib/format';
-import { todayComp } from '../lib/date';
-import { Plus, Filter } from 'lucide-react';
+import AddCollaboratorDialog from '../components/AddCollaboratorDialog';
+import { Plus, Filter, UserPlus } from 'lucide-react';
+import { isVisibleInMonth } from '../lib/storage';
+import * as api from '../lib/api';
 
 type DialogState =
   | { mode: 'closed' }
-  | { mode: 'add' }
-  | { mode: 'edit'; finance: Finance };
+  | { mode: 'addAccount' }
+  | { mode: 'editAccount'; account: Account }
+  | { mode: 'addCollab' };
 
 export default function HomePage() {
-  const [items, setItems] = useState<Finance[]>(() => loadFinances());
-  const [dlg, setDlg] = useState<DialogState>({ mode: 'closed' });
-
-  // Filtro por mês/ano
   const now = todayComp();
-  const [month, setMonth] = useState<number>(now.month);
-  const [year, setYear] = useState<number>(now.year);
-  const currentComp = { month, year };
+  const [month, setMonth] = useState(now.month);
+  const [year, setYear] = useState(now.year);
+
+  const [dlg, setDlg] = useState<DialogState>({ mode: 'closed' });
+  const [collabs, setCollabs] = useState<Collaborator[]>([]);
+  const [accounts, setAccounts] = useState<Account[]>([]);
+
+  async function load() {
+    const [c, a] = await Promise.all([
+      api.listCollabs(),
+      api.listAccounts(month, year),
+    ]);
+    setCollabs(c as Collaborator[]);
+    setAccounts(a as Account[]);
+  }
 
   useEffect(() => {
-    saveFinances(items);
-  }, [items]);
+    load();
+  }, [month, year]);
 
-  // aplica visibilidade correta
-  const visible = useMemo(
-    () => items.filter((i) => isVisibleInMonth(i, currentComp)),
-    [items, currentComp]
-  );
+  const currentComp = { year, month };
 
-  const group = (p: string) => visible.filter((i) => i.pessoa === p);
-  const byAmanda = group('Amanda');
-  const byGustavo = group('Gustavo');
-  const byMae = group('CartaoMae');
-  const byOutros = group('Outros');
-
-  const totalGeral = visible
-    .filter((f) => willCountInMonth(f, currentComp))
-    .reduce((a, b) => a + b.valor, 0);
-
-  function addOrUpdate(fin: Omit<Finance, 'id'> & { id?: string }) {
-    setItems((prev) =>
-      fin.id
-        ? prev.map((p) => (p.id === fin.id ? { ...p, ...fin } : p))
-        : [{ id: crypto.randomUUID(), ...fin }, ...prev]
+  const byCollab = (id: number) =>
+    accounts.filter(
+      (a) => a.collaboratorId === id && isVisibleInMonth(a, currentComp)
     );
+
+  const totalGeral = accounts
+    .filter((a) => a.status !== 'cancelado' && isVisibleInMonth(a, currentComp))
+    .reduce((s, a) => s + Number(a.value), 0);
+
+  // CRUD handlers
+  async function addOrUpdateAccount(
+    payload: Omit<
+      Account,
+      'id' | 'createdAt' | 'updatedAt' | 'collaboratorName' | 'cancelledAt'
+    >,
+    idToUpdate?: number
+  ) {
+    if (idToUpdate) {
+      await api.updateAccount(idToUpdate, payload);
+    } else {
+      await api.addAccount(payload);
+    }
+    setDlg({ mode: 'closed' });
+    await load();
   }
 
-  function remove(id: string) {
-    setItems((prev) => prev.filter((i) => i.id !== id)); // exclui do histórico
+  async function removeAccount(id: number) {
+    await api.deleteAccount(id);
+    await load();
   }
 
-  // TOGGLE cancelado/ativo
-  function cancelToggle(id: string) {
-    setItems((prev) =>
-      prev.map((i) => {
-        if (i.id !== id) return i;
-        const nextStatus = i.status === 'cancelado' ? 'ativo' : 'cancelado';
-        return { ...i, status: nextStatus };
-      })
-    );
+  async function toggleCancel(id: number) {
+    await api.toggleCancel(id);
+    await load();
+  }
+
+  async function createCollab(name: string) {
+    if (collabs.some((c) => c.name.toLowerCase() === name.toLowerCase())) {
+      alert('Já existe um colaborador com esse nome!');
+      return;
+    }
+    await api.addCollab(name);
+    setDlg({ mode: 'closed' });
+    await load();
   }
 
   return (
     <div className="grid gap-6">
       <div className="card p-4">
-        <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+        <div className="flex flex-row items-center justify-between flex-wrap gap-2">
           <h1 className="text-xl font-bold">Resumo</h1>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 flex-wrap">
             <span className="inline-flex items-center gap-2 text-slate-600">
-              <Filter size={16} />
-              Filtros:
+              <Filter size={16} /> Filtros:
             </span>
             <select
               className="select w-44"
@@ -99,8 +112,14 @@ export default function HomePage() {
               onChange={(e) => setYear(Number(e.target.value))}
             />
             <button
+              className="btn btn-ghost"
+              onClick={() => setDlg({ mode: 'addCollab' })}
+            >
+              <UserPlus size={18} /> Adicionar colaborador
+            </button>
+            <button
               className="btn btn-primary"
-              onClick={() => setDlg({ mode: 'add' })}
+              onClick={() => setDlg({ mode: 'addAccount' })}
             >
               <Plus size={18} /> Adicionar finança
             </button>
@@ -108,39 +127,34 @@ export default function HomePage() {
         </div>
       </div>
 
+      {/* Cards dinâmicos por colaborador */}
       <div className="flex flex-col gap-6">
-        <FinanceTable
-          title="Contas Amanda"
-          items={byAmanda}
-          currentComp={currentComp}
-          onDelete={remove}
-          onEdit={(f) => setDlg({ mode: 'edit', finance: f })}
-          onCancelToggle={cancelToggle}
-        />
-        <FinanceTable
-          title="Contas Gustavo"
-          items={byGustavo}
-          currentComp={currentComp}
-          onDelete={remove}
-          onEdit={(f) => setDlg({ mode: 'edit', finance: f })}
-          onCancelToggle={cancelToggle}
-        />
-        <FinanceTable
-          title="Cartão Família"
-          items={byMae}
-          currentComp={currentComp}
-          onDelete={remove}
-          onEdit={(f) => setDlg({ mode: 'edit', finance: f })}
-          onCancelToggle={cancelToggle}
-        />
-        <FinanceTable
-          title="Outros"
-          items={byOutros}
-          currentComp={currentComp}
-          onDelete={remove}
-          onEdit={(f) => setDlg({ mode: 'edit', finance: f })}
-          onCancelToggle={cancelToggle}
-        />
+        {collabs.map((c) => (
+          <FinanceTable
+            key={c.id}
+            collaboratorId={c.id}
+            title={c.name}
+            items={byCollab(c.id)}
+            currentComp={currentComp}
+            onDelete={(id) => {
+              removeAccount(id);
+            }}
+            onEdit={(account) => setDlg({ mode: 'editAccount', account })}
+            onCancelToggle={(id) => {
+              toggleCancel(id);
+            }}
+            onCollabDeleted={(id) => {
+              // remove o card sem F5
+              setCollabs((prev) => prev.filter((cc) => cc.id !== id));
+            }}
+          />
+        ))}
+        {collabs.length === 0 && (
+          <div className="card p-6 text-center text-slate-500">
+            Nenhum colaborador. Clique em <strong>Adicionar colaborador</strong>{' '}
+            para começar.
+          </div>
+        )}
       </div>
 
       <div className="card p-4">
@@ -150,10 +164,18 @@ export default function HomePage() {
         </div>
       </div>
 
-      {dlg.mode !== 'closed' && (
+      {dlg.mode === 'addCollab' && (
+        <AddCollaboratorDialog
+          onClose={() => setDlg({ mode: 'closed' })}
+          onSave={createCollab}
+        />
+      )}
+
+      {(dlg.mode === 'addAccount' || dlg.mode === 'editAccount') && (
         <FinanceDialog
-          initial={dlg.mode === 'edit' ? dlg.finance : undefined}
-          onSave={addOrUpdate}
+          initial={dlg.mode === 'editAccount' ? dlg.account : undefined}
+          collaborators={collabs.map((c) => ({ id: c.id, name: c.name }))}
+          onSave={addOrUpdateAccount}
           onClose={() => setDlg({ mode: 'closed' })}
         />
       )}

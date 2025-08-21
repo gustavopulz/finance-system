@@ -36,9 +36,15 @@ body {
 }
 .input,
 .select {
-  @apply w-full rounded-xl border border-slate-200 px-3 py-2 bg-white
+  @apply rounded-xl border border-slate-200 px-3 py-2 bg-white
          focus:outline-none focus:ring-2 focus:ring-brand-500
          dark:bg-slate-900 dark:border-slate-700;
+}
+
+/* se quiser um helper pra full width em formulários */
+.input-full,
+.select-full {
+  @apply w-full;
 }
 
 /* Tabela */

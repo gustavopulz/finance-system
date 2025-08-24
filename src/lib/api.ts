@@ -41,6 +41,32 @@ async function json<T>(url: string, options: RequestInit = {}): Promise<T> {
 }
 
 // -------------------- AUTH --------------------
+// -------------------- USERS (Admin) --------------------
+export function listUsers() {
+  return json<{ id: number; username: string; role: string }[]>(
+    `${API_URL}/users`
+  );
+}
+
+export function addUser(
+  username: string,
+  password: string,
+  role: string = 'user'
+) {
+  return json<{ id: number; username: string; role: string }>(
+    `${API_URL}/users`,
+    {
+      method: 'POST',
+      body: JSON.stringify({ username, password, role }),
+    }
+  );
+}
+
+export function deleteUser(id: number) {
+  return json<{ success: boolean }>(`${API_URL}/users/${id}`, {
+    method: 'DELETE',
+  });
+}
 export async function login(username: string, password: string) {
   const data = await json<{
     token: string;
@@ -60,14 +86,21 @@ export function logout() {
 }
 
 // -------------------- COLLABORATORS --------------------
+// Agora cada colaborador é vinculado ao usuário logado
 export function listCollabs() {
-  return json<{ id: number; name: string }[]>(`${API_URL}/collabs`);
+  const auth = JSON.parse(localStorage.getItem('auth') || '{}');
+  const userId = auth?.user?.id;
+  return json<{ id: number; name: string }[]>(
+    `${API_URL}/collabs?userId=${userId}`
+  );
 }
 
 export function addCollab(name: string) {
+  const auth = JSON.parse(localStorage.getItem('auth') || '{}');
+  const userId = auth?.user?.id;
   return json<{ id: number; name: string }>(`${API_URL}/collabs`, {
     method: 'POST',
-    body: JSON.stringify({ nome: name }),
+    body: JSON.stringify({ nome: name, userId }),
   });
 }
 
@@ -81,6 +114,27 @@ export function deleteCollab(id: number) {
 export function listAccounts(month: number, year: number) {
   // seu backend pode ignorar os filtros; mantemos para futuro
   return json<any[]>(`${API_URL}/accounts?month=${month}&year=${year}`);
+}
+
+// -------------------- SHARE TOKEN --------------------
+export function generateShareToken() {
+  return json<{ token: string }>(`${API_URL}/shared/generate-token`, {
+    method: 'POST',
+  });
+}
+
+export function useShareToken(token: string) {
+  return json<{ success?: boolean; error?: string }>(
+    `${API_URL}/shared/use-token`,
+    {
+      method: 'POST',
+      body: JSON.stringify({ token }),
+    }
+  );
+}
+
+export function getMergedFinances() {
+  return json<{ own: any[]; shared: any[] }>(`${API_URL}/shared/finances`);
 }
 
 export function addAccount(payload: any) {
@@ -101,6 +155,13 @@ export function deleteAccount(id: number) {
   return json(`${API_URL}/accounts/${id}`, { method: 'DELETE' });
 }
 
-export function toggleCancel(id: number) {
-  return json(`${API_URL}/accounts/${id}/toggle-cancel`, { method: 'PATCH' });
+// Permite enviar mês/ano do filtro atual
+export function toggleCancel(id: number, month?: number, year?: number) {
+  const body: any = {};
+  if (month) body.month = month;
+  if (year) body.year = year;
+  return json(`${API_URL}/accounts/${id}/toggle-cancel`, {
+    method: 'PATCH',
+    body: JSON.stringify(body),
+  });
 }

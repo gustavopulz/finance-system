@@ -1,9 +1,13 @@
 import { useEffect, useState } from 'react';
-import { listCollabs, addCollab, deleteCollab } from '../lib/api';
+import { listUsers, addUser, deleteUser } from '../lib/api';
 
 export default function AdminPage() {
-  const [collabs, setCollabs] = useState<{ id: number; name: string }[]>([]);
-  const [newName, setNewName] = useState('');
+  const [users, setUsers] = useState<
+    { id: number; username: string; role: string }[]
+  >([]);
+  const [newUsername, setNewUsername] = useState('');
+  const [newPassword, setNewPassword] = useState('');
+  const [newRole, setNewRole] = useState('user');
 
   // Carregar colaboradores ao entrar
   useEffect(() => {
@@ -11,59 +15,78 @@ export default function AdminPage() {
   }, []);
 
   async function refresh() {
-    const data = await listCollabs();
-    setCollabs(data);
+    const data = await listUsers();
+    setUsers(data);
   }
 
   async function handleAdd(e: React.FormEvent) {
     e.preventDefault();
-    if (!newName.trim()) return;
+    if (!newUsername.trim() || !newPassword.trim()) return;
     try {
-      await addCollab(newName);
-      setNewName('');
+      await addUser(newUsername, newPassword, newRole);
+      setNewUsername('');
+      setNewPassword('');
+      setNewRole('user');
       await refresh();
     } catch (err: any) {
-      alert(err.message || 'Erro ao adicionar colaborador');
+      alert(err.message || 'Erro ao adicionar usuário');
     }
   }
 
   async function handleDelete(id: number) {
-    if (!confirm('Tem certeza que deseja excluir este colaborador?')) return;
+    if (!confirm('Tem certeza que deseja excluir este usuário?')) return;
     try {
-      await deleteCollab(id);
+      await deleteUser(id);
       await refresh();
     } catch (err: any) {
-      alert(err.message || 'Erro ao excluir colaborador');
+      alert(err.message || 'Erro ao excluir usuário');
     }
   }
 
   return (
     <div className="max-w-lg mx-auto">
-      <h1 className="text-2xl font-bold mb-6">Administração</h1>
+      <h1 className="text-2xl font-bold mb-6">Administração de Usuários</h1>
 
-      {/* Formulário para adicionar colaborador */}
-      <form onSubmit={handleAdd} className="flex gap-2 mb-6">
+      {/* Formulário para adicionar usuário */}
+      <form onSubmit={handleAdd} className="flex flex-col gap-2 mb-6">
         <input
-          className="input input-bordered flex-1"
-          placeholder="Novo colaborador"
-          value={newName}
-          onChange={(e) => setNewName(e.target.value)}
+          className="input input-bordered"
+          placeholder="Novo usuário"
+          value={newUsername}
+          onChange={(e) => setNewUsername(e.target.value)}
         />
+        <input
+          className="input input-bordered"
+          type="password"
+          placeholder="Senha"
+          value={newPassword}
+          onChange={(e) => setNewPassword(e.target.value)}
+        />
+        <select
+          className="select"
+          value={newRole}
+          onChange={(e) => setNewRole(e.target.value)}
+        >
+          <option value="user">Usuário</option>
+          <option value="admin">Administrador</option>
+        </select>
         <button className="btn btn-primary" type="submit">
-          Adicionar
+          Adicionar usuário
         </button>
       </form>
 
-      {/* Lista de colaboradores */}
+      {/* Lista de usuários */}
       <ul className="space-y-2">
-        {collabs.map((c) => (
+        {users.map((u) => (
           <li
-            key={c.id}
-            className="flex items-center justify-between p-3 border rounded-lg bg-white shadow-sm"
+            key={u.id}
+            className="flex items-center justify-between p-3 border rounded-lg bg-white shadow-sm dark:bg-slate-800 dark:border-slate-700 dark:shadow-lg"
           >
-            <span>{c.name}</span>
+            <span>
+              {u.username} <span className="badge ml-2">{u.role}</span>
+            </span>
             <button
-              onClick={() => handleDelete(c.id)}
+              onClick={() => handleDelete(u.id)}
               className="btn btn-sm btn-error"
             >
               Excluir

@@ -97,24 +97,28 @@ app.post('/api/login', async (req, res) => {
 // -------------------------
 // Rotas de Colaboradores
 // -------------------------
-app.get('/api/collabs', auth(), async (req, res) => {
-  const [rows] = await db.query('SELECT * FROM collaborators ORDER BY id DESC');
+app.get('/api/collabs', auth(), async (req: any, res) => {
+  // userId pode vir do query ou do token
+  const userId = Number(req.query.userId) || req.user.id;
+  const [rows] = await db.query(
+    'SELECT * FROM collaborators WHERE userId = ? ORDER BY id DESC',
+    [userId]
+  );
   res.json(rows);
 });
 
-app.post('/api/collabs', auth(), async (req, res) => {
-  const { nome } = req.body;
-
+app.post('/api/collabs', auth(), async (req: any, res) => {
+  const { nome, userId } = req.body;
+  const uid = userId || req.user.id;
   if (!nome || nome.trim() === '') {
     return res.status(400).json({ error: 'Nome é obrigatório' });
   }
-
   try {
     const [result]: any = await db.query(
-      'INSERT INTO collaborators (name) VALUES (?)',
-      [nome.trim()]
+      'INSERT INTO collaborators (name, userId) VALUES (?, ?)',
+      [nome.trim(), uid]
     );
-    res.json({ id: result.insertId, name: nome.trim() });
+    res.json({ id: result.insertId, name: nome.trim(), userId: uid });
   } catch (err: any) {
     if (err.code === 'ER_DUP_ENTRY') {
       return res
@@ -135,27 +139,28 @@ app.delete('/api/collabs/:id', auth(), async (req, res) => {
 // -------------------------
 // Rotas de Contas
 // -------------------------
-app.get('/api/accounts', auth(), async (req, res) => {
-  const { month, year } = req.query;
-
+app.get('/api/accounts', auth(), async (req: any, res) => {
+  const { month, year, userId } = req.query;
+  const uid = Number(userId) || req.user.id;
+  let rows;
   if (!month || !year) {
-    const [rows] = await db.query('SELECT * FROM accounts ORDER BY id DESC');
+    [rows] = await db.query(
+      'SELECT * FROM accounts WHERE userId = ? ORDER BY id DESC',
+      [uid]
+    );
     return res.json(rows);
   }
-
-  // devolve apenas contas a partir do mês/ano informado
-  const [rows] = await db.query(
+  [rows] = await db.query(
     `SELECT * 
      FROM accounts 
-     WHERE (year > ? OR (year = ? AND month >= ?))
+     WHERE userId = ? AND (year > ? OR (year = ? AND month >= ?))
      ORDER BY id DESC`,
-    [year, year, month]
+    [uid, year, year, month]
   );
-
   res.json(rows);
 });
 
-app.post('/api/accounts', auth(), async (req, res) => {
+app.post('/api/accounts', auth(), async (req: any, res) => {
   const {
     collaboratorId,
     description,
@@ -164,16 +169,16 @@ app.post('/api/accounts', auth(), async (req, res) => {
     month,
     year,
     status,
+    userId,
   } = req.body;
-
+  const uid = userId || req.user.id;
   if (!collaboratorId || !description || !value || !month || !year) {
     return res
       .status(400)
       .json({ error: 'Preencha todos os campos obrigatórios' });
   }
-
   const [result]: any = await db.query(
-    'INSERT INTO accounts (collaboratorId, description, value, parcelasTotal, month, year, status) VALUES (?, ?, ?, ?, ?, ?, ?)',
+    'INSERT INTO accounts (collaboratorId, description, value, parcelasTotal, month, year, status, userId) VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
     [
       collaboratorId,
       description.trim(),
@@ -182,9 +187,9 @@ app.post('/api/accounts', auth(), async (req, res) => {
       month,
       year,
       status || 'ativo',
+      uid,
     ]
   );
-
   res.json({
     id: result.insertId,
     collaboratorId,
@@ -194,6 +199,7 @@ app.post('/api/accounts', auth(), async (req, res) => {
     month,
     year,
     status: status || 'ativo',
+    userId: uid,
   });
 });
 
@@ -208,12 +214,13 @@ app.put('/api/accounts/:id', auth(), async (req, res) => {
     month,
     year,
     status,
+    cancelledAt, // <-- ADICIONADO
   } = req.body;
 
   try {
     await db.query(
       `UPDATE accounts 
-       SET collaboratorId=?, description=?, value=?, parcelasTotal=?, month=?, year=?, status=? 
+       SET collaboratorId=?, description=?, value=?, parcelasTotal=?, month=?, year=?, status=?, cancelledAt=? 
        WHERE id=?`,
       [
         collaboratorId,
@@ -223,6 +230,7 @@ app.put('/api/accounts/:id', auth(), async (req, res) => {
         month,
         year,
         status,
+        cancelledAt, // <-- ADICIONADO
         id,
       ]
     );
@@ -246,14 +254,41 @@ app.patch('/api/accounts/:id/toggle-cancel', auth(), async (req, res) => {
     }
 
     const currentStatus = rows[0].status;
-    const newStatus = currentStatus === 'cancelado' ? 'ativo' : 'cancelado';
+    let newStatus, cancelledAt;
 
-    await db.query('UPDATE accounts SET status = ? WHERE id = ?', [
-      newStatus,
-      id,
-    ]);
+    if (currentStatus === 'cancelado') {
+      newStatus = 'ativo';
+      cancelledAt = null;
+      await db.query(
+        'UPDATE accounts SET status = ?, cancelledAt = NULL WHERE id = ?',
+        [newStatus, id]
+      );
+    } else {
+      newStatus = 'cancelado';
+      // Permite que o frontend envie o mês/ano do cancelamento
+      const { month, year } = req.body;
+      let cancelledYear, cancelledMonth;
+      if (month && year) {
+        cancelledYear = Number(year);
+        cancelledMonth = Number(month);
+      } else {
+        // fallback para data atual do sistema
+        const now = new Date();
+        cancelledYear = now.getFullYear();
+        cancelledMonth = now.getMonth() + 1;
+      }
+      cancelledAt = new Date(
+        cancelledYear,
+        cancelledMonth - 1,
+        1
+      ).toISOString();
+      await db.query(
+        'UPDATE accounts SET status = ?, cancelledAt = ? WHERE id = ?',
+        [newStatus, cancelledAt, id]
+      );
+    }
 
-    res.json({ id, status: newStatus });
+    res.json({ id, status: newStatus, cancelledAt });
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: 'Erro ao atualizar status' });

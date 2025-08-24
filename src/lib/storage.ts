@@ -36,6 +36,22 @@ export function isVisibleInMonth(
       return false;
     }
 
+    // Se status for cancelado, só aparece até o mês/ano do cancelamento (inclusive)
+    if (f.status === 'cancelado') {
+      if (!f.cancelledAt) return false;
+      const cancelledDate = new Date(f.cancelledAt);
+      const cancelledYear = cancelledDate.getFullYear();
+      const cancelledMonth = cancelledDate.getMonth() + 1;
+      // Só não exibe se o mês filtrado for maior que o mês/ano do cancelamento
+      if (
+        month.year > cancelledYear ||
+        (month.year === cancelledYear && month.month > cancelledMonth)
+      ) {
+        return false;
+      }
+      // Exibe se for igual ou menor
+    }
+
     const diff = monthsDiff(start, month);
     if (diff < 0) return false; // antes do início, não mostra
 

@@ -37,8 +37,21 @@ export const MONTHS_PT = [
  * OBS: visibilidade é controlada por isVisibleInMonth; aqui é só o rótulo.
  */
 export function parcelaLabel(f: Account, inMonth: Competencia): string {
-  if (f.status === 'cancelado') return '—';
-  if (f.parcelasTotal === null) return 'Indeterminada';
+  // Se cancelado, só mostra '—' se o mês filtrado for após o cancelamento
+  if (f.status === 'cancelado' && f.cancelledAt) {
+    const cancelledDate = new Date(f.cancelledAt);
+    const cancelledYear = cancelledDate.getFullYear();
+    const cancelledMonth = cancelledDate.getMonth() + 1;
+    if (
+      inMonth.year > cancelledYear ||
+      (inMonth.year === cancelledYear && inMonth.month > cancelledMonth)
+    ) {
+      return '—';
+    }
+    // Se ainda está visível, mostra o label normal
+  }
+  if (f.parcelasTotal === null) return 'Fixo';
+  if (f.parcelasTotal === 0) return '-';
 
   if (typeof f.parcelasTotal === 'number') {
     const start = { year: f.year, month: f.month };

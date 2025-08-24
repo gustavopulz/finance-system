@@ -30,6 +30,7 @@ export default function FinanceTable({
   const [sortDir, setSortDir] = useState<SortDir>('asc');
   const [showConfirm, setShowConfirm] = useState(false);
   const [toast, setToast] = useState<string | null>(null);
+  const [financaToDelete, setFinancaToDelete] = useState<Account | null>(null);
 
   function toggleSort(key: SortKey) {
     if (key === sortKey) setSortDir((d) => (d === 'asc' ? 'desc' : 'asc'));
@@ -92,14 +93,19 @@ export default function FinanceTable({
     </th>
   );
 
-  async function confirmDelete() {
+  async function confirmDeleteCollab() {
     await deleteCollab(collaboratorId);
     onCollabDeleted(collaboratorId);
-
     setShowConfirm(false);
     setToast(`Colaborador "${title}" excluído com sucesso ✅`);
+    setTimeout(() => setToast(null), 3000);
+  }
 
-    // Remove toast depois de 3s
+  async function confirmDeleteFinanca() {
+    if (!financaToDelete) return;
+    await onDelete(financaToDelete.id);
+    setFinancaToDelete(null);
+    setToast(`Finança excluída com sucesso ✅`);
     setTimeout(() => setToast(null), 3000);
   }
 
@@ -129,6 +135,7 @@ export default function FinanceTable({
               <Th label="Valor" keyName="value" />
               <Th label="Parcela" keyName="parcelas" />
               <Th label="Status" keyName="status" />
+              <th>Cancelado em</th>
               <th className="w-36"></th>
             </tr>
           </thead>
@@ -159,6 +166,14 @@ export default function FinanceTable({
                     {f.status}
                   </span>
                 </td>
+                <td className="py-3 text-xs text-slate-500">
+                  {f.cancelledAt
+                    ? new Date(f.cancelledAt).toLocaleDateString('pt-BR', {
+                        year: 'numeric',
+                        month: '2-digit',
+                      })
+                    : ''}
+                </td>
                 <td className="px-3 py-3 flex gap-1">
                   <button
                     className="btn btn-ghost"
@@ -176,7 +191,7 @@ export default function FinanceTable({
                   </button>
                   <button
                     className="btn btn-ghost"
-                    onClick={() => onDelete(f.id)}
+                    onClick={() => setFinancaToDelete(f)}
                     title="Excluir lançamento"
                   >
                     🗑️
@@ -195,7 +210,7 @@ export default function FinanceTable({
         </table>
       </div>
 
-      {/* Modal de confirmação */}
+      {/* Modal de confirmação de colaborador */}
       {showConfirm && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
           <div className="bg-white dark:bg-slate-800 rounded-lg p-6 shadow-lg max-w-sm w-full">
@@ -212,7 +227,35 @@ export default function FinanceTable({
                 Cancelar
               </button>
               <button
-                onClick={confirmDelete}
+                onClick={confirmDeleteCollab}
+                className="px-4 py-2 rounded bg-red-600 text-white"
+              >
+                Excluir
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Modal de confirmação de finança */}
+      {financaToDelete && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+          <div className="bg-white dark:bg-slate-800 rounded-lg p-6 shadow-lg max-w-sm w-full">
+            <h2 className="text-lg font-semibold mb-4">Excluir finança</h2>
+            <p className="mb-6">
+              Tem certeza que deseja excluir o lançamento{' '}
+              <b>{financaToDelete.description}</b>? Essa ação não pode ser
+              desfeita.
+            </p>
+            <div className="flex justify-end gap-2">
+              <button
+                onClick={() => setFinancaToDelete(null)}
+                className="px-4 py-2 rounded bg-gray-200 dark:bg-slate-700"
+              >
+                Cancelar
+              </button>
+              <button
+                onClick={confirmDeleteFinanca}
                 className="px-4 py-2 rounded bg-red-600 text-white"
               >
                 Excluir

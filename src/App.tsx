@@ -4,14 +4,17 @@ import {
   Route,
   Navigate,
   NavLink,
+  useLocation,
 } from 'react-router-dom';
 import type { JSX } from 'react';
 import HomePage from './pages/HomePage';
 import LoginPage from './pages/LoginPage';
+import UserPanelPage from './pages/UserPanelPage';
 import { Moon, Sun, LogOut } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import AdminPage from './pages/AdminPage';
+import Header from './components/Header';
 
 function PrivateRoute({ children }: { children: JSX.Element }) {
   const auth = useAuth();
@@ -46,86 +49,54 @@ function useTheme() {
   return { theme, setTheme };
 }
 
-function Header() {
-  const { theme, setTheme } = useTheme();
-  const auth = useAuth();
-
+function AppWithHeader() {
+  const location = useLocation();
+  const hideHeader = location.pathname === '/login';
   return (
-    <header className="border-b bg-white dark:bg-slate-900 dark:border-slate-800">
-      <div className="container-app flex items-center justify-between py-4">
-        <NavLink
-          to="/"
-          className="text-lg font-bold text-brand-700 dark:text-brand-400"
-        >
-          Finanças • moAI
-        </NavLink>
-        <nav className="flex items-center gap-2">
-          <NavLink to="/" className="btn btn-ghost">
-            Início
-          </NavLink>
-          <NavLink to="/admin" className="btn btn-ghost">
-            Admin
-          </NavLink>
-          {!auth?.user ? (
-            <NavLink to="/login" className="btn btn-ghost">
-              Login
-            </NavLink>
-          ) : (
-            <button
-              onClick={() => auth.logout()}
-              className="btn btn-ghost text-red-500"
-            >
-              <LogOut size={18} className="mr-1" />
-              Sair
-            </button>
-          )}
-          <button
-            className="btn btn-ghost"
-            onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
-          >
-            {theme === 'dark' ? <Sun size={18} /> : <Moon size={18} />}
-            {theme === 'dark' ? 'Claro' : 'Escuro'}
-          </button>
-        </nav>
-      </div>
-    </header>
+    <>
+      {!hideHeader && <Header />}
+      <main className="container-app py-6">
+        <Routes>
+          <Route path="/login" element={<LoginPage />} />
+          <Route
+            path="/"
+            element={
+              <PrivateRoute>
+                <HomePage />
+              </PrivateRoute>
+            }
+          />
+          <Route
+            path="/admin"
+            element={
+              <AdminRoute>
+                <AdminPage />
+              </AdminRoute>
+            }
+          />
+          <Route
+            path="/usuario"
+            element={
+              <PrivateRoute>
+                <UserPanelPage />
+              </PrivateRoute>
+            }
+          />
+          <Route path="*" element={<Navigate to="/" />} />
+        </Routes>
+      </main>
+    </>
   );
 }
 
-export default function App() {
+function App() {
   return (
     <AuthProvider>
       <Router>
-        <Header />
-        <main className="container-app py-6">
-          <Routes>
-            {/* Login */}
-            <Route path="/login" element={<LoginPage />} />
-
-            {/* Páginas protegidas */}
-            <Route
-              path="/"
-              element={
-                <PrivateRoute>
-                  <HomePage />
-                </PrivateRoute>
-              }
-            />
-
-            <Route
-              path="/admin"
-              element={
-                <AdminRoute>
-                  <AdminPage />
-                </AdminRoute>
-              }
-            />
-
-            {/* Qualquer rota desconhecida manda para "/" */}
-            <Route path="*" element={<Navigate to="/" />} />
-          </Routes>
-        </main>
+        <AppWithHeader />
       </Router>
     </AuthProvider>
   );
 }
+
+export default App;

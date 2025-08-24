@@ -1,12 +1,13 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import type { Account, Collaborator } from '../lib/types';
 import { MONTHS_PT, brl } from '../lib/format';
-import { todayComp } from '../lib/date';
+import { todayComp, monthsDiff, addMonths } from '../lib/date';
 import FinanceTable from '../components/FinanceTable';
 import FinanceDialog from '../components/AddFinanceDialog';
 import AddCollaboratorDialog from '../components/AddCollaboratorDialog';
 import { Plus, Filter, UserPlus } from 'lucide-react';
 import { isVisibleInMonth } from '../lib/storage';
+import { willCountInMonth } from '../lib/storage';
 import * as api from '../lib/api';
 
 type DialogState =
@@ -46,6 +47,8 @@ export default function HomePage() {
   const now = todayComp();
   const [month, setMonth] = useState(now.month);
   const [year, setYear] = useState(now.year);
+  const [showAll, setShowAll] = useState(false);
+  const [showCancelled, setShowCancelled] = useState(true);
 
   const [dlg, setDlg] = useState<DialogState>({ mode: 'closed' });
   const [collabs, setCollabs] = useState<Collaborator[]>([]);
@@ -58,12 +61,34 @@ export default function HomePage() {
   async function load() {
     setLoading(true);
     try {
-      const [c, a] = await Promise.all([
-        api.listCollabs(),
-        api.listAccounts(month, year),
-      ]);
+      // Busca colaboradores normalmente
+      const c = await api.listCollabs();
+
+      // Busca contas de todos os meses/anos dos últimos 2 anos
+      const now = todayComp();
+      const anos = [now.year - 1, now.year];
+      const meses = Array.from({ length: 12 }, (_, i) => i + 1);
+      let allAccounts: any[] = [];
+      for (const ano of anos) {
+        for (const mes of meses) {
+          try {
+            const contas = await api.listAccounts(mes, ano);
+            allAccounts = allAccounts.concat(contas);
+          } catch {}
+        }
+      }
+      // Remove duplicatas por id
+      const uniqueAccounts = Object.values(
+        allAccounts.reduce(
+          (acc, item) => {
+            acc[item.id] = item;
+            return acc;
+          },
+          {} as Record<string, any>
+        )
+      );
       setCollabs((c as Collaborator[]) || []);
-      const normalized = (a as any[]).map(normalizeAccount);
+      const normalized = (uniqueAccounts as any[]).map(normalizeAccount);
       setAccounts(normalized);
     } finally {
       setLoading(false);
@@ -75,28 +100,76 @@ export default function HomePage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [month, year]);
 
-  // Filtra os que são visíveis para a competência atual
-  const visibleAccounts = useMemo(
-    () => accounts.filter((acc) => isVisibleInMonth(acc, { year, month })),
-    [accounts, year, month]
-  );
+  // Gera uma linha para cada parcela ativa de cada conta, criando múltiplas linhas por conta se necessário
+  const visibleAccounts = useMemo(() => {
+    let result: Account[] = [];
+    if (showAll) {
+      // Exibe todas as contas, todas as parcelas
+      accounts.forEach((acc) => {
+        if (acc.parcelasTotal === null || acc.parcelasTotal === undefined) {
+          result.push(acc);
+        } else if (
+          typeof acc.parcelasTotal === 'number' &&
+          acc.parcelasTotal > 1
+        ) {
+          const start = { year: acc.year, month: acc.month };
+          for (let i = 0; i < acc.parcelasTotal; i++) {
+            // Cria uma cópia do objeto com info da parcela
+            result.push({ ...(acc as any), parcelaAtual: i + 1 });
+          }
+        } else {
+          result.push(acc);
+        }
+      });
+    } else {
+      const comp = { year, month };
+      accounts.forEach((acc) => {
+        if (acc.parcelasTotal === null || acc.parcelasTotal === undefined) {
+          if (isVisibleInMonth(acc, comp)) {
+            result.push(acc);
+          }
+        } else if (
+          typeof acc.parcelasTotal === 'number' &&
+          acc.parcelasTotal > 1
+        ) {
+          const start = { year: acc.year, month: acc.month };
+          for (let i = 0; i < acc.parcelasTotal; i++) {
+            const parcelaComp = monthsDiff(start, comp);
+            if (parcelaComp === i && isVisibleInMonth(acc, comp)) {
+              result.push({ ...(acc as any), parcelaAtual: i + 1 });
+            }
+          }
+        } else {
+          if (isVisibleInMonth(acc, comp)) {
+            result.push(acc);
+          }
+        }
+      });
+    }
+    // Filtro de cancelados
+    if (!showCancelled) {
+      result = result.filter((acc) => acc.status !== 'cancelado');
+    }
+    return result;
+  }, [accounts, year, month, showAll, showCancelled]);
 
-  // Atualiza o snapshot quando terminar o carregamento com um resultado novo
   useEffect(() => {
     if (!loading) {
-      // só troca o snapshot quando temos a resposta final daquele filtro
       visibleSnapshotRef.current = visibleAccounts;
     }
   }, [loading, visibleAccounts]);
 
-  // Enquanto carrega, usa o snapshot anterior (evita “Sem lançamentos” no meio)
   const stableVisible = loading ? visibleSnapshotRef.current : visibleAccounts;
 
   const byCollab = (id: number) =>
     stableVisible.filter((a) => Number(a.collaboratorId) === Number(id));
 
+  // Soma apenas contas que devem entrar no total do mês
   const totalGeral = stableVisible
-    .filter((f) => f.status !== 'cancelado')
+    .filter((f) => {
+      const comp = { year, month };
+      return willCountInMonth(f, comp);
+    })
     .reduce((s, a) => s + Number(a.value), 0);
 
   // CRUD handlers
@@ -122,8 +195,18 @@ export default function HomePage() {
   }
 
   async function toggleCancel(id: number) {
-    await api.toggleCancel(id);
+    // Chama o endpoint PATCH (toggleCancel), enviando mês/ano do filtro atual
+    await api.toggleCancel(id, month, year);
     await load();
+    // Após carregar, loga os dados recebidos
+    const updated = accounts.find((a) => a.id === id);
+    if (updated) {
+      console.log('Recebido do backend:', {
+        id,
+        status: updated.status,
+        cancelledAt: updated.cancelledAt,
+      });
+    }
   }
 
   async function createCollab(name: string) {
@@ -147,9 +230,17 @@ export default function HomePage() {
             </span>
             <select
               className="select w-44"
-              value={month}
-              onChange={(e) => setMonth(Number(e.target.value))}
+              value={showAll ? 'all' : month}
+              onChange={(e) => {
+                if (e.target.value === 'all') {
+                  setShowAll(true);
+                } else {
+                  setShowAll(false);
+                  setMonth(Number(e.target.value));
+                }
+              }}
             >
+              <option value="all">Ver todos os meses</option>
               {MONTHS_PT.map((m, i) => (
                 <option key={i + 1} value={i + 1}>
                   {m}
@@ -161,7 +252,16 @@ export default function HomePage() {
               type="number"
               value={year}
               onChange={(e) => setYear(Number(e.target.value))}
+              disabled={showAll}
             />
+            <label className="flex items-center gap-1">
+              <input
+                type="checkbox"
+                checked={showCancelled}
+                onChange={(e) => setShowCancelled(e.target.checked)}
+              />
+              Ver cancelados
+            </label>
             <button
               className="btn btn-ghost"
               onClick={() => setDlg({ mode: 'addCollab' })}
@@ -201,7 +301,7 @@ export default function HomePage() {
           />
         ))}
         {collabs.length === 0 && (
-          <div className="card p-6 text-center text-slate-500">
+          <div className="card p-6 text-center text-slate-500 dark:text-slate-400 dark:bg-slate-800">
             Nenhum colaborador. Clique em <strong>Adicionar colaborador</strong>{' '}
             para começar.
           </div>

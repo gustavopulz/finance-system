@@ -35,7 +35,7 @@ export default function LoginPage() {
   return (
     <form
       onSubmit={handleSubmit}
-      className="max-w-sm mx-auto mt-10 p-6 border rounded-lg bg-white"
+      className="max-w-sm mx-auto mt-10 p-6 border rounded-lg bg-white dark:bg-slate-800 dark:border-slate-700"
     >
       <h1 className="text-xl font-bold mb-4">Login</h1>
       {error && <p className="text-red-500">{error}</p>}

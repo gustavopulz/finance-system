@@ -32,8 +32,12 @@ const schema = z.object({
   description: z.string().min(2, 'Descrição muito curta'),
   value: z.string().min(1, 'Informe um valor'),
   parcelasTotal: z.preprocess(
-    (val) => (val === 'X' ? 'X' : Number(val)),
-    z.union([z.literal('X'), z.number().min(1).max(12)])
+    (val) => {
+      if (val === 'X') return 'X';
+      if (val === '-') return '-';
+      return Number(val);
+    },
+    z.union([z.literal('X'), z.literal('-'), z.number().min(1).max(12)])
   ),
   month: z.number().min(1).max(12),
   year: z.number().min(2000).max(2100),
@@ -92,7 +96,11 @@ export default function AddFinanceDialog({
       description: d.description.trim(),
       value: parsedValue, // já em reais
       parcelasTotal:
-        d.parcelasTotal === 'X' ? null : (d.parcelasTotal as number),
+        d.parcelasTotal === 'X'
+          ? null
+          : d.parcelasTotal === '-'
+            ? 0
+            : (d.parcelasTotal as number),
       month: d.month,
       year: d.year,
       status: d.status as Status,
@@ -177,7 +185,8 @@ export default function AddFinanceDialog({
                 {...register('parcelasTotal')} // agora o schema converte
                 disabled={disabled}
               >
-                <option value="X">Indeterminada</option>
+                <option value="-">Avulsa</option>
+                <option value="X">Fixo</option>
                 {Array.from({ length: 12 }, (_, i) => i + 1).map((n) => (
                   <option key={n} value={n}>
                     {n}x

@@ -46,7 +46,21 @@ export default function Header() {
           </button>
           {auth?.user && (
             <NavLink to="/usuario" className="btn btn-ghost">
-              <span className="mr-1">👤</span>
+              <span className="mr-1">
+                {/* User icon SVG, padrão monocromático */}
+                <svg
+                  width="18"
+                  height="18"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  viewBox="0 0 24 24"
+                  className="inline-block align-middle"
+                >
+                  <circle cx="12" cy="8" r="4" />
+                  <path d="M4 20c0-4 4-6 8-6s8 2 8 6" />
+                </svg>
+              </span>
               Minha Conta
             </NavLink>
           )}

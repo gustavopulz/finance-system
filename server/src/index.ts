@@ -35,6 +35,33 @@ function auth(requiredRole?: 'admin' | 'user') {
 
 // -------------------------
 // Rotas de Usuários (Admin)
+// Alterar nome do usuário logado
+app.patch('/api/users/me', auth(), async (req: any, res) => {
+  const userId = req.user.id;
+  const { username } = req.body;
+  if (!username || username.trim() === '') {
+    return res.status(400).json({ error: 'Nome é obrigatório' });
+  }
+  await db.query('UPDATE users SET username = ? WHERE id = ?', [
+    username.trim(),
+    userId,
+  ]);
+  res.json({ success: true, username: username.trim() });
+});
+
+// Alterar senha do usuário logado
+app.patch('/api/users/me/password', auth(), async (req: any, res) => {
+  const userId = req.user.id;
+  const { password } = req.body;
+  if (!password || password.length < 4) {
+    return res
+      .status(400)
+      .json({ error: 'Senha deve ter ao menos 4 caracteres' });
+  }
+  const hash = await bcrypt.hash(password, 10);
+  await db.query('UPDATE users SET password = ? WHERE id = ?', [hash, userId]);
+  res.json({ success: true });
+});
 // -------------------------
 app.get('/api/users', auth('admin'), async (req, res) => {
   const [rows] = await db.query(
@@ -306,6 +333,11 @@ app.delete('/api/accounts/:id', auth(), async (req, res) => {
     res.status(500).json({ error: 'Erro ao excluir conta' });
   }
 });
+
+// -------------------------
+// Rotas de compartilhamento (token, mesclagem)
+import sharedRoutes from './shared';
+app.use('/api/shared', sharedRoutes);
 
 // -------------------------
 // Start

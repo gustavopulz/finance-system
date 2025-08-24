@@ -61,35 +61,13 @@ export default function HomePage() {
   async function load() {
     setLoading(true);
     try {
-      // Busca colaboradores normalmente
-      const c = await api.listCollabs();
-
-      // Busca contas de todos os meses/anos dos últimos 2 anos
-      const now = todayComp();
-      const anos = [now.year - 1, now.year];
-      const meses = Array.from({ length: 12 }, (_, i) => i + 1);
-      let allAccounts: any[] = [];
-      for (const ano of anos) {
-        for (const mes of meses) {
-          try {
-            const contas = await api.listAccounts(mes, ano);
-            allAccounts = allAccounts.concat(contas);
-          } catch {}
-        }
-      }
-      // Remove duplicatas por id
-      const uniqueAccounts = Object.values(
-        allAccounts.reduce(
-          (acc, item) => {
-            acc[item.id] = item;
-            return acc;
-          },
-          {} as Record<string, any>
-        )
-      );
-      setCollabs((c as Collaborator[]) || []);
-      const normalized = (uniqueAccounts as any[]).map(normalizeAccount);
-      setAccounts(normalized);
+      // Busca dados mesclados (colaboradores e contas)
+      const data = await api.getMergedFinances();
+      // Normaliza contas
+      const normalizedAccounts = (data.accounts as any[]).map(normalizeAccount);
+      setAccounts(normalizedAccounts);
+      // Normaliza colaboradores
+      setCollabs((data.collabs as Collaborator[]) || []);
     } finally {
       setLoading(false);
     }

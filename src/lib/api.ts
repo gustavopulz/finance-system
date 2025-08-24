@@ -1,8 +1,22 @@
+// -------------------- UPDATE USER --------------------
+export function updateUserName(username: string) {
+  return json<{ success: boolean; username: string }>(`${API_URL}/users/me`, {
+    method: 'PATCH',
+    body: JSON.stringify({ username }),
+  });
+}
+
+export function updateUserPassword(password: string) {
+  return json<{ success: boolean }>(`${API_URL}/users/me/password`, {
+    method: 'PATCH',
+    body: JSON.stringify({ password }),
+  });
+}
 // src/lib/api.ts
 const API_URL = 'http://localhost:4000/api';
 
 // -------------------- GET TOKEN --------------------
-function getToken(): string | null {
+export function getToken(): string | null {
   const raw = localStorage.getItem('auth');
   if (raw) {
     try {
@@ -134,7 +148,9 @@ export function useShareToken(token: string) {
 }
 
 export function getMergedFinances() {
-  return json<{ own: any[]; shared: any[] }>(`${API_URL}/shared/finances`);
+  return json<{ accounts: any[]; collabs: any[] }>(
+    `${API_URL}/shared/finances`
+  );
 }
 
 export function addAccount(payload: any) {

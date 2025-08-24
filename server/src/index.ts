@@ -197,6 +197,8 @@ app.post('/api/accounts', auth(), async (req: any, res) => {
     year,
     status,
     userId,
+    origem,
+    responsavel,
   } = req.body;
   const uid = userId || req.user.id;
   if (!collaboratorId || !description || !value || !month || !year) {
@@ -205,7 +207,7 @@ app.post('/api/accounts', auth(), async (req: any, res) => {
       .json({ error: 'Preencha todos os campos obrigatórios' });
   }
   const [result]: any = await db.query(
-    'INSERT INTO accounts (collaboratorId, description, value, parcelasTotal, month, year, status, userId) VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
+    'INSERT INTO accounts (collaboratorId, description, value, parcelasTotal, month, year, status, userId, origem, responsavel) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
     [
       collaboratorId,
       description.trim(),
@@ -215,6 +217,8 @@ app.post('/api/accounts', auth(), async (req: any, res) => {
       year,
       status || 'ativo',
       uid,
+      origem || null,
+      responsavel || null,
     ]
   );
   res.json({
@@ -227,6 +231,8 @@ app.post('/api/accounts', auth(), async (req: any, res) => {
     year,
     status: status || 'ativo',
     userId: uid,
+    origem,
+    responsavel,
   });
 });
 
@@ -241,13 +247,15 @@ app.put('/api/accounts/:id', auth(), async (req, res) => {
     month,
     year,
     status,
-    cancelledAt, // <-- ADICIONADO
+    cancelledAt,
+    origem,
+    responsavel,
   } = req.body;
 
   try {
     await db.query(
       `UPDATE accounts 
-       SET collaboratorId=?, description=?, value=?, parcelasTotal=?, month=?, year=?, status=?, cancelledAt=? 
+       SET collaboratorId=?, description=?, value=?, parcelasTotal=?, month=?, year=?, status=?, cancelledAt=?, origem=?, responsavel=? 
        WHERE id=?`,
       [
         collaboratorId,
@@ -257,7 +265,9 @@ app.put('/api/accounts/:id', auth(), async (req, res) => {
         month,
         year,
         status,
-        cancelledAt, // <-- ADICIONADO
+        cancelledAt,
+        origem || null,
+        responsavel || null,
         id,
       ]
     );
@@ -266,6 +276,92 @@ app.put('/api/accounts/:id', auth(), async (req, res) => {
     console.error(err);
     res.status(500).json({ error: 'Erro ao atualizar conta' });
   }
+  // -------------------------
+  // Rotas de Salário e Dashboard (escopo global)
+  // Dashboard financeiro
+  app.get('/api/dashboard', auth(), async (req: any, res) => {
+    const userId = req.user.id;
+    // Data atual
+    const now = new Date();
+    const month = now.getMonth() + 1;
+    const year = now.getFullYear();
+
+    // Total gasto no mês/ano
+    const [totalRows]: any = await db.query(
+      'SELECT SUM(value) as total FROM accounts WHERE userId = ? AND month = ? AND year = ? AND status = "ativo"',
+      [userId, month, year]
+    );
+    const total = totalRows[0]?.total || 0;
+
+    // Total por origem
+    const [origemRows]: any = await db.query(
+      'SELECT origem, SUM(value) as total FROM accounts WHERE userId = ? AND month = ? AND year = ? AND status = "ativo" GROUP BY origem',
+      [userId, month, year]
+    );
+
+    // Total por responsável
+    const [respRows]: any = await db.query(
+      'SELECT responsavel, SUM(value) as total FROM accounts WHERE userId = ? AND month = ? AND year = ? AND status = "ativo" GROUP BY responsavel',
+      [userId, month, year]
+    );
+
+    // Salário do mês/ano
+    const [salaryRows]: any = await db.query(
+      'SELECT value FROM salary WHERE userId = ? AND month = ? AND year = ?',
+      [userId, month, year]
+    );
+    const salary = salaryRows[0]?.value || null;
+
+    res.json({
+      total,
+      origem: origemRows,
+      responsavel: respRows,
+      salary,
+      month,
+      year,
+    });
+  });
+
+  // Buscar salário do usuário logado
+  app.get('/api/salary', auth(), async (req: any, res) => {
+    const userId = req.user.id;
+    const { month, year } = req.query;
+    let query = 'SELECT * FROM salary WHERE userId = ?';
+    let params: any[] = [userId];
+    if (month && year) {
+      query += ' AND month = ? AND year = ?';
+      params.push(Number(month), Number(year));
+    }
+    const [rows] = await db.query(query, params);
+    res.json(rows);
+  });
+
+  // Cadastrar/editar salário do usuário logado
+  app.post('/api/salary', auth(), async (req: any, res) => {
+    const userId = req.user.id;
+    const { value, month, year } = req.body;
+    if (!value || !month || !year) {
+      return res.status(400).json({ error: 'Preencha todos os campos' });
+    }
+    // Se já existe, atualiza
+    const [rows]: any = await db.query(
+      'SELECT * FROM salary WHERE userId = ? AND month = ? AND year = ?',
+      [userId, month, year]
+    );
+    if (rows.length) {
+      await db.query(
+        'UPDATE salary SET value = ? WHERE userId = ? AND month = ? AND year = ?',
+        [value, userId, month, year]
+      );
+      return res.json({ success: true, updated: true });
+    }
+    // Se não existe, insere
+    await db.query(
+      'INSERT INTO salary (userId, value, month, year) VALUES (?, ?, ?, ?)',
+      [userId, value, month, year]
+    );
+    res.json({ success: true, created: true });
+  });
 });
 
 // Alternar status cancelado/ativo

@@ -37,7 +37,20 @@ CREATE TABLE `accounts` (
   `year` int(11) NOT NULL,
   `status` enum('ativo','cancelado','quitado') DEFAULT 'ativo',
   `cancelledAt` datetime DEFAULT NULL,
-  `userId` int(11) NOT NULL DEFAULT 1
+  `userId` int(11) NOT NULL DEFAULT 1,
+  `origem` varchar(50) DEFAULT NULL,
+  `responsavel` varchar(50) DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+-- Tabela de salário por usuário
+CREATE TABLE `salary` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `userId` int(11) NOT NULL,
+  `value` decimal(10,2) NOT NULL,
+  `month` int(11) NOT NULL,
+  `year` int(11) NOT NULL,
+  PRIMARY KEY (`id`),
+  KEY `userId` (`userId`),
+  FOREIGN KEY (`userId`) REFERENCES `users`(`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 --

@@ -37,6 +37,12 @@ export default function Header() {
           Finanças
         </NavLink>
         <nav className="flex items-center gap-2">
+          <NavLink to="/info" className="btn btn-ghost">
+            <span className="mr-1">
+              <LayoutDashboard size={18} />
+            </span>
+            Informações
+          </NavLink>
           <button
             className="btn btn-ghost"
             onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}

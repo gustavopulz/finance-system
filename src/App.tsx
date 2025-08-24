@@ -15,6 +15,7 @@ import { useEffect, useState } from 'react';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import AdminPage from './pages/AdminPage';
 import Header from './components/Header';
+import InfoPage from './pages/InfoPage';
 
 function PrivateRoute({ children }: { children: JSX.Element }) {
   const auth = useAuth();
@@ -63,6 +64,14 @@ function AppWithHeader() {
             element={
               <PrivateRoute>
                 <HomePage />
+              </PrivateRoute>
+            }
+          />
+          <Route
+            path="/info"
+            element={
+              <PrivateRoute>
+                <InfoPage />
               </PrivateRoute>
             }
           />

@@ -3,6 +3,7 @@ import cors from 'cors';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import { initFirestore, firestore } from './db';
+import 'dotenv/config';
 
 await initFirestore();
 
@@ -12,7 +13,7 @@ const PORT = 4000;
 app.use(cors());
 app.use(express.json());
 
-const JWT_SECRET = 'segredo_super_secreto'; // ⚠️ coloque em variável de ambiente depois
+const JWT_SECRET = process.env.JWT_SECRET!;
 
 // -------------------------
 // Middleware de autenticação

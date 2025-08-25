@@ -79,6 +79,7 @@ export async function login(username: string, password: string) {
   }>(`${API_URL}/login`, {
     method: 'POST',
     body: JSON.stringify({ username, password }),
+    credentials: 'include',
   });
   // No token in response, cookie is set by backend
   return data;

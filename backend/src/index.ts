@@ -2,7 +2,7 @@ import express from 'express';
 import cors from 'cors';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
-import { initFirestore, firestore } from './db';
+import { initFirestore, firestore } from './db.js';
 import 'dotenv/config';
 
 await initFirestore();
@@ -418,7 +418,7 @@ app.delete('/api/accounts/:id', auth(), async (req, res) => {
 
 // -------------------------
 // Rotas de compartilhamento (token, mesclagem)
-import sharedRoutes from './shared';
+import sharedRoutes from './shared.js';
 app.use('/api/shared', sharedRoutes);
 
 // -------------------------

@@ -1,20 +1,24 @@
 {
-  "type": "module",
+  "name": "backend-next",
+  "version": "0.1.0",
+  "private": true,
   "scripts": {
-    "dev": "tsx watch src/index.ts"
+    "dev": "next dev --turbopack",
+    "build": "next build --turbopack",
+    "start": "next start"
   },
   "dependencies": {
-    "@types/node": "^24.3.0",
     "bcryptjs": "^3.0.2",
-    "cors": "^2.8.5",
-    "dotenv": "^17.2.1",
-    "express": "^5.1.0",
-    "firebase-admin": "^13.4.0"
+    "firebase-admin": "^13.4.0",
+    "jsonwebtoken": "^9.0.2",
+    "next": "15.5.0"
   },
   "devDependencies": {
-    "@types/cors": "^2.8.19",
-    "ts-node": "^10.9.2",
-    "tsx": "^4.20.5",
-    "typescript": "^5.9.2"
+    "@eslint/eslintrc": "^3",
+    "@types/node": "^20",
+    "@types/react": "^19",
+    "eslint": "^9",
+    "eslint-config-next": "15.5.0",
+    "typescript": "^5"
   }
 }

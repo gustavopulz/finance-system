@@ -3,12 +3,13 @@ import 'dotenv/config';
 
 let firestore: admin.firestore.Firestore;
 
+
 export async function initFirestore() {
-  const serviceAccountPath = process.env.FIREBASE_SERVICE_ACCOUNT_PATH;
-  if (!serviceAccountPath) {
+  const serviceAccountJson = process.env.FIREBASE_SERVICE_ACCOUNT_PATH;
+  if (!serviceAccountJson) {
     throw new Error('FIREBASE_SERVICE_ACCOUNT_PATH environment variable is not set.');
   }
-  const serviceAccount = (await import(serviceAccountPath)).default;
+  const serviceAccount = JSON.parse(serviceAccountJson);
   if (!admin.apps.length) {
     admin.initializeApp({
       credential: admin.credential.cert(serviceAccount),

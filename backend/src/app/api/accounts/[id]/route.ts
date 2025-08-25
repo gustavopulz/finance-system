@@ -2,16 +2,14 @@ import { NextRequest, NextResponse } from 'next/server';
 import { initFirestore, firestore } from '@/lib/firestore';
 import { verifyToken } from '@/lib/jwt';
 
-export async function PUT(req: NextRequest, { params }: { params: { id: string } }) {
+export async function PUT(req: NextRequest, context: { params: Promise<{ id: string }> }) {
   await initFirestore();
   const cookie = req.cookies.get('auth_token');
   const authToken = typeof cookie === 'string' ? cookie : cookie?.value;
   if (!authToken) throw new Error('Token ausente');
   try {
     verifyToken(authToken);
-  // Next.js 15+ may pass params as a Promise
-  const awaitedParams = params instanceof Promise ? await params : params;
-  const { id } = awaitedParams;
+    const { id } = await context.params;
     const payload = await req.json();
     const updateData: Record<string, any> = {};
     for (const key in payload) {
@@ -32,16 +30,14 @@ export async function PUT(req: NextRequest, { params }: { params: { id: string }
   }
 }
 
-export async function DELETE(req: NextRequest, { params }: { params: { id: string } }) {
+export async function DELETE(req: NextRequest, context: { params: Promise<{ id: string }> }) {
   await initFirestore();
   const cookie = req.cookies.get('auth_token');
   const authToken = typeof cookie === 'string' ? cookie : cookie?.value;
   if (!authToken) throw new Error('Token ausente');
   try {
     verifyToken(authToken);
-  // Next.js 15+ may pass params as a Promise
-  const awaitedParams = params instanceof Promise ? await params : params;
-  const { id } = awaitedParams;
+    const { id } = await context.params;
     await firestore.collection('accounts').doc(id).delete();
     return NextResponse.json({ success: true });
   } catch (err: any) {

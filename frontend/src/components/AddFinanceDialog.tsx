@@ -94,20 +94,21 @@ export default function AddFinanceDialog({
       return;
     }
 
-    const payload = {
+    const payload: any = {
       collaboratorId: d.collaboratorId,
       description: d.description.trim(),
       value: parsedValue, // já em reais
-      parcelasTotal:
-        d.parcelasTotal === 'X'
-          ? null
-          : d.parcelasTotal === '-'
-            ? 0
-            : (d.parcelasTotal as number),
       month: d.month,
       year: d.year,
       status: d.status as Status,
     };
+    if (d.parcelasTotal !== null) {
+      payload.parcelasTotal = d.parcelasTotal === 'X'
+        ? undefined
+        : d.parcelasTotal === '-'
+          ? 0
+          : (d.parcelasTotal as number);
+    }
 
     onSave(payload, initial?.id); // edita se houver id; senão, cria
     onClose();

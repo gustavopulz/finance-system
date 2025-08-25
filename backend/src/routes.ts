@@ -197,36 +197,27 @@ app.post('/api/accounts', auth(), async (req: any, res) => {
 
 app.put('/api/accounts/:id', auth(), async (req, res) => {
   const { id } = req.params;
-  const {
-    collaboratorId,
-    description,
-    value,
-    parcelasTotal,
-    month,
-    year,
-    status,
-    cancelledAt,
-    origem,
-    responsavel,
-  } = req.body;
-
+  const payload = req.body || {};
   try {
-    await firestore.collection('accounts').doc(id).update({
-      collaboratorId,
-      description: description.trim(),
-      value,
-      parcelasTotal,
-      month,
-      year,
-      status,
-      cancelledAt,
-      origem: origem || null,
-      responsavel: responsavel || null,
-    });
+    // Monta objeto de atualização apenas com campos presentes no payload
+    const updateData: Record<string, any> = {};
+    for (const key in payload) {
+      if (Object.prototype.hasOwnProperty.call(payload, key)) {
+        // Se for 'description', faz trim
+        if (key === 'description' && typeof payload[key] === 'string') {
+          updateData[key] = payload[key].trim();
+        } else if ((key === 'origem' || key === 'responsavel') && payload[key] === '') {
+          updateData[key] = null;
+        } else {
+          updateData[key] = payload[key];
+        }
+      }
+    }
+    await firestore.collection('accounts').doc(id).update(updateData);
     res.json({ success: true });
-  } catch (err) {
+  } catch (err: any) {
     console.error(err);
-    res.status(500).json({ error: 'Erro ao atualizar conta' });
+    res.status(500).json({ error: 'Erro ao atualizar conta', details: err.message });
   }
 });
 

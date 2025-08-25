@@ -13,7 +13,7 @@ export function updateUserPassword(password: string) {
   });
 }
 // src/lib/api.ts
-const API_URL = 'https://finance-system-liard.vercel.app/api';
+const API_URL = 'http://localhost:3000/api';
 
 // -------------------- GET TOKEN --------------------
 export function getToken(): string | null {

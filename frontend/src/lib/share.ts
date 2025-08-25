@@ -1,4 +1,4 @@
-const API_URL = 'https://finance-system-liard.vercel.app/api/shared';
+const API_URL = 'http://localhost:3000/api/shared';
 import { getToken } from './api';
 
 async function json<T>(url: string, options: RequestInit = {}): Promise<T> {

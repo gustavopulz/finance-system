@@ -19,6 +19,7 @@ import InfoPage from './pages/InfoPage';
 
 function PrivateRoute({ children }: { children: JSX.Element }) {
   const auth = useAuth();
+  if (auth?.loading) return null;
   return auth && auth.user ? children : <Navigate to="/login" />;
 }
 
@@ -100,11 +101,9 @@ function AppWithHeader() {
 
 function App() {
   return (
-    <AuthProvider>
-      <Router>
-        <AppWithHeader />
-      </Router>
-    </AuthProvider>
+    <Router>
+      <AppWithHeader />
+    </Router>
   );
 }
 

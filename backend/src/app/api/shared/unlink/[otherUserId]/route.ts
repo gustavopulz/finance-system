@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { initFirestore, firestore } from '@/lib/firestore';
 import { verifyToken } from '@/lib/jwt';
 
-export async function DELETE(req: NextRequest, { params }: { params: { otherUserId: string } }) {
+export async function DELETE(req: NextRequest, context: { params: Promise<{ otherUserId: string }> }) {
   await initFirestore();
   try {
     const cookie = req.cookies.get('auth_token');
@@ -10,7 +10,7 @@ export async function DELETE(req: NextRequest, { params }: { params: { otherUser
     if (!authToken) throw new Error('Token ausente');
     const user = verifyToken(authToken);
     // IDs do Firebase são strings
-    const otherUserId = params.otherUserId;
+  const { otherUserId } = await context.params;
     const linksSnap = await firestore.collection('shared_accounts')
       .where('userId', 'in', [user.id, otherUserId])
       .where('sharedWithUserId', 'in', [user.id, otherUserId])

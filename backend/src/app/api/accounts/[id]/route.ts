@@ -9,9 +9,9 @@ export async function PUT(req: NextRequest, { params }: { params: { id: string }
   if (!authToken) throw new Error('Token ausente');
   try {
     verifyToken(authToken);
-    // Await params as required by Next.js 15+
-    const awaitedParams = await params;
-    const { id } = awaitedParams;
+  // Next.js 15+ may pass params as a Promise
+  const awaitedParams = params instanceof Promise ? await params : params;
+  const { id } = awaitedParams;
     const payload = await req.json();
     const updateData: Record<string, any> = {};
     for (const key in payload) {
@@ -39,9 +39,9 @@ export async function DELETE(req: NextRequest, { params }: { params: { id: strin
   if (!authToken) throw new Error('Token ausente');
   try {
     verifyToken(authToken);
-    // Await params as required by Next.js 15+
-    const awaitedParams = await params;
-    const { id } = awaitedParams;
+  // Next.js 15+ may pass params as a Promise
+  const awaitedParams = params instanceof Promise ? await params : params;
+  const { id } = awaitedParams;
     await firestore.collection('accounts').doc(id).delete();
     return NextResponse.json({ success: true });
   } catch (err: any) {

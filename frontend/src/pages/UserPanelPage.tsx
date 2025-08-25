@@ -58,10 +58,6 @@ export default function UserPanelPage() {
   };
 
   // Desvincular
-  async function handleUnlink(id: number) {
-    await unlinkUser(id);
-    await fetchLinks();
-  }
 
   // Simulação: alterar nome/senha
   const handleChangeName = () => {

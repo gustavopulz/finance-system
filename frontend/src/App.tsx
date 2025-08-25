@@ -3,7 +3,6 @@ import {
   Routes,
   Route,
   Navigate,
-  NavLink,
   useLocation,
 } from 'react-router-dom';
 import type { JSX } from 'react';

@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import type { Account, Collaborator } from '../lib/types';
 import { MONTHS_PT, brl } from '../lib/format';
-import { todayComp, monthsDiff, addMonths } from '../lib/date';
+import { todayComp, monthsDiff } from '../lib/date';
 import FinanceTable from '../components/FinanceTable';
 import FinanceDialog from '../components/AddFinanceDialog';
 import AddCollaboratorDialog from '../components/AddCollaboratorDialog';
@@ -85,7 +85,6 @@ export default function HomePage() {
           typeof acc.parcelasTotal === 'number' &&
           acc.parcelasTotal > 1
         ) {
-          const start = { year: acc.year, month: acc.month };
           for (let i = 0; i < acc.parcelasTotal; i++) {
             // Cria uma cópia do objeto com info da parcela
             result.push({ ...(acc as any), parcelaAtual: i + 1 });

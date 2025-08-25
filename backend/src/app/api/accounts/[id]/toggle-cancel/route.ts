@@ -2,16 +2,15 @@ import { NextRequest, NextResponse } from 'next/server';
 import { initFirestore, firestore } from '@/lib/firestore';
 import { verifyToken } from '@/lib/jwt';
 
-export async function PATCH(req: NextRequest, { params }: { params: { id: string } }) {
+export async function PATCH(req: NextRequest, context: { params: Promise<{ id: string }> }) {
   await initFirestore();
   const cookie = req.cookies.get('auth_token');
   const authToken = typeof cookie === 'string' ? cookie : cookie?.value;
   if (!authToken) throw new Error('Token ausente');
   try {
     verifyToken(authToken);
-    // Await params as required by Next.js 15+
-    const awaitedParams = await params;
-    const { id } = awaitedParams;
+  // Await params as required by Next.js 15+
+  const { id } = await context.params;
     const payload = await req.json();
     const accountDoc = await firestore.collection('accounts').doc(id).get();
     if (!accountDoc.exists) {

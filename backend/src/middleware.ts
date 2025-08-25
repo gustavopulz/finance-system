@@ -26,7 +26,7 @@ export function middleware(request: NextRequest) {
     const cookie = request.cookies.get('auth_token');
     const token = typeof cookie === 'string' ? cookie : cookie?.value;
     if (!token) {
-      return new NextResponse(JSON.stringify({ error: 'Não autenticado' }), {
+      return new NextResponse(JSON.stringify({ error: 'Não autenticado: middleware' }), {
         status: 401,
         headers: {
           'Access-Control-Allow-Origin': allowedOrigin,

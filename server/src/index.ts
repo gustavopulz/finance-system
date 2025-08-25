@@ -2,7 +2,9 @@ import express from 'express';
 import cors from 'cors';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
-import { db } from './db';
+import { initFirestore, firestore } from './db';
+
+await initFirestore();
 
 const app = express();
 const PORT = 4000;
@@ -42,10 +44,7 @@ app.patch('/api/users/me', auth(), async (req: any, res) => {
   if (!username || username.trim() === '') {
     return res.status(400).json({ error: 'Nome é obrigatório' });
   }
-  await db.query('UPDATE users SET username = ? WHERE id = ?', [
-    username.trim(),
-    userId,
-  ]);
+  await firestore.collection('users').doc(String(userId)).update({ username: username.trim() });
   res.json({ success: true, username: username.trim() });
 });
 
@@ -59,15 +58,14 @@ app.patch('/api/users/me/password', auth(), async (req: any, res) => {
       .json({ error: 'Senha deve ter ao menos 4 caracteres' });
   }
   const hash = await bcrypt.hash(password, 10);
-  await db.query('UPDATE users SET password = ? WHERE id = ?', [hash, userId]);
+  await firestore.collection('users').doc(String(userId)).update({ password: hash });
   res.json({ success: true });
 });
 // -------------------------
 app.get('/api/users', auth('admin'), async (req, res) => {
-  const [rows] = await db.query(
-    'SELECT id, username, role FROM users ORDER BY id DESC'
-  );
-  res.json(rows);
+  const usersSnap = await firestore.collection('users').get();
+  const users = usersSnap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+  res.json(users);
 });
 
 app.post('/api/users', auth('admin'), async (req, res) => {
@@ -77,15 +75,18 @@ app.post('/api/users', auth('admin'), async (req, res) => {
   }
   const hash = await bcrypt.hash(password, 10);
   try {
-    const [result]: any = await db.query(
-      'INSERT INTO users (username, password, role) VALUES (?, ?, ?)',
-      [username.trim(), hash, role || 'user']
-    );
-    res.json({ id: result.insertId, username, role: role || 'user' });
-  } catch (err: any) {
-    if (err.code === 'ER_DUP_ENTRY') {
+    // Check for duplicate username
+    const existingSnap = await firestore.collection('users').where('username', '==', username.trim()).get();
+    if (!existingSnap.empty) {
       return res.status(400).json({ error: 'Usuário já existe' });
     }
+    const userRef = await firestore.collection('users').add({
+      username: username.trim(),
+      password: hash,
+      role: role || 'user',
+    });
+    res.json({ id: userRef.id, username, role: role || 'user' });
+  } catch (err: any) {
     console.error(err);
     res.status(500).json({ error: 'Erro ao criar usuário' });
   }
@@ -99,13 +100,14 @@ app.post('/api/login', async (req, res) => {
   if (!username || !password)
     return res.status(400).json({ error: 'Usuário e senha obrigatórios' });
 
-  const [rows]: any = await db.query('SELECT * FROM users WHERE username = ?', [
-    username,
-  ]);
-  if (!rows.length)
+  const userSnap = await firestore.collection('users').where('username', '==', username).get();
+  console.log(userSnap.empty);
+  if (userSnap.empty)
     return res.status(401).json({ error: 'Credenciais inválidas' });
 
-  const user = rows[0];
+  const userDoc = userSnap.docs[0];
+  const userData = userDoc.data();
+  const user = { id: userDoc.id, username: userData.username, password: userData.password, role: userData.role };
   const ok = await bcrypt.compare(password, user.password);
   if (!ok) return res.status(401).json({ error: 'Credenciais inválidas' });
 
@@ -126,12 +128,10 @@ app.post('/api/login', async (req, res) => {
 // -------------------------
 app.get('/api/collabs', auth(), async (req: any, res) => {
   // userId pode vir do query ou do token
-  const userId = Number(req.query.userId) || req.user.id;
-  const [rows] = await db.query(
-    'SELECT * FROM collaborators WHERE userId = ? ORDER BY id DESC',
-    [userId]
-  );
-  res.json(rows);
+  const userId = req.query.userId || req.user.id;
+  const collabsSnap = await firestore.collection('collaborators').where('userId', '==', userId).get();
+  const collabs = collabsSnap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+  res.json(collabs);
 });
 
 app.post('/api/collabs', auth(), async (req: any, res) => {
@@ -141,25 +141,22 @@ app.post('/api/collabs', auth(), async (req: any, res) => {
     return res.status(400).json({ error: 'Nome é obrigatório' });
   }
   try {
-    const [result]: any = await db.query(
-      'INSERT INTO collaborators (name, userId) VALUES (?, ?)',
-      [nome.trim(), uid]
-    );
-    res.json({ id: result.insertId, name: nome.trim(), userId: uid });
-  } catch (err: any) {
-    if (err.code === 'ER_DUP_ENTRY') {
-      return res
-        .status(400)
-        .json({ error: 'Já existe um colaborador com esse nome' });
+    // Check for duplicate collaborator name for user
+    const existingSnap = await firestore.collection('collaborators').where('userId', '==', uid).where('name', '==', nome.trim()).get();
+    if (!existingSnap.empty) {
+      return res.status(400).json({ error: 'Já existe um colaborador com esse nome' });
     }
+    const collabRef = await firestore.collection('collaborators').add({ name: nome.trim(), userId: uid });
+    res.json({ id: collabRef.id, name: nome.trim(), userId: uid });
+  } catch (err: any) {
     console.error(err);
     res.status(500).json({ error: 'Erro ao adicionar colaborador' });
   }
 });
 
 app.delete('/api/collabs/:id', auth(), async (req, res) => {
-  const id = Number(req.params.id);
-  await db.query('DELETE FROM collaborators WHERE id = ?', [id]);
+  const id = req.params.id;
+  await firestore.collection('collaborators').doc(id).delete();
   res.json({ success: true });
 });
 
@@ -168,23 +165,19 @@ app.delete('/api/collabs/:id', auth(), async (req, res) => {
 // -------------------------
 app.get('/api/accounts', auth(), async (req: any, res) => {
   const { month, year, userId } = req.query;
-  const uid = Number(userId) || req.user.id;
-  let rows;
+  const uid = userId || req.user.id;
+  let accountsSnap;
   if (!month || !year) {
-    [rows] = await db.query(
-      'SELECT * FROM accounts WHERE userId = ? ORDER BY id DESC',
-      [uid]
-    );
-    return res.json(rows);
+    accountsSnap = await firestore.collection('accounts').where('userId', '==', uid).get();
+  } else {
+    accountsSnap = await firestore.collection('accounts')
+      .where('userId', '==', uid)
+      .where('year', '>=', Number(year))
+      .where('month', '>=', Number(month))
+      .get();
   }
-  [rows] = await db.query(
-    `SELECT * 
-     FROM accounts 
-     WHERE userId = ? AND (year > ? OR (year = ? AND month >= ?))
-     ORDER BY id DESC`,
-    [uid, year, year, month]
-  );
-  res.json(rows);
+  const accounts = accountsSnap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+  res.json(accounts);
 });
 
 app.post('/api/accounts', auth(), async (req: any, res) => {
@@ -206,23 +199,20 @@ app.post('/api/accounts', auth(), async (req: any, res) => {
       .status(400)
       .json({ error: 'Preencha todos os campos obrigatórios' });
   }
-  const [result]: any = await db.query(
-    'INSERT INTO accounts (collaboratorId, description, value, parcelasTotal, month, year, status, userId, origem, responsavel) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
-    [
-      collaboratorId,
-      description.trim(),
-      value,
-      parcelasTotal,
-      month,
-      year,
-      status || 'ativo',
-      uid,
-      origem || null,
-      responsavel || null,
-    ]
-  );
+  const accountRef = await firestore.collection('accounts').add({
+    collaboratorId,
+    description: description.trim(),
+    value,
+    parcelasTotal,
+    month,
+    year,
+    status: status || 'ativo',
+    userId: uid,
+    origem: origem || null,
+    responsavel: responsavel || null,
+  });
   res.json({
-    id: result.insertId,
+    id: accountRef.id,
     collaboratorId,
     description,
     value,
@@ -253,24 +243,18 @@ app.put('/api/accounts/:id', auth(), async (req, res) => {
   } = req.body;
 
   try {
-    await db.query(
-      `UPDATE accounts 
-       SET collaboratorId=?, description=?, value=?, parcelasTotal=?, month=?, year=?, status=?, cancelledAt=?, origem=?, responsavel=? 
-       WHERE id=?`,
-      [
-        collaboratorId,
-        description.trim(),
-        value,
-        parcelasTotal,
-        month,
-        year,
-        status,
-        cancelledAt,
-        origem || null,
-        responsavel || null,
-        id,
-      ]
-    );
+    await firestore.collection('accounts').doc(id).update({
+      collaboratorId,
+      description: description.trim(),
+      value,
+      parcelasTotal,
+      month,
+      year,
+      status,
+      cancelledAt,
+      origem: origem || null,
+      responsavel: responsavel || null,
+    });
     res.json({ success: true });
   } catch (err) {
     console.error(err);
@@ -287,35 +271,43 @@ app.put('/api/accounts/:id', auth(), async (req, res) => {
     const year = now.getFullYear();
 
     // Total gasto no mês/ano
-    const [totalRows]: any = await db.query(
-      'SELECT SUM(value) as total FROM accounts WHERE userId = ? AND month = ? AND year = ? AND status = "ativo"',
-      [userId, month, year]
-    );
-    const total = totalRows[0]?.total || 0;
+    const accountsSnap = await firestore.collection('accounts')
+      .where('userId', '==', userId)
+      .where('month', '==', month)
+      .where('year', '==', year)
+      .where('status', '==', 'ativo')
+      .get();
+    const accounts = accountsSnap.docs.map(doc => doc.data());
+    const total = accounts.reduce((sum, acc) => sum + (acc.value || 0), 0);
 
     // Total por origem
-    const [origemRows]: any = await db.query(
-      'SELECT origem, SUM(value) as total FROM accounts WHERE userId = ? AND month = ? AND year = ? AND status = "ativo" GROUP BY origem',
-      [userId, month, year]
-    );
+    const origemTotals: Record<string, number> = {};
+    accounts.forEach(acc => {
+      if (acc.origem) {
+        origemTotals[acc.origem] = (origemTotals[acc.origem] || 0) + (acc.value || 0);
+      }
+    });
 
     // Total por responsável
-    const [respRows]: any = await db.query(
-      'SELECT responsavel, SUM(value) as total FROM accounts WHERE userId = ? AND month = ? AND year = ? AND status = "ativo" GROUP BY responsavel',
-      [userId, month, year]
-    );
+    const responsavelTotals: Record<string, number> = {};
+    accounts.forEach(acc => {
+      if (acc.responsavel) {
+        responsavelTotals[acc.responsavel] = (responsavelTotals[acc.responsavel] || 0) + (acc.value || 0);
+      }
+    });
 
     // Salário do mês/ano
-    const [salaryRows]: any = await db.query(
-      'SELECT value FROM salary WHERE userId = ? AND month = ? AND year = ?',
-      [userId, month, year]
-    );
-    const salary = salaryRows[0]?.value || null;
+    const salarySnap = await firestore.collection('salary')
+      .where('userId', '==', userId)
+      .where('month', '==', month)
+      .where('year', '==', year)
+      .get();
+    const salary = salarySnap.empty ? null : salarySnap.docs[0].data().value;
 
     res.json({
       total,
-      origem: origemRows,
-      responsavel: respRows,
+      origem: origemTotals,
+      responsavel: responsavelTotals,
       salary,
       month,
       year,
@@ -326,14 +318,20 @@ app.put('/api/accounts/:id', auth(), async (req, res) => {
   app.get('/api/salary', auth(), async (req: any, res) => {
     const userId = req.user.id;
     const { month, year } = req.query;
-    let query = 'SELECT * FROM salary WHERE userId = ?';
-    let params: any[] = [userId];
+    let salarySnap;
     if (month && year) {
-      query += ' AND month = ? AND year = ?';
-      params.push(Number(month), Number(year));
+      salarySnap = await firestore.collection('salary')
+        .where('userId', '==', userId)
+        .where('month', '==', Number(month))
+        .where('year', '==', Number(year))
+        .get();
+    } else {
+      salarySnap = await firestore.collection('salary')
+        .where('userId', '==', userId)
+        .get();
     }
-    const [rows] = await db.query(query, params);
-    res.json(rows);
+    const salaries = salarySnap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+    res.json(salaries);
   });
 
   // Cadastrar/editar salário do usuário logado
@@ -344,22 +342,18 @@ app.put('/api/accounts/:id', auth(), async (req, res) => {
       return res.status(400).json({ error: 'Preencha todos os campos' });
     }
     // Se já existe, atualiza
-    const [rows]: any = await db.query(
-      'SELECT * FROM salary WHERE userId = ? AND month = ? AND year = ?',
-      [userId, month, year]
-    );
-    if (rows.length) {
-      await db.query(
-        'UPDATE salary SET value = ? WHERE userId = ? AND month = ? AND year = ?',
-        [value, userId, month, year]
-      );
+    const salarySnap = await firestore.collection('salary')
+      .where('userId', '==', userId)
+      .where('month', '==', Number(month))
+      .where('year', '==', Number(year))
+      .get();
+    if (!salarySnap.empty) {
+      const salaryDoc = salarySnap.docs[0];
+      await firestore.collection('salary').doc(salaryDoc.id).update({ value });
       return res.json({ success: true, updated: true });
     }
     // Se não existe, insere
-    await db.query(
-      'INSERT INTO salary (userId, value, month, year) VALUES (?, ?, ?, ?)',
-      [userId, value, month, year]
-    );
+    await firestore.collection('salary').add({ userId, value, month: Number(month), year: Number(year) });
     res.json({ success: true, created: true });
   });
 });
@@ -368,24 +362,18 @@ app.put('/api/accounts/:id', auth(), async (req, res) => {
 app.patch('/api/accounts/:id/toggle-cancel', auth(), async (req, res) => {
   const { id } = req.params;
   try {
-    const [rows]: any = await db.query(
-      'SELECT status FROM accounts WHERE id = ?',
-      [id]
-    );
-    if (!rows.length) {
+    const accountDoc = await firestore.collection('accounts').doc(id).get();
+    if (!accountDoc.exists) {
       return res.status(404).json({ error: 'Conta não encontrada' });
     }
 
-    const currentStatus = rows[0].status;
+    const currentStatus = accountDoc.data()?.status;
     let newStatus, cancelledAt;
 
     if (currentStatus === 'cancelado') {
       newStatus = 'ativo';
       cancelledAt = null;
-      await db.query(
-        'UPDATE accounts SET status = ?, cancelledAt = NULL WHERE id = ?',
-        [newStatus, id]
-      );
+      await firestore.collection('accounts').doc(id).update({ status: newStatus, cancelledAt: null });
     } else {
       newStatus = 'cancelado';
       // Permite que o frontend envie o mês/ano do cancelamento
@@ -405,10 +393,7 @@ app.patch('/api/accounts/:id/toggle-cancel', auth(), async (req, res) => {
         cancelledMonth - 1,
         1
       ).toISOString();
-      await db.query(
-        'UPDATE accounts SET status = ?, cancelledAt = ? WHERE id = ?',
-        [newStatus, cancelledAt, id]
-      );
+      await firestore.collection('accounts').doc(id).update({ status: newStatus, cancelledAt });
     }
 
     res.json({ id, status: newStatus, cancelledAt });
@@ -422,7 +407,7 @@ app.patch('/api/accounts/:id/toggle-cancel', auth(), async (req, res) => {
 app.delete('/api/accounts/:id', auth(), async (req, res) => {
   const { id } = req.params;
   try {
-    await db.query('DELETE FROM accounts WHERE id = ?', [id]);
+    await firestore.collection('accounts').doc(id).delete();
     res.json({ success: true });
   } catch (err) {
     console.error(err);

@@ -1,10 +1,20 @@
-import mysql from 'mysql2/promise';
+import admin from 'firebase-admin';
+import 'dotenv/config';
 
-export const db = mysql.createPool({
-  host: process.env.MYSQLHOST || process.env.DB_HOST || 'localhost',
-  user: process.env.MYSQLUSER || process.env.DB_USER || 'root',
-  password: process.env.MYSQLPASSWORD || process.env.DB_PASSWORD || '',
-  database:
-    process.env.MYSQLDATABASE || process.env.DB_NAME || 'finance_system',
-  port: Number(process.env.MYSQLPORT || 3306),
-});
+let firestore: admin.firestore.Firestore;
+
+export async function initFirestore() {
+  const serviceAccountPath = process.env.FIREBASE_SERVICE_ACCOUNT_PATH;
+  if (!serviceAccountPath) {
+    throw new Error('FIREBASE_SERVICE_ACCOUNT_PATH environment variable is not set.');
+  }
+  const serviceAccount = (await import(serviceAccountPath)).default;
+  if (!admin.apps.length) {
+    admin.initializeApp({
+      credential: admin.credential.cert(serviceAccount),
+    });
+  }
+  firestore = admin.firestore();
+}
+
+export { firestore };

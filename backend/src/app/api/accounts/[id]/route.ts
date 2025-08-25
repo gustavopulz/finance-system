@@ -4,10 +4,11 @@ import { verifyToken } from '@/lib/jwt';
 
 export async function PUT(req: NextRequest, { params }: { params: { id: string } }) {
   await initFirestore();
-  const token = req.cookies.get('auth_token')?.value;
-  if (!token) return NextResponse.json({ error: 'Token ausente' }, { status: 401 });
+  const cookie = req.cookies.get('auth_token');
+  const authToken = typeof cookie === 'string' ? cookie : cookie?.value;
+  if (!authToken) throw new Error('Token ausente');
   try {
-    verifyToken(token);
+    verifyToken(authToken);
     // Await params as required by Next.js 15+
     const awaitedParams = await params;
     const { id } = awaitedParams;
@@ -33,10 +34,11 @@ export async function PUT(req: NextRequest, { params }: { params: { id: string }
 
 export async function DELETE(req: NextRequest, { params }: { params: { id: string } }) {
   await initFirestore();
-  const token = req.cookies.get('auth_token')?.value;
-  if (!token) return NextResponse.json({ error: 'Token ausente' }, { status: 401 });
+  const cookie = req.cookies.get('auth_token');
+  const authToken = typeof cookie === 'string' ? cookie : cookie?.value;
+  if (!authToken) throw new Error('Token ausente');
   try {
-    verifyToken(token);
+    verifyToken(authToken);
     // Await params as required by Next.js 15+
     const awaitedParams = await params;
     const { id } = awaitedParams;

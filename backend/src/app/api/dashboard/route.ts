@@ -4,10 +4,12 @@ import { verifyToken } from '@/lib/jwt';
 
 export async function GET(req: NextRequest) {
   await initFirestore();
-  const authHeader = req.headers.get('authorization');
-  if (!authHeader) return NextResponse.json({ error: 'Token ausente' }, { status: 401 });
   try {
-    const user = verifyToken(authHeader.split(' ')[1]);
+    // O token já foi verificado pelo middleware, pode pegar do cookie
+    const cookie = req.cookies.get('auth_token');
+    const authToken = typeof cookie === 'string' ? cookie : cookie?.value;
+    if (!authToken) throw new Error('Token ausente');
+    const user = verifyToken(authToken);
     const now = new Date();
     const month = now.getMonth() + 1;
     const year = now.getFullYear();

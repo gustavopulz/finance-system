@@ -4,10 +4,11 @@ import { verifyToken } from '@/lib/jwt';
 
 export async function POST(req: NextRequest) {
   await initFirestore();
-  const authHeader = req.headers.get('authorization');
-  if (!authHeader) return NextResponse.json({ error: 'Token ausente' }, { status: 401 });
   try {
-    const user = verifyToken(authHeader.split(' ')[1]);
+    const cookie = req.cookies.get('auth_token');
+    const authToken = typeof cookie === 'string' ? cookie : cookie?.value;
+    if (!authToken) throw new Error('Token ausente');
+    const user = verifyToken(authToken);
     const { token } = await req.json();
     const tokenSnap = await firestore.collection('shared_accounts_tokens').where('token', '==', token).get();
     if (tokenSnap.empty) return NextResponse.json({ error: 'Token inválido' }, { status: 400 });

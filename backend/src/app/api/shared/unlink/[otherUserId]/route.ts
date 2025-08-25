@@ -4,13 +4,13 @@ import { verifyToken } from '@/lib/jwt';
 
 export async function DELETE(req: NextRequest, { params }: { params: { otherUserId: string } }) {
   await initFirestore();
-  const token = req.cookies.get('auth_token')?.value;
-  if (!token) return NextResponse.json({ error: 'Token ausente' }, { status: 401 });
   try {
-    const user = verifyToken(token);
-    // Await params as required by Next.js 15+
-    const awaitedParams = await params;
-    const otherUserId = Number(awaitedParams.otherUserId);
+    const cookie = req.cookies.get('auth_token');
+    const authToken = typeof cookie === 'string' ? cookie : cookie?.value;
+    if (!authToken) throw new Error('Token ausente');
+    const user = verifyToken(authToken);
+    // IDs do Firebase são strings
+    const otherUserId = params.otherUserId;
     const linksSnap = await firestore.collection('shared_accounts')
       .where('userId', 'in', [user.id, otherUserId])
       .where('sharedWithUserId', 'in', [user.id, otherUserId])

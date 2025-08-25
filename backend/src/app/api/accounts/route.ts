@@ -4,10 +4,11 @@ import { verifyToken } from '@/lib/jwt';
 
 export async function GET(req: NextRequest) {
   await initFirestore();
-  const token = req.cookies.get('auth_token')?.value;
-  if (!token) return NextResponse.json({ error: 'Token ausente' }, { status: 401 });
+  const cookie = req.cookies.get('auth_token');
+  const authToken = typeof cookie === 'string' ? cookie : cookie?.value;
+  if (!authToken) throw new Error('Token ausente');
   try {
-    const user = verifyToken(token);
+    const user = verifyToken(authToken);
     const month = req.nextUrl.searchParams.get('month');
     const year = req.nextUrl.searchParams.get('year');
     const userId = req.nextUrl.searchParams.get('userId') || user.id;
@@ -30,10 +31,11 @@ export async function GET(req: NextRequest) {
 
 export async function POST(req: NextRequest) {
   await initFirestore();
-  const token = req.cookies.get('auth_token')?.value;
-  if (!token) return NextResponse.json({ error: 'Token ausente' }, { status: 401 });
+  const cookie = req.cookies.get('auth_token');
+  const authToken = typeof cookie === 'string' ? cookie : cookie?.value;
+  if (!authToken) throw new Error('Token ausente');
   try {
-    const user = verifyToken(token);
+    const user = verifyToken(authToken);
     const {
       collaboratorId,
       description,

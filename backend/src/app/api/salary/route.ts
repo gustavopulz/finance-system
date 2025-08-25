@@ -4,10 +4,11 @@ import { verifyToken } from '@/lib/jwt';
 
 export async function GET(req: NextRequest) {
   await initFirestore();
-  const authHeader = req.headers.get('authorization');
-  if (!authHeader) return NextResponse.json({ error: 'Token ausente' }, { status: 401 });
   try {
-    const user = verifyToken(authHeader.split(' ')[1]);
+    const cookie = req.cookies.get('auth_token');
+    const authToken = typeof cookie === 'string' ? cookie : cookie?.value;
+    if (!authToken) throw new Error('Token ausente');
+    const user = verifyToken(authToken);
     const month = req.nextUrl.searchParams.get('month');
     const year = req.nextUrl.searchParams.get('year');
     let salarySnap;
@@ -31,10 +32,11 @@ export async function GET(req: NextRequest) {
 
 export async function POST(req: NextRequest) {
   await initFirestore();
-  const authHeader = req.headers.get('authorization');
-  if (!authHeader) return NextResponse.json({ error: 'Token ausente' }, { status: 401 });
   try {
-    const user = verifyToken(authHeader.split(' ')[1]);
+    const cookie = req.cookies.get('auth_token');
+    const authToken = typeof cookie === 'string' ? cookie : cookie?.value;
+    if (!authToken) return NextResponse.json({ error: 'Token ausente' }, { status: 401 });
+    const user = verifyToken(authToken);
     const { value, month, year } = await req.json();
     if (!value || !month || !year) {
       return NextResponse.json({ error: 'Preencha todos os campos' }, { status: 400 });

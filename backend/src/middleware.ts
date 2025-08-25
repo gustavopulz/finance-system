@@ -3,7 +3,7 @@ import type { NextRequest } from 'next/server';
 
 export function middleware(request: NextRequest) {
   const origin = request.headers.get('origin') || '*';
-  const allowedOrigin = origin === 'http://localhost:5173' ? origin : '*';
+  const allowedOrigin = origin === 'https://finance-system-br.netlify.app' ? origin : '*';
   if (request.method === 'OPTIONS') {
     return new NextResponse(null, {
       status: 204,

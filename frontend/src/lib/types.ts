@@ -1,7 +1,7 @@
 export type Status = 'ativo' | 'cancelado' | 'quitado';
 
 export type Collaborator = {
-  id: number;
+  id: string;
   name: string;
 };
 
@@ -11,8 +11,8 @@ export interface Competencia {
 }
 
 export type Account = {
-  id: number;
-  collaboratorId: number;
+  id: string;
+  collaboratorId: string;
   collaboratorName: string;
   description: string;
   value: number;

@@ -23,32 +23,38 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const saved = localStorage.getItem('auth');
-    if (saved) {
+    // Try to get user info from backend using cookie
+    async function fetchUser() {
       try {
-        const parsed = JSON.parse(saved);
-        if (parsed?.user) {
-          setUser(parsed.user);
+        const res = await fetch('http://localhost:3000/api/users/me', {
+          credentials: 'include',
+        });
+        if (res.ok) {
+          const data = await res.json();
+          if (data?.username && data?.id && data?.role) {
+            setUser({ id: data.id, username: data.username, role: data.role });
+          } else {
+            setUser(null);
+          }
+        } else {
+          setUser(null);
         }
-        if (parsed?.token) {
-          setToken(parsed.token);
-        }
-      } catch {}
+      } catch {
+        setUser(null);
+      }
+      setLoading(false);
     }
-    setLoading(false);
+    fetchUser();
   }, []);
 
   const login = (token: string, user: User) => {
-    const authData = { token, user };
-    localStorage.setItem('auth', JSON.stringify(authData));
-    setUser(user);
-    setToken(token);
+  setUser(user);
+  setToken(null); // token is not stored client-side
   };
 
   const logout = () => {
-    localStorage.removeItem('auth');
-    setUser(null);
-    setToken(null);
+  setUser(null);
+  setToken(null);
   };
 
   return (

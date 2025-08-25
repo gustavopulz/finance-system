@@ -30,8 +30,15 @@ export async function POST(req: NextRequest) {
     { expiresIn: '1h' }
   );
 
-  return NextResponse.json({
-    token,
+  const response = NextResponse.json({
     user: { id: user.id, username: user.username, role: user.role },
   });
+  response.cookies.set('auth_token', token, {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === 'production',
+    sameSite: 'lax',
+    path: '/',
+    maxAge: 60 * 60, // 1 hour
+  });
+  return response;
 }

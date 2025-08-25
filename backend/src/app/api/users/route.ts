@@ -5,10 +5,10 @@ import { verifyToken } from '@/lib/jwt';
 
 export async function GET(req: NextRequest) {
   await initFirestore();
-  const authHeader = req.headers.get('authorization');
-  if (!authHeader) return NextResponse.json({ error: 'Token ausente' }, { status: 401 });
+  const token = req.cookies.get('auth_token')?.value;
+  if (!token) return NextResponse.json({ error: 'Token ausente' }, { status: 401 });
   try {
-    const user = verifyToken(authHeader.split(' ')[1], 'admin');
+    const user = verifyToken(token, 'admin');
     const usersSnap = await firestore.collection('users').get();
     const users = usersSnap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
     return NextResponse.json(users);
@@ -19,10 +19,10 @@ export async function GET(req: NextRequest) {
 
 export async function POST(req: NextRequest) {
   await initFirestore();
-  const authHeader = req.headers.get('authorization');
-  if (!authHeader) return NextResponse.json({ error: 'Token ausente' }, { status: 401 });
+  const token = req.cookies.get('auth_token')?.value;
+  if (!token) return NextResponse.json({ error: 'Token ausente' }, { status: 401 });
   try {
-    verifyToken(authHeader.split(' ')[1], 'admin');
+    verifyToken(token, 'admin');
     const { username, password, role } = await req.json();
     if (!username || !password) {
       return NextResponse.json({ error: 'Usuário e senha obrigatórios' }, { status: 400 });

@@ -1,3 +1,15 @@
+export async function GET(req: NextRequest) {
+  const token = req.cookies.get('auth_token')?.value;
+  if (!token) {
+    return NextResponse.json({ error: 'Token ausente' }, { status: 401 });
+  }
+  try {
+    const user = verifyToken(token);
+    return NextResponse.json({ id: user.id, username: user.username, role: user.role });
+  } catch (err: any) {
+    return NextResponse.json({ error: err.message }, { status: 403 });
+  }
+}
 import { NextRequest, NextResponse } from 'next/server';
 import { initFirestore, firestore } from '@/lib/firestore';
 import bcrypt from 'bcryptjs';

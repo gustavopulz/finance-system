@@ -4,10 +4,10 @@ import { verifyToken } from '@/lib/jwt';
 
 export async function GET(req: NextRequest) {
   await initFirestore();
-  const authHeader = req.headers.get('authorization');
-  if (!authHeader) return NextResponse.json({ error: 'Token ausente' }, { status: 401 });
+  const token = req.cookies.get('auth_token')?.value;
+  if (!token) return NextResponse.json({ error: 'Token ausente' }, { status: 401 });
   try {
-    const user = verifyToken(authHeader.split(' ')[1]);
+    const user = verifyToken(token);
     const sharedSnap = await firestore.collection('shared_accounts').where('sharedWithUserId', '==', user.id).get();
     const ids = sharedSnap.docs.map(doc => doc.data().userId);
     const allUserIds = Array.from(new Set([...ids, user.id]));

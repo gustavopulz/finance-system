@@ -4,10 +4,10 @@ import { verifyToken } from '@/lib/jwt';
 
 export async function DELETE(req: NextRequest, { params }: { params: { otherUserId: string } }) {
   await initFirestore();
-  const authHeader = req.headers.get('authorization');
-  if (!authHeader) return NextResponse.json({ error: 'Token ausente' }, { status: 401 });
+  const token = req.cookies.get('auth_token')?.value;
+  if (!token) return NextResponse.json({ error: 'Token ausente' }, { status: 401 });
   try {
-    const user = verifyToken(authHeader.split(' ')[1]);
+    const user = verifyToken(token);
     // Await params as required by Next.js 15+
     const awaitedParams = await params;
     const otherUserId = Number(awaitedParams.otherUserId);

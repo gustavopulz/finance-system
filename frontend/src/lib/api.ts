@@ -17,27 +17,19 @@ const API_URL = 'http://localhost:3000/api';
 
 // -------------------- GET TOKEN --------------------
 export function getToken(): string | null {
-  const raw = localStorage.getItem('auth');
-  if (raw) {
-    try {
-      const parsed = JSON.parse(raw);
-      return parsed?.token ?? null;
-    } catch {}
-  }
+  // Token is now stored in httpOnly cookie, not accessible from JS
   return null;
 }
 
 // -------------------- FETCH JSON --------------------
 async function json<T>(url: string, options: RequestInit = {}): Promise<T> {
-  const token = getToken();
-
   const res = await fetch(url, {
     ...options,
     headers: {
       'Content-Type': 'application/json',
       ...(options.headers || {}),
-      ...(token ? { Authorization: `Bearer ${token}` } : {}),
     },
+    credentials: 'include', // send cookies
   });
 
   if (!res.ok) {
@@ -83,20 +75,18 @@ export function deleteUser(id: number) {
 }
 export async function login(username: string, password: string) {
   const data = await json<{
-    token: string;
     user: { id: number; username: string; role: 'admin' | 'user' };
   }>(`${API_URL}/login`, {
     method: 'POST',
     body: JSON.stringify({ username, password }),
   });
-
-  // 🔑 sempre salva em "auth"
-  localStorage.setItem('auth', JSON.stringify(data));
+  // No token in response, cookie is set by backend
   return data;
 }
 
 export function logout() {
-  localStorage.removeItem('auth');
+  // To logout, clear cookie by calling backend endpoint (to be implemented)
+  // For now, do nothing here
 }
 
 // -------------------- COLLABORATORS --------------------

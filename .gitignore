@@ -24,4 +24,4 @@ dist-ssr
 *.sln
 *.sw?
 .env
-server/env/firebase_service_account.json
+env/

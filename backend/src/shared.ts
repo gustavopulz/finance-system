@@ -1,24 +1,7 @@
 import { Router } from 'express';
-import { firestore } from './db';
-import jwt from 'jsonwebtoken';
+import { firestore } from './db.js';
 import crypto from 'crypto';
-
-function auth(requiredRole?: 'admin' | 'user') {
-  return (req: any, res: any, next: any) => {
-    const header = req.headers['authorization'];
-    if (!header) return res.status(401).json({ error: 'Token ausente' });
-    const token = header.split(' ')[1];
-    try {
-      const decoded: any = jwt.verify(token, 'segredo_super_secreto');
-      if (requiredRole && decoded.role !== requiredRole)
-        return res.status(403).json({ error: 'Acesso negado' });
-      req.user = decoded;
-      next();
-    } catch {
-      return res.status(401).json({ error: 'Token inválido' });
-    }
-  };
-}
+import { auth } from './jwt.js';
 
 const router = Router();
 

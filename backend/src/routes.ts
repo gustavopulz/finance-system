@@ -1,6 +1,7 @@
 import express from 'express';
 import cors from 'cors';
 import bcrypt from 'bcryptjs';
+import jwt from 'jsonwebtoken';
 import { initFirestore, firestore } from './db.js';
 import { auth, JWT_SECRET } from './jwt.js';
 import sharedRoutes from './shared.js';
@@ -85,7 +86,7 @@ app.post('/api/login', async (req, res) => {
   const ok = await bcrypt.compare(password, user.password);
   if (!ok) return res.status(401).json({ error: 'Credenciais inválidas' });
 
-  const token = require('jsonwebtoken').sign(
+  const token = jwt.sign(
     { id: user.id, username: user.username, role: user.role },
     JWT_SECRET,
     { expiresIn: '1h' }

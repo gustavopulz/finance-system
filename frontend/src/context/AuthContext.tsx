@@ -26,7 +26,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     // Try to get user info from backend using cookie
     async function fetchUser() {
       try {
-        const res = await fetch('http://localhost:3000/api/users/me', {
+        const res = await fetch('https://finance-system-br-backend.netlify.app/api/users/me', {
           credentials: 'include',
         });
         if (res.ok) {
@@ -49,7 +49,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const login = async () => {
     try {
-      const res = await fetch('http://localhost:3000/api/users/me', {
+      const res = await fetch('https://finance-system-br-backend.netlify.app/api/users/me', {
         credentials: 'include',
       });
       if (res.ok) {

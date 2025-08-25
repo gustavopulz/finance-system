@@ -9,8 +9,6 @@ import type { JSX } from 'react';
 import HomePage from './pages/HomePage';
 import LoginPage from './pages/LoginPage';
 import UserPanelPage from './pages/UserPanelPage';
-import { Moon, Sun, LogOut } from 'lucide-react';
-import { useEffect, useState } from 'react';
 import { useAuth } from './context/AuthContext';
 import AdminPage from './pages/AdminPage';
 import Header from './components/Header';

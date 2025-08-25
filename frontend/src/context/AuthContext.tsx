@@ -11,7 +11,7 @@ interface AuthContextType {
   user: User | null;
   token: string | null;
   loading: boolean;
-  login: (token: string, user: User) => void;
+  login: () => Promise<void>;
   logout: () => void;
 }
 
@@ -47,9 +47,25 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     fetchUser();
   }, []);
 
-  const login = (token: string, user: User) => {
-  setUser(user);
-  setToken(null); // token is not stored client-side
+  const login = async () => {
+    try {
+      const res = await fetch('http://localhost:3000/api/users/me', {
+        credentials: 'include',
+      });
+      if (res.ok) {
+        const data = await res.json();
+        if (data?.username && data?.id && data?.role) {
+          setUser({ id: data.id, username: data.username, role: data.role });
+        } else {
+          setUser(null);
+        }
+      } else {
+        setUser(null);
+      }
+    } catch {
+      setUser(null);
+    }
+    setToken(null); // token is not stored client-side
   };
 
   const logout = () => {

@@ -19,10 +19,10 @@ export default function LoginPage() {
       }
 
       // chama a API real
-      const { token, user } = await apiLogin(username, password);
+  await apiLogin(username, password);
 
-      // salva no AuthContext e localStorage
-      auth.login(token, user);
+  // busca e salva usuário autenticado no AuthContext
+  await auth.login();
 
       // redireciona para a página inicial
       navigate('/');

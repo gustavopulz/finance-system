@@ -11,7 +11,7 @@ import LoginPage from './pages/LoginPage';
 import UserPanelPage from './pages/UserPanelPage';
 import { Moon, Sun, LogOut } from 'lucide-react';
 import { useEffect, useState } from 'react';
-import { AuthProvider, useAuth } from './context/AuthContext';
+import { useAuth } from './context/AuthContext';
 import AdminPage from './pages/AdminPage';
 import Header from './components/Header';
 import InfoPage from './pages/InfoPage';
@@ -30,25 +30,6 @@ function AdminRoute({ children }: { children: JSX.Element }) {
   return children;
 }
 
-function useTheme() {
-  const [theme, setTheme] = useState<'light' | 'dark'>(() => {
-    const saved = localStorage.getItem('theme');
-    if (saved === 'light' || saved === 'dark') return saved;
-    return window.matchMedia?.('(prefers-color-scheme: dark)').matches
-      ? 'dark'
-      : 'light';
-  });
-
-  useEffect(() => {
-    const root = document.documentElement;
-    theme === 'dark'
-      ? root.classList.add('dark')
-      : root.classList.remove('dark');
-    localStorage.setItem('theme', theme);
-  }, [theme]);
-
-  return { theme, setTheme };
-}
 
 function AppWithHeader() {
   const location = useLocation();

@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { generateShareToken, useShareToken } from '../lib/api';
 import { updateUserName, updateUserPassword } from '../lib/api';
-import { getLinks, unlinkUser } from '../lib/share';
+import { getLinks } from '../lib/share';
 
 export default function UserPanelPage() {
   const auth = useAuth();
@@ -58,7 +58,9 @@ export default function UserPanelPage() {
   };
 
   // Desvincular
-
+  async function handleUnlink() {
+    await fetchLinks();
+  }
   // Simulação: alterar nome/senha
   const handleChangeName = () => {
     setEditingName(true);
@@ -71,7 +73,7 @@ export default function UserPanelPage() {
   const handleSaveName = async () => {
     setNameStatus(null);
     try {
-      const res = await updateUserName(newName);
+  await updateUserName(newName);
       setNameStatus('Nome alterado com sucesso!');
       if (auth?.user) {
         auth.user.username = newName;
@@ -388,7 +390,7 @@ export default function UserPanelPage() {
                       </span>
                       <button
                         className="btn btn-xs btn-error"
-                        onClick={() => handleUnlink(u.id)}
+                        onClick={handleUnlink}
                       >
                         <span className="mr-1">
                           {/* Unlink icon SVG */}
@@ -433,7 +435,7 @@ export default function UserPanelPage() {
                       </span>
                       <button
                         className="btn btn-xs btn-error"
-                        onClick={() => handleUnlink(u.id)}
+                        onClick={handleUnlink}
                       >
                         <span className="mr-1">❌</span> Desvincular
                       </button>

@@ -1,8 +1,13 @@
 [build]
-command = "npm run build"
-publish = ".next"
+command = "npm run build --workspaces"
+publish = "frontend/dist"
 
 [functions]
   directory = "backend"
   include = ["/src/**/*.ts"]
   exclude = ["/src/**/*.test.ts"]
+
+[[redirects]]
+  from = "/api/*"
+  to = "/.netlify/functions/:splat"
+  status = 200

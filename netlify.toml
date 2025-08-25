@@ -1,0 +1,8 @@
+[build]
+command = "npm run build"
+publish = ".next"
+
+[functions]
+  directory = "backend"
+  include = ["/src/**/*.ts"]
+  exclude = ["/src/**/*.test.ts"]

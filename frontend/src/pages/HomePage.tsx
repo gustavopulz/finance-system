@@ -19,23 +19,18 @@ type DialogState =
 // Normaliza o que vem do backend (evita “8”/“2025” como string)
 // Normaliza o que vem do backend (tolerante a '', null e strings)
 function normalizeAccount(a: any): Account {
-  const toNum = (v: any, fallback = 0) =>
-    v === '' || v === null || v === undefined ? fallback : Number(v);
-
-  const toMaybeNum = (v: any) =>
-    v === '' || v === null || v === undefined ? null : Number(v);
-
   return {
-    id: toNum(a.id),
-    collaboratorId: toNum(a.collaboratorId),
+    id: String(a.id),
+    collaboratorId: String(a.collaboratorId),
     collaboratorName: a.collaboratorName ?? '',
     description: String(a.description ?? ''),
-    value: toNum(a.value), // já em reais
-    // null = indeterminada; 0 também vamos tratar como indeterminada no filtro
-    parcelasTotal: toMaybeNum(a.parcelasTotal),
-    // garante 1..12 e ano razoável
-    month: Math.min(12, Math.max(1, toNum(a.month, 1))),
-    year: Math.max(1900, toNum(a.year, new Date().getFullYear())),
+    value: Number(a.value),
+    parcelasTotal:
+      a.parcelasTotal === '' || a.parcelasTotal === null || a.parcelasTotal === undefined
+        ? null
+        : Number(a.parcelasTotal),
+    month: Math.min(12, Math.max(1, Number(a.month ?? 1))),
+    year: Math.max(1900, Number(a.year ?? new Date().getFullYear())),
     status: (a.status as Account['status']) ?? 'ativo',
     createdAt: a.createdAt ?? '',
     updatedAt: a.updatedAt ?? '',

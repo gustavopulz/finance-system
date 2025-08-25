@@ -12,7 +12,7 @@ type Props = {
   collaborators: Collaborator[];
   onSave: (
     data: {
-      collaboratorId: number;
+      collaboratorId: string;
       description: string;
       value: number;
       parcelasTotal: number | null;
@@ -20,7 +20,7 @@ type Props = {
       year: number;
       status: Status;
     },
-    idToUpdate?: number
+    idToUpdate?: string
   ) => void;
   onClose: () => void;
 };
@@ -28,7 +28,7 @@ type Props = {
 // ⚡ Schema do form
 // (corrigido: converte "3" -> 3 antes de validar; mantém "X" como string)
 const schema = z.object({
-  collaboratorId: z.number().int().positive(),
+  collaboratorId: z.string().min(1, 'Selecione um colaborador'),
   description: z.string().min(2, 'Descrição muito curta'),
   value: z.string().min(1, 'Informe um valor'),
   parcelasTotal: z.preprocess(
@@ -65,7 +65,7 @@ export default function AddFinanceDialog({
   } = useForm<FormData>({
     resolver: zodResolver(schema),
     defaultValues: {
-      collaboratorId: initial?.collaboratorId ?? collaborators[0]?.id ?? 0,
+      collaboratorId: initial?.collaboratorId ? String(initial.collaboratorId) : (collaborators[0]?.id ? String(collaborators[0].id) : ''),
       description: initial?.description ?? '',
       value:
         initial?.value != null ? String(initial.value).replace('.', ',') : '',
@@ -80,11 +80,14 @@ export default function AddFinanceDialog({
   // garante colaborador setado quando a lista chega depois
   useEffect(() => {
     if (!initial && collaborators[0]) {
-      setValue('collaboratorId', collaborators[0].id);
+      setValue('collaboratorId', String(collaborators[0].id));
     }
   }, [collaborators, initial, setValue]);
 
   const submit: SubmitHandler<FormData> = (d) => {
+    if (errors && Object.keys(errors).length > 0) {
+      console.log('Erros de validação:', errors);
+    }
     const parsedValue = parseBRL(d.value);
     if (isNaN(parsedValue)) {
       alert('Valor inválido. Por favor, informe um valor numérico.');
@@ -125,21 +128,16 @@ export default function AddFinanceDialog({
           </div>
         )}
 
-        {/* debug opcional
-        {Object.keys(errors).length > 0 && (
-          <pre className="text-xs text-red-600">{JSON.stringify(errors, null, 2)}</pre>
-        )} */}
-
         <form className="grid gap-3" onSubmit={handleSubmit(submit)}>
           <label className="grid gap-1">
             <span className="text-sm font-medium">Colaborador</span>
             <select
               className="select select-full"
-              {...register('collaboratorId', { valueAsNumber: true })}
+              {...register('collaboratorId')}
               disabled={disabled}
             >
               {collaborators.map((c) => (
-                <option key={c.id} value={c.id}>
+                <option key={c.id} value={String(c.id)}>
                   {c.name}
                 </option>
               ))}

@@ -17,14 +17,14 @@ export default function FinanceTable({
   onCancelToggle,
   onCollabDeleted,
 }: {
-  collaboratorId: number;
+  collaboratorId: string;
   title: string;
   items: Account[];
   currentComp: { year: number; month: number };
-  onDelete: (id: number) => void;
+  onDelete: (id: string) => void;
   onEdit: (a: Account) => void;
-  onCancelToggle: (id: number) => void;
-  onCollabDeleted: (id: number) => void;
+  onCancelToggle: (id: string) => void;
+  onCollabDeleted: (id: string) => void;
 }) {
   const [sortKey, setSortKey] = useState<SortKey>('description');
   const [sortDir, setSortDir] = useState<SortDir>('asc');

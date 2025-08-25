@@ -139,8 +139,8 @@ export default function HomePage() {
 
   const stableVisible = loading ? visibleSnapshotRef.current : visibleAccounts;
 
-  const byCollab = (id: number) =>
-    stableVisible.filter((a) => Number(a.collaboratorId) === Number(id));
+  const byCollab = (id: string) =>
+    stableVisible.filter((a) => a.collaboratorId === id);
 
   // Soma apenas contas que devem entrar no total do mês
   const totalGeral = stableVisible
@@ -156,23 +156,27 @@ export default function HomePage() {
       Account,
       'id' | 'createdAt' | 'updatedAt' | 'collaboratorName' | 'cancelledAt'
     >,
-    idToUpdate?: number
+    idToUpdate?: string
   ) {
-    if (idToUpdate) {
-      await api.updateAccount(idToUpdate, payload);
-    } else {
-      await api.addAccount(payload);
+    try {
+      if (idToUpdate) {
+        await api.updateAccount(idToUpdate, payload);
+      } else {
+        await api.addAccount(payload);
+      }
+      setDlg({ mode: 'closed' });
+      await load();
+    } catch (err) {
+      console.error('Erro ao salvar conta:', err);
     }
-    setDlg({ mode: 'closed' });
-    await load();
   }
 
-  async function removeAccount(id: number) {
+  async function removeAccount(id: string) {
     await api.deleteAccount(id);
     await load();
   }
 
-  async function toggleCancel(id: number) {
+  async function toggleCancel(id: string) {
     // Chama o endpoint PATCH (toggleCancel), enviando mês/ano do filtro atual
     await api.toggleCancel(id, month, year);
     await load();
@@ -273,7 +277,6 @@ export default function HomePage() {
               toggleCancel(id);
             }}
             onCollabDeleted={(id) => {
-              // 🔥 atualiza o state e some o card sem F5
               setCollabs((prev) => prev.filter((cc) => cc.id !== id));
             }}
           />

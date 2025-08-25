@@ -118,7 +118,7 @@ export function addCollab(name: string) {
   });
 }
 
-export function deleteCollab(id: number) {
+export function deleteCollab(id: string) {
   return json<{ success: boolean }>(`${API_URL}/collabs/${id}`, {
     method: 'DELETE',
   });
@@ -160,19 +160,18 @@ export function addAccount(payload: any) {
   });
 }
 
-export function updateAccount(id: number, payload: any) {
+export function updateAccount(id: string, payload: any) {
   return json(`${API_URL}/accounts/${id}`, {
     method: 'PUT',
     body: JSON.stringify(payload),
   });
 }
 
-export function deleteAccount(id: number) {
+export function deleteAccount(id: string) {
   return json(`${API_URL}/accounts/${id}`, { method: 'DELETE' });
 }
 
-// Permite enviar mês/ano do filtro atual
-export function toggleCancel(id: number, month?: number, year?: number) {
+export function toggleCancel(id: string, month?: number, year?: number) {
   const body: any = {};
   if (month) body.month = month;
   if (year) body.year = year;

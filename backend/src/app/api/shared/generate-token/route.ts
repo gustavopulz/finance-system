@@ -5,10 +5,10 @@ import crypto from 'crypto';
 
 export async function POST(req: NextRequest) {
   await initFirestore();
-  const token = req.cookies.get('auth_token')?.value;
-  if (!token) return NextResponse.json({ error: 'Token ausente' }, { status: 401 });
+  const jwtToken = req.cookies.get('auth_token')?.value;
+  if (!jwtToken) return NextResponse.json({ error: 'Token ausente' }, { status: 401 });
   try {
-    const user = verifyToken(token);
+    const user = verifyToken(jwtToken);
     const userDoc = await firestore.collection('users').doc(String(user.id)).get();
     const username = userDoc.exists ? userDoc.data()?.username : '';
     const raw = `${username}:${user.id}:${Date.now()}:${Math.random()}`;

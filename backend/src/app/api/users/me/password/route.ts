@@ -5,10 +5,10 @@ import { verifyToken } from '@/lib/jwt';
 
 export async function PATCH(req: NextRequest) {
   await initFirestore();
-  const authHeader = req.headers.get('authorization');
-  if (!authHeader) return NextResponse.json({ error: 'Token ausente' }, { status: 401 });
+  const token = req.cookies.get('auth_token')?.value;
+  if (!token) return NextResponse.json({ error: 'Token ausente' }, { status: 401 });
   try {
-    const user = verifyToken(authHeader.split(' ')[1]);
+    const user = verifyToken(token);
     const { password } = await req.json();
     if (!password || password.length < 4) {
       return NextResponse.json({ error: 'Senha deve ter ao menos 4 caracteres' }, { status: 400 });

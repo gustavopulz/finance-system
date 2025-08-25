@@ -4,10 +4,10 @@ import { verifyToken } from '@/lib/jwt';
 
 export async function DELETE(req: NextRequest, { params }: { params: { id: string } }) {
   await initFirestore();
-  const authHeader = req.headers.get('authorization');
-  if (!authHeader) return NextResponse.json({ error: 'Token ausente' }, { status: 401 });
+  const token = req.cookies.get('auth_token')?.value;
+  if (!token) return NextResponse.json({ error: 'Token ausente' }, { status: 401 });
   try {
-    verifyToken(authHeader.split(' ')[1]);
+    verifyToken(token);
     const { id } = params;
     await firestore.collection('collaborators').doc(id).delete();
     return NextResponse.json({ success: true });

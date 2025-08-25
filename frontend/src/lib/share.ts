@@ -1,15 +1,15 @@
 const API_URL = 'http://localhost:3000/api/shared';
-import { getToken } from './api';
 
 async function json<T>(url: string, options: RequestInit = {}): Promise<T> {
-  const token = getToken();
   const res = await fetch(url, {
     ...options,
     headers: {
       'Content-Type': 'application/json',
       ...(options.headers || {}),
-      ...(token ? { Authorization: `Bearer ${token}` } : {}),
+      // No Authorization header, use cookie
     },
+    credentials: 'include',
+    body: options.body,
   });
   if (!res.ok) {
     let message = '';

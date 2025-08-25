@@ -4,10 +4,10 @@ import { verifyToken } from '@/lib/jwt';
 
 export async function GET(req: NextRequest) {
   await initFirestore();
-  const authHeader = req.headers.get('authorization');
-  if (!authHeader) return NextResponse.json({ error: 'Token ausente' }, { status: 401 });
+  const token = req.cookies.get('auth_token')?.value;
+  if (!token) return NextResponse.json({ error: 'Token ausente' }, { status: 401 });
   try {
-    const user = verifyToken(authHeader.split(' ')[1]);
+    const user = verifyToken(token);
     const userId = req.nextUrl.searchParams.get('userId') || user.id;
     const collabsSnap = await firestore.collection('collaborators').where('userId', '==', userId).get();
     const collabs = collabsSnap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
@@ -19,10 +19,10 @@ export async function GET(req: NextRequest) {
 
 export async function POST(req: NextRequest) {
   await initFirestore();
-  const authHeader = req.headers.get('authorization');
-  if (!authHeader) return NextResponse.json({ error: 'Token ausente' }, { status: 401 });
+  const token = req.cookies.get('auth_token')?.value;
+  if (!token) return NextResponse.json({ error: 'Token ausente' }, { status: 401 });
   try {
-    const user = verifyToken(authHeader.split(' ')[1]);
+    const user = verifyToken(token);
     const { nome, userId } = await req.json();
     const uid = userId || user.id;
     if (!nome || nome.trim() === '') {

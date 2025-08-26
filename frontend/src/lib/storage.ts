@@ -61,8 +61,14 @@ export function isVisibleInMonth(
       p === null || p === undefined || String(p) === '' ? null : Number(p);
 
     if (total === null || !Number.isFinite(total) || total <= 0) {
-      // Indeterminada: aparece de start em diante
-      return true;
+      // Distingue entre conta fixa (null/undefined) e avulsa (0)
+      if (f.parcelasTotal === null || f.parcelasTotal === undefined) {
+        // Conta fixa (indeterminada): aparece de start em diante
+        return true;
+      } else {
+        // Conta avulsa (parcelasTotal = 0): aparece apenas no mês exato
+        return diff === 0;
+      }
     }
 
     return diff <= total - 1;
@@ -91,7 +97,13 @@ export function willCountInMonth(
     const diff = monthsDiff(start, month);
     if (diff < 0) return false;
 
-    if (f.parcelasTotal == null) return true;
+    if (f.parcelasTotal === null || f.parcelasTotal === undefined) {
+      // Conta fixa (indeterminada): conta em todos os meses a partir do início
+      return true;
+    } else if (f.parcelasTotal === 0) {
+      // Conta avulsa: conta apenas no mês exato
+      return diff === 0;
+    }
     return diff <= num(f.parcelasTotal) - 1;
   }
 

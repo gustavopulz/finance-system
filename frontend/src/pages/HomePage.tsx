@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
+import React from 'react';
 import { DndContext, closestCenter } from '@dnd-kit/core';
 import {
   arrayMove,
@@ -10,6 +11,8 @@ import { CSS } from '@dnd-kit/utilities';
 import type { Account, Collaborator } from '../lib/types';
 import { MONTHS_PT, brl } from '../lib/format';
 import { todayComp, monthsDiff } from '../lib/date';
+import type { ReactElement } from 'react';
+import type { FinanceTableProps } from '../components/FinanceTable';
 import FinanceTable from '../components/FinanceTable';
 import FinanceDialog from '../components/AddFinanceDialog';
 import AddCollaboratorDialog from '../components/AddCollaboratorDialog';
@@ -67,18 +70,33 @@ export default function HomePage() {
     children,
   }: {
     id: string;
-    children: React.ReactNode;
+    children: ReactElement<FinanceTableProps>;
   }) {
-    const { attributes, listeners, setNodeRef, transform, transition } =
-      useSortable({ id });
+    const {
+      attributes,
+      listeners,
+      setNodeRef,
+      transform,
+      transition,
+      isDragging,
+    } = useSortable({ id });
+
     return (
       <div
         ref={setNodeRef}
-        style={{ transform: CSS.Transform.toString(transform), transition }}
-        {...attributes}
-        {...listeners}
+        style={{
+          transform: CSS.Transform.toString(transform),
+          transition,
+          opacity: isDragging ? 0.5 : 1,   // deixa mais transparente durante drag
+        }}
       >
-        {children}
+        {React.cloneElement(children, {
+          dragHandleProps: {
+            ...attributes,
+            ...listeners,
+            style: { cursor: isDragging ? 'grabbing' : 'grab' },
+          },
+        })}
       </div>
     );
   }
@@ -314,19 +332,23 @@ export default function HomePage() {
         collisionDetection={closestCenter}
         onDragEnd={(e) => {
           const { active, over } = e;
-          if (active.id !== over?.id) {
+
+          // Se o usuário soltou fora da área de drop, não faz nada
+          if (!over) return;
+
+          if (active.id !== over.id) {
             const oldIndex = collabOrder.indexOf(String(active.id));
-            const newIndex = collabOrder.indexOf(String(over?.id));
+            const newIndex = collabOrder.indexOf(String(over.id));
+
+            if (oldIndex === -1 || newIndex === -1) return;
+
             const newOrder = arrayMove(collabOrder, oldIndex, newIndex);
             setCollabOrder(newOrder);
             saveCollabOrder(newOrder);
           }
         }}
       >
-        <SortableContext
-          items={collabOrder}
-          strategy={verticalListSortingStrategy}
-        >
+        <SortableContext items={collabOrder} strategy={verticalListSortingStrategy}>
           <div className="flex flex-col gap-6">
             {collabOrder.map((id) => {
               const c = collabs.find((cc) => cc.id === id);
@@ -338,31 +360,17 @@ export default function HomePage() {
                     title={c.name}
                     items={byCollab(c.id)}
                     currentComp={{ year, month }}
-                    onDelete={(id) => {
-                      removeAccount(id);
-                    }}
-                    onEdit={(account) =>
-                      setDlg({ mode: 'editAccount', account })
-                    }
-                    onCancelToggle={(id) => {
-                      toggleCancel(id);
-                    }}
+                    onDelete={(id) => removeAccount(id)}
+                    onEdit={(account) => setDlg({ mode: 'editAccount', account })}
+                    onCancelToggle={(id) => toggleCancel(id)}
                     onCollabDeleted={(id) => {
                       setCollabs((prev) => prev.filter((cc) => cc.id !== id));
-                      setCollabOrder((prev) =>
-                        prev.filter((cid) => cid !== id)
-                      );
+                      setCollabOrder((prev) => prev.filter((cid) => cid !== id));
                     }}
                   />
                 </SortableCollab>
               );
             })}
-            {collabs.length === 0 && (
-              <div className="card p-6 text-center text-slate-500 dark:text-slate-400 dark:bg-slate-800">
-                Nenhum colaborador. Clique em{' '}
-                <strong>Adicionar colaborador</strong> para começar.
-              </div>
-            )}
           </div>
         </SortableContext>
       </DndContext>

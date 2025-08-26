@@ -7,6 +7,18 @@ import { deleteCollab } from '../lib/api';
 type SortKey = 'description' | 'value' | 'parcelas' | 'status';
 type SortDir = 'asc' | 'desc';
 
+export interface FinanceTableProps {
+  collaboratorId: string;
+  title: string;
+  items: Account[];
+  currentComp: { year: number; month: number };
+  onDelete: (id: string) => void;
+  onEdit: (a: Account) => void;
+  onCancelToggle: (id: string) => void;
+  onCollabDeleted: (id: string) => void;
+  dragHandleProps?: React.HTMLAttributes<HTMLElement>;
+}
+
 export default function FinanceTable({
   collaboratorId,
   title,
@@ -16,16 +28,8 @@ export default function FinanceTable({
   onEdit,
   onCancelToggle,
   onCollabDeleted,
-}: {
-  collaboratorId: string;
-  title: string;
-  items: Account[];
-  currentComp: { year: number; month: number };
-  onDelete: (id: string) => void;
-  onEdit: (a: Account) => void;
-  onCancelToggle: (id: string) => void;
-  onCollabDeleted: (id: string) => void;
-}) {
+  dragHandleProps,
+}: FinanceTableProps) {
   const [sortKey, setSortKey] = useState<SortKey>('description');
   const [sortDir, setSortDir] = useState<SortDir>('asc');
   const [showConfirm, setShowConfirm] = useState(false);
@@ -117,8 +121,13 @@ export default function FinanceTable({
     <section className="card p-4 relative">
       {/* Cabeçalho */}
       <div className="flex items-center justify-between mb-2">
-        <h3 className="text-lg font-semibold">{title}</h3>
-
+        <div
+          className="flex items-center gap-2 flex-1"
+          {...(dragHandleProps || {})}
+          style={{ ...(dragHandleProps?.style || {}), userSelect: 'none' }}
+        >
+          <h3 className="text-lg font-semibold">{title}</h3>
+        </div>
         <div className="flex items-center gap-2">
           <div className="badge">Total: {brl(Number(total))}</div>
           <button

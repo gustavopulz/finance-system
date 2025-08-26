@@ -22,10 +22,11 @@ export function middleware(request: NextRequest) {
     });
   }
 
-  // Verificação de autenticação para rotas /api/*, exceto /api/login
+  // Verificação de autenticação para rotas /api/*, exceto /api/login e /api/hello
   const isApiRoute = request.nextUrl.pathname.startsWith('/api');
   const isLoginRoute = request.nextUrl.pathname === '/api/login';
-  if (isApiRoute && !isLoginRoute) {
+  const isHelloRoute = request.nextUrl.pathname === '/api/hello';
+  if (isApiRoute && !isLoginRoute && !isHelloRoute) {
     const cookie = request.cookies.get('auth_token');
     const token = typeof cookie === 'string' ? cookie : cookie?.value;
     if (!token) {

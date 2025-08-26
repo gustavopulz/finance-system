@@ -1,15 +1,7 @@
 import { parcelaLabel, brl } from '../lib/format';
 import { updateAccount } from '../lib/api';
 import type { Account } from '../lib/types';
-import {
-  Trash2,
-  Pencil,
-  XCircle,
-  RotateCcw,
-  Ban,
-  CheckCircle,
-  GripVertical,
-} from 'lucide-react';
+import { Trash2, Pencil, Ban, CheckCircle, GripVertical } from 'lucide-react';
 import { useMemo, useState, useEffect } from 'react';
 import { deleteCollab } from '../lib/api';
 
@@ -41,8 +33,8 @@ export default function FinanceTable({
   dragHandleProps,
 }: FinanceTableProps) {
   const [localItems, setLocalItems] = useState<Account[]>(items);
-  const [sortKey, setSortKey] = useState<SortKey>('description');
-  const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc');
+  const [sortKey] = useState<SortKey>('description');
+  const [sortOrder] = useState<'asc' | 'desc'>('asc');
   const [showConfirm, setShowConfirm] = useState(false);
   const [toast, setToast] = useState<string | null>(null);
   const [financaToDelete, setFinancaToDelete] = useState<Account | null>(null);
@@ -101,15 +93,6 @@ export default function FinanceTable({
     });
   }, [items, sortKey, sortOrder, currentComp]);
 
-  function handleSort(key: SortKey) {
-    if (sortKey === key) {
-      setSortOrder((prev) => (prev === 'asc' ? 'desc' : 'asc'));
-    } else {
-      setSortKey(key);
-      setSortOrder('asc');
-    }
-  }
-
   // Totais considerando o campo paid
   const total = localItems.reduce((acc, f) => acc + Number(f.value), 0);
   const totalPendente = localItems
@@ -118,18 +101,6 @@ export default function FinanceTable({
   const totalPago = localItems
     .filter((f) => f.paid)
     .reduce((acc, f) => acc + Number(f.value), 0);
-
-  const Th = ({ label, keyName }: { label: string; keyName: SortKey }) => (
-    <th
-      className="cursor-pointer select-none"
-      onClick={() => handleSort(keyName)}
-    >
-      <span className="inline-flex items-center gap-1">
-        {label}
-        {sortKey === keyName && (sortOrder === 'asc' ? '↑' : '↓')}
-      </span>
-    </th>
-  );
 
   async function handlePaidToggle(account: Account) {
     try {

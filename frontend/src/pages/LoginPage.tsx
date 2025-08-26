@@ -19,11 +19,10 @@ export default function LoginPage() {
       }
 
       // chama a API real
-  await apiLogin(username, password);
+      await apiLogin(username, password);
 
-  // busca e salva usuário autenticado no AuthContext
-  await auth.login();
-
+      // busca e salva usuário autenticado no AuthContext
+      await auth.login();
       // redireciona para a página inicial
       navigate('/');
     } catch (err: any) {

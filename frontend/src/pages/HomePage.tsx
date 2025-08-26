@@ -125,36 +125,6 @@ export default function HomePage() {
       } catch {
         setCollabOrder(collabList.map((c) => c.id));
       }
-      // Salva a ordem dos colaboradores no backend
-      async function saveCollabOrder(newOrder: string[]) {
-        try {
-          await api.saveCollabOrder(newOrder);
-        } catch (err) {
-          console.error('Erro ao salvar ordem dos colaboradores:', err);
-        }
-      }
-
-      // Componente Sortable para cada colaborador
-      function SortableCollab({
-        id,
-        children,
-      }: {
-        id: string;
-        children: React.ReactNode;
-      }) {
-        const { attributes, listeners, setNodeRef, transform, transition } =
-          useSortable({ id });
-        return (
-          <div
-            ref={setNodeRef}
-            style={{ transform: CSS.Transform.toString(transform), transition }}
-            {...attributes}
-            {...listeners}
-          >
-            {children}
-          </div>
-        );
-      }
     } finally {
       setLoading(false);
     }

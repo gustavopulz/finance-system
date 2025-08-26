@@ -118,16 +118,18 @@ export default function FinanceTable({
   }
 
   return (
-    <section className="px-10 2xl:px-60 lg:px-20 card p-4 relative">
-      {/* Cabeçalho */}
-      <div className="flex items-center justify-between mb-2">
-        <div
-          className="flex items-center gap-2 flex-1"
-          {...(dragHandleProps || {})}
-          style={{ ...(dragHandleProps?.style || {}), userSelect: 'none' }}
-        >
+    <section className="card relative">
+      {/* Cabeçalho (inclui o padding superior, é a área de drag) */}
+      <div
+        className="flex items-center justify-between p-4 pb-2 cursor-grab"
+        {...(dragHandleProps || {})}
+        style={{ ...(dragHandleProps?.style || {}), userSelect: 'none' }}
+      >
+        <div className="flex items-center gap-2 flex-1">
           <h3 className="text-lg font-semibold">{title}</h3>
         </div>
+
+        {/* Botões do cabeçalho (não arrastáveis) */}
         <div className="flex items-center gap-2">
           <div className="badge">Total: {brl(Number(total))}</div>
           <button
@@ -140,7 +142,7 @@ export default function FinanceTable({
       </div>
 
       {/* Tabela */}
-      <div className="overflow-x-auto">
+      <div className="overflow-x-auto px-4 pb-4">
         <table className="table">
           <thead>
             <tr>

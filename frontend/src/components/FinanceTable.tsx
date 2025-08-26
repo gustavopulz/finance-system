@@ -118,7 +118,7 @@ export default function FinanceTable({
   }
 
   return (
-    <section className="card p-4 relative">
+    <section className="px-10 2xl:px-60 lg:px-20 card p-4 relative">
       {/* Cabeçalho */}
       <div className="flex items-center justify-between mb-2">
         <div
@@ -148,8 +148,8 @@ export default function FinanceTable({
               <Th label="Valor" keyName="value" />
               <Th label="Parcela" keyName="parcelas" />
               <Th label="Status" keyName="status" />
-              <th>Cancelado em</th>
-              <th className="w-36"></th>
+              <th className="hidden md:table-cell">Cancelado em</th>
+              <th className="w-8 md:w-36 text-center"></th>
             </tr>
           </thead>
           <tbody>
@@ -162,10 +162,16 @@ export default function FinanceTable({
                     : 'bg-white dark:bg-slate-800/40'
                 }
               >
-                <td className="px-3 py-3 font-medium">{f.description}</td>
-                <td className="py-3">{brl(Number(f.value))}</td>
-                <td className="py-3">{parcelaLabel(f, currentComp)}</td>
-                <td className="py-3">
+                <td className="px-2 py-3 font-medium min-w-[100px] md:min-w-[150px]">
+                  {f.description}
+                </td>
+                <td className="py-3 min-w-[60px] md:min-w-[90px]">
+                  {brl(Number(f.value))}
+                </td>
+                <td className="py-3 min-w-[60px] md:min-w-[90px]">
+                  {parcelaLabel(f, currentComp)}
+                </td>
+                <td className="py-3 min-w-[60px] md:min-w-[90px]">
                   <span
                     className={
                       'px-2 py-1 rounded-full text-xs font-semibold ' +
@@ -179,7 +185,7 @@ export default function FinanceTable({
                     {f.status}
                   </span>
                 </td>
-                <td className="py-3 text-xs text-slate-500">
+                <td className="py-3 text-xs text-slate-500 hidden md:table-cell">
                   {f.cancelledAt
                     ? new Date(f.cancelledAt).toLocaleDateString('pt-BR', {
                         year: 'numeric',
@@ -187,14 +193,40 @@ export default function FinanceTable({
                       })
                     : ''}
                 </td>
-                <td className="px-3 py-3 flex gap-1">
+                <td className="px-1 py-3 flex items-center justify-center">
+                  {/* Mobile: botão de ações */}
                   <button
-                    className="btn btn-ghost"
+                    className="btn btn-ghost flex md:hidden min-w-[32px] justify-center"
+                    style={{ paddingLeft: 0, paddingRight: 0 }}
                     onClick={() => setActionModal({ open: true, financa: f })}
                     title="Ações"
                   >
                     ⋮
                   </button>
+                  {/* Desktop: botões individuais */}
+                  <div className="hidden md:flex gap-1">
+                    <button
+                      className="btn btn-ghost"
+                      onClick={() => onEdit(f)}
+                      title="Editar"
+                    >
+                      ✏️
+                    </button>
+                    <button
+                      className="btn btn-ghost"
+                      onClick={() => onCancelToggle(f.id)}
+                      title="Cancelar / Ativar"
+                    >
+                      🚫
+                    </button>
+                    <button
+                      className="btn btn-ghost"
+                      onClick={() => setFinancaToDelete(f)}
+                      title="Excluir lançamento"
+                    >
+                      🗑️
+                    </button>
+                  </div>
                 </td>
               </tr>
             ))}
@@ -230,6 +262,59 @@ export default function FinanceTable({
                 className="px-4 py-2 rounded bg-red-600 text-white"
               >
                 Excluir
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+      {/* Modal de ações para lançamento */}
+      {actionModal.open && actionModal.financa && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+          <div className="bg-white dark:bg-slate-800 rounded-lg p-6 shadow-lg max-w-sm w-full">
+            <h2 className="text-lg font-semibold mb-4">Ações</h2>
+            <p className="mb-6">
+              Selecione uma ação para o lançamento{' '}
+              <b>{actionModal.financa.description}</b>:
+            </p>
+            <div className="flex flex-col gap-2">
+              <button
+                className="px-4 py-2 rounded bg-blue-600 text-white"
+                onClick={() => {
+                  if (actionModal.financa) {
+                    onEdit(actionModal.financa);
+                  }
+                  setActionModal({ open: false, financa: null });
+                }}
+              >
+                Editar
+              </button>
+              <button
+                className="px-4 py-2 rounded bg-yellow-500 text-white"
+                onClick={() => {
+                  if (actionModal.financa) {
+                    onCancelToggle(actionModal.financa.id);
+                  }
+                  setActionModal({ open: false, financa: null });
+                }}
+              >
+                {actionModal.financa.status === 'ativo' ? 'Cancelar' : 'Ativar'}
+              </button>
+              <button
+                className="px-4 py-2 rounded bg-red-600 text-white"
+                onClick={() => {
+                  if (actionModal.financa) {
+                    setFinancaToDelete(actionModal.financa);
+                  }
+                  setActionModal({ open: false, financa: null });
+                }}
+              >
+                Excluir lançamento
+              </button>
+              <button
+                className="px-4 py-2 rounded bg-gray-200 dark:bg-slate-700 text-black dark:text-white"
+                onClick={() => setActionModal({ open: false, financa: null })}
+              >
+                Cancelar
               </button>
             </div>
           </div>

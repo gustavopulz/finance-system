@@ -26,9 +26,66 @@ function useTheme() {
 export default function Header() {
   const { theme, setTheme } = useTheme();
   const auth = useAuth();
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+
+  // Links do menu
+  const menuLinks = [
+    {
+      type: 'link',
+      to: '/info',
+      label: 'Dashboard',
+      icon: null,
+    },
+    auth?.user
+      ? {
+          type: 'link',
+          to: '/usuario',
+          label: 'Minha Conta',
+          icon: (
+            <span className="mr-1">
+              <svg
+                width="18"
+                height="18"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                viewBox="0 0 24 24"
+                className="inline-block align-middle"
+              >
+                <circle cx="12" cy="8" r="4" />
+                <path d="M4 20c0-4 4-6 8-6s8 2 8 6" />
+              </svg>
+            </span>
+          ),
+        }
+      : null,
+    auth?.user?.role === 'admin'
+      ? {
+          type: 'link',
+          to: '/admin',
+          label: 'Painel Admin',
+          icon: <LayoutDashboard size={18} className="mr-1" />,
+        }
+      : null,
+    {
+      type: 'button',
+      onClick: () => setTheme(theme === 'dark' ? 'light' : 'dark'),
+      label: theme === 'dark' ? 'Claro' : 'Escuro',
+      icon: theme === 'dark' ? <Sun size={18} /> : <Moon size={18} />,
+    },
+    auth?.user
+      ? {
+          type: 'button',
+          onClick: () => auth.logout(),
+          label: 'Sair',
+          icon: <LogOut size={18} className="mr-1" />,
+          className: 'text-red-500',
+        }
+      : null,
+  ].filter((item): item is Exclude<typeof item, null> => !!item);
 
   return (
-    <header className="px-10 2xl:px-60 lg:px-20 border-b bg-white dark:bg-slate-900 dark:border-slate-800">
+    <header className="px-4 2xl:px-60 lg:px-20 border-b bg-white dark:bg-slate-900 dark:border-slate-800">
       <div className="container-app flex items-center justify-between py-4">
         <NavLink
           to="/"
@@ -36,54 +93,86 @@ export default function Header() {
         >
           Finanças
         </NavLink>
-        <nav className="flex items-center gap-2">
-          <NavLink to="/info" className="btn btn-ghost">
-            Dashboard
-          </NavLink>
-          <button
-            className="btn btn-ghost"
-            onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
-          >
-            {theme === 'dark' ? <Sun size={18} /> : <Moon size={18} />}
-            {theme === 'dark' ? 'Claro' : 'Escuro'}
-          </button>
-          {auth?.user && (
-            <NavLink to="/usuario" className="btn btn-ghost">
-              <span className="mr-1">
-                {/* User icon SVG, padrão monocromático */}
-                <svg
-                  width="18"
-                  height="18"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  viewBox="0 0 24 24"
-                  className="inline-block align-middle"
+        {/* Desktop menu */}
+        <nav className="hidden md:flex items-center gap-2">
+          {menuLinks.map((item, idx) => {
+            if (item.type === 'link' && item.to) {
+              return (
+                <NavLink key={idx} to={item.to} className="btn btn-ghost">
+                  {item.icon}
+                  {item.label}
+                </NavLink>
+              );
+            } else if (item.type === 'button' && item.onClick) {
+              return (
+                <button
+                  key={idx}
+                  className={`btn btn-ghost ${item.className || ''}`}
+                  onClick={item.onClick}
                 >
-                  <circle cx="12" cy="8" r="4" />
-                  <path d="M4 20c0-4 4-6 8-6s8 2 8 6" />
-                </svg>
-              </span>
-              Minha Conta
-            </NavLink>
-          )}
-          {auth?.user?.role === 'admin' && (
-            <NavLink to="/admin" className="btn btn-ghost">
-              <LayoutDashboard size={18} className="mr-1" />
-              Painel Admin
-            </NavLink>
-          )}
-          {auth?.user && (
-            <button
-              onClick={() => auth.logout()}
-              className="btn btn-ghost text-red-500"
-            >
-              <LogOut size={18} className="mr-1" />
-              Sair
-            </button>
-          )}
+                  {item.icon}
+                  {item.label}
+                </button>
+              );
+            }
+            return null;
+          })}
         </nav>
+        {/* Mobile menu button */}
+        <button
+          className="md:hidden btn btn-ghost"
+          onClick={() => setMobileMenuOpen((v) => !v)}
+          aria-label="Abrir menu"
+        >
+          <svg
+            width="28"
+            height="28"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            viewBox="0 0 24 24"
+          >
+            <line x1="4" y1="6" x2="20" y2="6" />
+            <line x1="4" y1="12" x2="20" y2="12" />
+            <line x1="4" y1="18" x2="20" y2="18" />
+          </svg>
+        </button>
       </div>
+      {/* Mobile menu dropdown */}
+      {mobileMenuOpen && (
+        <nav className="md:hidden flex flex-col gap-2 px-4 pb-4 animate-fade-in">
+          {menuLinks.map((item, idx) => {
+            if (item.type === 'link' && item.to) {
+              return (
+                <NavLink
+                  key={idx}
+                  to={item.to}
+                  className="btn btn-ghost w-full justify-start"
+                  onClick={() => setMobileMenuOpen(false)}
+                >
+                  {item.icon}
+                  {item.label}
+                </NavLink>
+              );
+            } else if (item.type === 'button' && item.onClick) {
+              return (
+                <button
+                  key={idx}
+                  className={`btn btn-ghost w-full justify-start ${item.className || ''}`}
+                  onClick={() => {
+                    item.onClick && item.onClick();
+                    setMobileMenuOpen(false);
+                  }}
+                >
+                  {item.icon}
+                  {item.label}
+                </button>
+              );
+            }
+            return null;
+          })}
+        </nav>
+      )}
     </header>
   );
 }

@@ -32,7 +32,6 @@ export default function UserPanelPage() {
   const [nameStatus, setNameStatus] = useState<string | null>(null);
   const [passwordStatus, setPasswordStatus] = useState<string | null>(null);
 
-  // Buscar vínculos ao abrir
   useEffect(() => {
     fetchLinks();
   }, []);
@@ -47,7 +46,6 @@ export default function UserPanelPage() {
     }
   }
 
-  // Gerar token via backend
   const handleGenerateToken = async () => {
     const res = await generateShareToken();
     setToken(res.token);
@@ -55,7 +53,6 @@ export default function UserPanelPage() {
     await fetchLinks();
   };
 
-  // Usar token via backend
   const handleUseToken = async () => {
     const res = await useShareToken(sharedToken);
     if (res.success) {
@@ -67,7 +64,6 @@ export default function UserPanelPage() {
     setSharedToken('');
   };
 
-  // Simulação: alterar nome/senha
   const handleChangeName = () => {
     setEditingName(true);
     setNewName(auth?.user?.username || '');
@@ -103,9 +99,7 @@ export default function UserPanelPage() {
 
   return (
     <div className="px-4 sm:px-6 lg:px-20 2xl:px-60 grid gap-8 py-10">
-      {/* Card principal */}
       <div className="bg-white dark:bg-slate-900 rounded-xl shadow-md p-6 sm:p-8 flex flex-col gap-6 border border-slate-200 dark:border-slate-800">
-        {/* Header */}
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-2 gap-3">
           <div className="flex items-center gap-2">
             <span className="w-8 h-8 rounded-full flex items-center justify-center">
@@ -129,7 +123,6 @@ export default function UserPanelPage() {
           </button>
         </div>
 
-        {/* Info extra */}
         {showInfo && (
           <div className="bg-slate-100 dark:bg-slate-800 rounded p-4 text-sm text-slate-700 dark:text-slate-300 mb-2">
             <strong>Como funciona:</strong>
@@ -151,7 +144,6 @@ export default function UserPanelPage() {
           Gerencie seu perfil, compartilhamento e vínculos de acesso.
         </p>
 
-        {/* Token exibido */}
         {token && (
           <div className="flex flex-col sm:flex-row items-center gap-2 mb-2">
             <span className="font-mono bg-slate-100 dark:bg-slate-800 px-2 py-1 rounded text-xs border border-slate-300 dark:border-slate-700 w-full sm:w-auto text-center sm:text-left">
@@ -169,7 +161,6 @@ export default function UserPanelPage() {
           </div>
         )}
 
-        {/* Usar Token */}
         <div className="mt-4">
           <label className="block mb-2 font-semibold text-slate-700 dark:text-slate-300">
             Usar Token para Mesclar Contas:
@@ -192,9 +183,7 @@ export default function UserPanelPage() {
           </div>
         </div>
 
-        {/* Alterar Nome e Senha */}
         <div className="mt-4 flex flex-col sm:flex-row gap-2">
-          {/* Alterar nome */}
           <div className="flex-1">
             {!editingName ? (
               <button
@@ -235,7 +224,6 @@ export default function UserPanelPage() {
             )}
           </div>
 
-          {/* Alterar senha */}
           <div className="flex-1">
             {!editingPassword ? (
               <button
@@ -278,7 +266,6 @@ export default function UserPanelPage() {
         </div>
       </div>
 
-      {/* Card de vínculos */}
       <div className="bg-white dark:bg-slate-900 rounded-xl shadow-md p-6 sm:p-8 border border-slate-200 dark:border-slate-800">
         <h3 className="text-xl font-bold mb-4 flex items-center gap-2">
           <LinkIcon size={20} className="text-slate-500" />
@@ -315,7 +302,6 @@ export default function UserPanelPage() {
               )}
             </div>
 
-            {/* Vê sua conta */}
             <div>
               <div className="font-semibold text-slate-700 dark:text-slate-300 mb-2 flex items-center gap-1">
                 <Lock size={16} /> Vê sua conta:

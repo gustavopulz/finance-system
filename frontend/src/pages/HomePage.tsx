@@ -28,8 +28,6 @@ type DialogState =
   | { mode: 'editAccount'; account: Account }
   | { mode: 'addCollab' };
 
-// Normaliza o que vem do backend (evita “8”/“2025” como string)
-// Normaliza o que vem do backend (tolerante a '', null e strings)
 function normalizeAccount(a: any): Account {
   return {
     id: String(a.id),
@@ -46,7 +44,7 @@ function normalizeAccount(a: any): Account {
     month: Math.min(12, Math.max(1, Number(a.month ?? 1))),
     year: Math.max(1900, Number(a.year ?? new Date().getFullYear())),
     status: (a.status as Account['status']) ?? 'Pendente',
-    paid: Boolean(a.paid), // Inclui o campo paid na normalização
+    paid: Boolean(a.paid),
     createdAt: a.createdAt ?? '',
     updatedAt: a.updatedAt ?? '',
     cancelledAt: a.cancelledAt ?? undefined,
@@ -54,15 +52,11 @@ function normalizeAccount(a: any): Account {
 }
 
 export default function HomePage() {
-  // Refs para cada colaborador
   const collabRefs = useRef<{ [id: string]: HTMLDivElement | null }>({});
   const [selectedCollab, setSelectedCollab] = useState<string | null>(null);
-  // Remove seleção ao clicar fora ou clicar novamente no colaborador
   useEffect(() => {
     function handleClick(e: MouseEvent) {
-      // Sidebar
       const sidebar = document.getElementById('sidebar-total-colabs');
-      // Conteúdo principal
       const mainContent = document.getElementById('main-content');
       if (!sidebar || !mainContent) return;
       if (
@@ -78,7 +72,6 @@ export default function HomePage() {
   const now = todayComp();
   const [month, setMonth] = useState(now.month);
   const [year, setYear] = useState(now.year);
-  // Salva a ordem dos colaboradores no backend
   async function saveCollabOrder(newOrder: string[]) {
     try {
       await api.saveCollabOrder(newOrder);
@@ -87,7 +80,6 @@ export default function HomePage() {
     }
   }
 
-  // Componente Sortable para cada colaborador
   function SortableCollab({
     id,
     children,
@@ -110,7 +102,7 @@ export default function HomePage() {
         style={{
           transform: CSS.Transform.toString(transform),
           transition,
-          opacity: isDragging ? 0.5 : 1, // deixa mais transparente durante drag
+          opacity: isDragging ? 0.5 : 1,
         }}
       >
         {React.cloneElement(children, {
@@ -128,25 +120,19 @@ export default function HomePage() {
 
   const [dlg, setDlg] = useState<DialogState>({ mode: 'closed' });
   const [collabs, setCollabs] = useState<Collaborator[]>([]);
-  // Ordem dos IDs dos colaboradores
   const [collabOrder, setCollabOrder] = useState<string[]>([]);
   const [accounts, setAccounts] = useState<Account[]>([]);
   const [loading, setLoading] = useState(false);
 
-  // Mantém um snapshot das contas visíveis para evitar “piscar” enquanto carrega
   const visibleSnapshotRef = useRef<Account[]>([]);
 
   async function load() {
     setLoading(true);
     try {
-      // Busca dados mesclados (colaboradores e contas)
       const data = await api.getMergedFinances();
-      // Normaliza contas
       const normalizedAccounts = (data.accounts as any[]).map(normalizeAccount);
       setAccounts(normalizedAccounts);
-      // Normaliza colaboradores
       let collabList = (data.collabs as Collaborator[]) || [];
-      // Se existir orderId, ordena pelo campo
       if (collabList.length && 'orderId' in collabList[0]) {
         collabList = [...collabList].sort((a, b) => {
           const va =
@@ -157,7 +143,6 @@ export default function HomePage() {
         });
       }
       setCollabs(collabList);
-      // Usa a ordem dos colaboradores já ordenada pelo campo orderId
       setCollabOrder(collabList.map((c) => c.id));
     } finally {
       setLoading(false);
@@ -166,14 +151,11 @@ export default function HomePage() {
 
   useEffect(() => {
     load();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [month, year]);
 
-  // Gera uma linha para cada parcela ativa de cada conta, criando múltiplas linhas por conta se necessário
   const visibleAccounts = useMemo(() => {
     let result: Account[] = [];
     if (showAll) {
-      // Exibe todas as contas, todas as parcelas
       accounts.forEach((acc) => {
         if (acc.parcelasTotal === null || acc.parcelasTotal === undefined) {
           result.push(acc);
@@ -182,7 +164,6 @@ export default function HomePage() {
           acc.parcelasTotal > 1
         ) {
           for (let i = 0; i < acc.parcelasTotal; i++) {
-            // Cria uma cópia do objeto com info da parcela
             result.push({ ...(acc as any), parcelaAtual: i + 1 });
           }
         } else {
@@ -214,7 +195,6 @@ export default function HomePage() {
         }
       });
     }
-    // Filtro de Cancelados
     if (!showCancelled) {
       result = result.filter((acc) => acc.status !== 'Cancelado');
     }
@@ -232,7 +212,6 @@ export default function HomePage() {
   const byCollab = (id: string) =>
     stableVisible.filter((a) => a.collaboratorId === id);
 
-  // Novos totais para a sidebar
   const total = stableVisible.reduce((s, a) => s + Number(a.value), 0);
   const totalPendente = stableVisible
     .filter((a) => !a.paid)
@@ -241,7 +220,6 @@ export default function HomePage() {
     .filter((a) => a.paid)
     .reduce((s, a) => s + Number(a.value), 0);
 
-  // CRUD handlers
   async function addOrUpdateAccount(
     payload: Omit<
       Account,
@@ -268,10 +246,8 @@ export default function HomePage() {
   }
 
   async function toggleCancel(id: string) {
-    // Chama o endpoint PATCH (toggleCancel), enviando mês/ano do filtro atual
     await api.toggleCancel(id, month, year);
     await load();
-    // Após carregar, loga os dados recebidos
     const updated = accounts.find((a) => a.id === id);
     if (updated) {
       console.log('Recebido do backend:', {
@@ -291,8 +267,6 @@ export default function HomePage() {
     setDlg({ mode: 'closed' });
     await load();
   }
-
-  // Função para atualizar o estado paid de uma conta local
   function handlePaidUpdate(accountId: string, paid: boolean) {
     setAccounts((prev) =>
       prev.map((account) =>
@@ -303,7 +277,6 @@ export default function HomePage() {
 
   return (
     <div className="flex px-4 sm:px-6 lg:px-20 2xl:px-60 gap-6">
-      {/* Sidebar à esquerda - escondida em mobile */}
       <div id="sidebar-total-colabs" className="hidden md:block">
         <SidebarTotalColabs
           total={total}
@@ -328,15 +301,11 @@ export default function HomePage() {
           }}
         />
       </div>
-      {/* Conteúdo principal */}
       <div id="main-content" className="flex-1 grid gap-6">
         <div className="card p-4">
-          {/* Header */}
           <h1 className="text-xl font-bold mb-4">Resumo</h1>
 
-          {/* Container flex: muda no mobile */}
           <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-            {/* Grupo de filtros */}
             <div className="flex flex-col sm:flex-row sm:items-center sm:flex-wrap gap-2">
               <span className="inline-flex items-center gap-2 text-slate-600">
                 <Filter size={16} /> Filtros:
@@ -378,7 +347,6 @@ export default function HomePage() {
               </label>
             </div>
 
-            {/* Grupo de botões */}
             <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
               <button
                 className="btn btn-ghost justify-center"
@@ -398,7 +366,6 @@ export default function HomePage() {
 
         {loading && <SkeletonCard className="mb-4" />}
 
-        {/* Card de totais - apenas em mobile */}
         <div className="md:hidden card p-4">
           <h2 className="text-lg font-bold mb-3">Totais</h2>
           <div className="grid grid-cols-1 gap-2">
@@ -432,13 +399,11 @@ export default function HomePage() {
           </div>
         </div>
 
-        {/* Cards dinâmicos por colaborador com drag-and-drop */}
         <DndContext
           collisionDetection={closestCenter}
           onDragEnd={(e) => {
             const { active, over } = e;
 
-            // Se o usuário soltou fora da área de drop, não faz nada
             if (!over) return;
 
             if (active.id !== over.id) {

@@ -9,7 +9,6 @@ export default function AdminPage() {
   const [newPassword, setNewPassword] = useState('');
   const [newRole, setNewRole] = useState('user');
 
-  // Carregar colaboradores ao entrar
   useEffect(() => {
     refresh();
   }, []);
@@ -47,7 +46,6 @@ export default function AdminPage() {
     <div className="max-w-lg mx-auto">
       <h1 className="text-2xl font-bold mb-6">Administração de Usuários</h1>
 
-      {/* Formulário para adicionar usuário */}
       <form onSubmit={handleAdd} className="flex flex-col gap-2 mb-6">
         <input
           className="input input-bordered"
@@ -75,7 +73,6 @@ export default function AdminPage() {
         </button>
       </form>
 
-      {/* Lista de usuários */}
       <ul className="space-y-2">
         {users.map((u) => (
           <li

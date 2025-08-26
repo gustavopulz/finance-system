@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
-import { login as apiLogin } from '../lib/api'; // importa a função real
+import { login as apiLogin } from '../lib/api';
 
 export default function LoginPage() {
   const auth = useAuth();
@@ -18,12 +18,10 @@ export default function LoginPage() {
         return;
       }
 
-      // chama a API real
       await apiLogin(username, password);
 
-      // busca e salva usuário autenticado no AuthContext
       await auth.login();
-      // redireciona para a página inicial
+
       navigate('/');
     } catch (err: any) {
       console.error(err);

@@ -5,7 +5,6 @@ export function middleware(request: NextRequest) {
   const origin = request.headers.get('origin') || '';
   const allowedOrigins = [
     'https://finance-system.prxlab.app',
-    'http://localhost:5173',
     'capacitor://localhost',
     'ionic://localhost',
   ];

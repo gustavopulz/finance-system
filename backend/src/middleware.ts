@@ -4,9 +4,7 @@ import type { NextRequest } from 'next/server';
 export function middleware(request: NextRequest) {
   const origin = request.headers.get('origin') || '';
   const allowedOrigins = [
-    'https://finance-system.prxlab.app',
-    'capacitor://localhost',
-    'ionic://localhost',
+    'https://finance-system.prxlab.app'
   ];
   const allowedOrigin = allowedOrigins.includes(origin) ? origin : allowedOrigins[0];
   if (request.method === 'OPTIONS') {

@@ -6,17 +6,12 @@ export async function saveCollabOrder(order: string[]) {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ order }),
+    credentials: 'include', // garante envio do cookie de autenticação
   });
   if (!res.ok) throw new Error('Erro ao salvar ordem');
   return await res.json();
 }
 
-// Busca a ordem dos colaboradores
-export async function getCollabOrder() {
-  const res = await fetch(`${API_URL}/collabs/order`);
-  if (!res.ok) throw new Error('Erro ao buscar ordem');
-  return await res.json();
-}
 // -------------------- UPDATE USER --------------------
 export function updateUserName(username: string) {
   return json<{ success: boolean; username: string }>(`${API_URL}/users/me`, {

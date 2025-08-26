@@ -1,0 +1,21 @@
+services:
+  finance-system-api:
+    build: .
+    container_name: finance-system-api
+    restart: always
+    env_file:
+      - .env
+    environment:
+      - NODE_ENV=production
+      - PORT=3000
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.finance-system-api.rule=Host(`finance-system-api.prxlab.app`)"
+      - "traefik.http.routers.finance-system-api.entrypoints=websecure"
+      - "traefik.http.routers.finance-system-api.tls.certresolver=letsencrypt"
+    networks:
+      - proxy
+
+networks:
+  proxy:
+    external: true

@@ -4,7 +4,7 @@ name: Deploy Finance System API
 on:
   push:
     branches:
-      - main
+      - master
     paths:
       - 'backend/**'
 

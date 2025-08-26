@@ -1,6 +1,8 @@
+const API_URL = 'https://finance-system-br-backend.netlify.app/api';
+
 // Salva a ordem dos colaboradores
 export async function saveCollabOrder(order: string[]) {
-  const res = await fetch('/api/collabs/order', {
+  const res = await fetch(`${API_URL}/collabs/order`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ order }),
@@ -11,7 +13,7 @@ export async function saveCollabOrder(order: string[]) {
 
 // Busca a ordem dos colaboradores
 export async function getCollabOrder() {
-  const res = await fetch('/api/collabs/order');
+  const res = await fetch(`${API_URL}/collabs/order`);
   if (!res.ok) throw new Error('Erro ao buscar ordem');
   return await res.json();
 }
@@ -29,9 +31,6 @@ export function updateUserPassword(password: string) {
     body: JSON.stringify({ password }),
   });
 }
-// src/lib/api.ts
-const API_URL = 'https://finance-system-br-backend.netlify.app/api';
-
 // -------------------- GET TOKEN --------------------
 export function getToken(): string | null {
   // Token is now stored in httpOnly cookie, not accessible from JS

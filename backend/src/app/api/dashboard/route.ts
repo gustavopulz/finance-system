@@ -13,27 +13,31 @@ export async function GET(req: NextRequest) {
     const now = new Date();
     const month = now.getMonth() + 1;
     const year = now.getFullYear();
-    const accountsSnap = await firestore.collection('accounts')
+    const accountsSnap = await firestore
+      .collection('accounts')
       .where('userId', '==', user.id)
       .where('month', '==', month)
       .where('year', '==', year)
-      .where('status', '==', 'ativo')
+      .where('status', '==', 'Pendente')
       .get();
-    const accounts = accountsSnap.docs.map(doc => doc.data());
+    const accounts = accountsSnap.docs.map((doc) => doc.data());
     const total = accounts.reduce((sum, acc) => sum + (acc.value || 0), 0);
     const origemTotals: Record<string, number> = {};
-    accounts.forEach(acc => {
+    accounts.forEach((acc) => {
       if (acc.origem) {
-        origemTotals[acc.origem] = (origemTotals[acc.origem] || 0) + (acc.value || 0);
+        origemTotals[acc.origem] =
+          (origemTotals[acc.origem] || 0) + (acc.value || 0);
       }
     });
     const responsavelTotals: Record<string, number> = {};
-    accounts.forEach(acc => {
+    accounts.forEach((acc) => {
       if (acc.responsavel) {
-        responsavelTotals[acc.responsavel] = (responsavelTotals[acc.responsavel] || 0) + (acc.value || 0);
+        responsavelTotals[acc.responsavel] =
+          (responsavelTotals[acc.responsavel] || 0) + (acc.value || 0);
       }
     });
-    const salarySnap = await firestore.collection('salary')
+    const salarySnap = await firestore
+      .collection('salary')
       .where('userId', '==', user.id)
       .where('month', '==', month)
       .where('year', '==', year)

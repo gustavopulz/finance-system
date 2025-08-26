@@ -41,7 +41,7 @@ const schema = z.object({
   ),
   month: z.number().min(1).max(12),
   year: z.number().min(2000).max(2100),
-  status: z.enum(['ativo', 'cancelado', 'quitado']),
+  status: z.enum(['Pendente', 'Cancelado', 'quitado']),
 });
 
 // Use the input type for FormData to match the raw form values before Zod preprocessing
@@ -79,7 +79,12 @@ export default function AddFinanceDialog({
           : initial.parcelasTotal,
       month: initial?.month ?? defaultMonth,
       year: initial?.year ?? defaultYear,
-      status: initial?.status ?? 'ativo',
+      status:
+        initial?.status === 'Pendente' ||
+        initial?.status === 'Cancelado' ||
+        initial?.status === 'quitado'
+          ? initial.status
+          : 'Pendente',
     },
   });
   // Formata o valor como moeda brasileira ao digitar
@@ -251,8 +256,8 @@ export default function AddFinanceDialog({
               {...register('status')}
               disabled={disabled}
             >
-              <option value="ativo">Ativo</option>
-              <option value="cancelado">Cancelado</option>
+              <option value="Pendente">Pendente</option>
+              <option value="Cancelado">Cancelado</option>
               <option value="quitado">Quitado</option>
             </select>
           </label>

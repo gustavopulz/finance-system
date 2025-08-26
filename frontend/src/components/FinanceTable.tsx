@@ -1,7 +1,7 @@
 import { parcelaLabel, brl } from '../lib/format';
 import { markAccountPaid } from '../lib/api';
 import type { Account } from '../lib/types';
-import { ArrowUpDown, Trash2 } from 'lucide-react';
+import { ArrowUpDown, Trash2, Pencil, Ban, CheckCircle } from 'lucide-react';
 import { useMemo, useState, useEffect } from 'react';
 import { deleteCollab } from '../lib/api';
 
@@ -90,14 +90,14 @@ export default function FinanceTable({
       return 0;
     });
     return copy;
-  }, [items, sortKey, sortDir, currentComp]);
+  }, [localItems, sortKey, sortDir, currentComp]);
 
   const total = data.reduce((acc, f) => acc + Number(f.value), 0);
   const totalPago = data
     .filter((f) => f.paid)
     .reduce((acc, f) => acc + Number(f.value), 0);
-  const totalAtivo = data
-    .filter((f) => f.status === 'ativo')
+  const totalPendente = data
+    .filter((f) => f.status === 'Pendente')
     .reduce((acc, f) => acc + Number(f.value), 0);
 
   const Th = ({ label, keyName }: { label: string; keyName: SortKey }) => (
@@ -155,7 +155,16 @@ export default function FinanceTable({
         style={{ ...(dragHandleProps?.style || {}), userSelect: 'none' }}
       >
         <div className="flex items-center gap-2 flex-1">
-          <h3 className="text-lg font-semibold">{title}</h3>
+          <h3 className="text-lg font-semibold flex items-center gap-2">
+            {title}
+            <button
+              onClick={() => setShowConfirm(true)}
+              className="text-red-500 hover:text-red-700"
+              aria-label="Excluir colaborador"
+            >
+              <Trash2 size={20} />
+            </button>
+          </h3>
         </div>
         <div className="flex items-center gap-2">
           <div className="badge bg-slate-100 dark:bg-slate-900/60 text-slate-700 dark:text-slate-100">
@@ -165,39 +174,32 @@ export default function FinanceTable({
             Total pago: {brl(Number(totalPago))}
           </div>
           <div className="badge bg-blue-100 dark:bg-blue-500/30 text-blue-700 dark:text-blue-300">
-            Total ativo: {brl(Number(totalAtivo))}
+            Total pendente: {brl(Number(totalPendente))}
           </div>
-          <button
-            onClick={() => setShowConfirm(true)}
-            className="text-red-500 hover:text-red-700 text-sm font-medium flex items-center gap-1"
-          >
-            <Trash2 size={16} /> Excluir colaborador
-          </button>
         </div>
       </div>
 
       {/* Cabeçalho MOBILE */}
-      <div className="md:hidden mb-2">
+      <div className="md:hidden p-4 pb-2">
         {/* Linha 1: Nome + Total */}
         <div
           className="flex items-center justify-between"
           {...(dragHandleProps || {})}
           style={{ ...(dragHandleProps?.style || {}), userSelect: 'none' }}
         >
-          <h3 className="text-lg font-semibold">{title}</h3>
+          <h3 className="text-lg font-semibold flex items-center gap-2">
+            {title}
+            <button
+              onClick={() => setShowConfirm(true)}
+              className="text-red-500 hover:text-red-700"
+              aria-label="Excluir colaborador"
+            >
+              <Trash2 size={20} />
+            </button>
+          </h3>
           <div className="badge bg-slate-100 dark:bg-slate-900/60 text-slate-700 dark:text-slate-100">
             Total: {brl(Number(total))}
           </div>
-        </div>
-
-        {/* Linha 2: Botão excluir colaborador */}
-        <div className="mt-2">
-          <button
-            onClick={() => setShowConfirm(true)}
-            className="text-red-500 hover:text-red-700 text-sm font-medium flex items-center gap-1"
-          >
-            <Trash2 size={16} /> Excluir colaborador
-          </button>
         </div>
       </div>
 
@@ -240,14 +242,20 @@ export default function FinanceTable({
                   <span
                     className={
                       'px-2 py-1 rounded-full text-xs font-semibold ' +
-                      (f.status === 'ativo'
+                      (f.paid
                         ? 'bg-green-100 text-green-700 dark:bg-green-500/30 dark:text-green-300'
-                        : f.status === 'cancelado'
-                          ? 'bg-red-100 text-red-700 dark:bg-red-500/30 dark:text-red-300'
-                          : 'bg-gray-200 text-gray-700 dark:bg-gray-600 dark:text-gray-300')
+                        : f.status === 'Pendente' || f.status === 'ativo'
+                          ? 'bg-yellow-100 text-yellow-700 dark:bg-yellow-500/30 dark:text-yellow-300'
+                          : f.status === 'Cancelado'
+                            ? 'bg-red-100 text-red-700 dark:bg-red-500/30 dark:text-red-300'
+                            : 'bg-gray-200 text-gray-700 dark:bg-gray-600 dark:text-gray-300')
                     }
                   >
-                    {f.status}
+                    {f.paid
+                      ? 'Pago'
+                      : f.status === 'Pendente' || f.status === 'ativo'
+                        ? 'Pendente'
+                        : f.status.charAt(0).toUpperCase() + f.status.slice(1)}
                   </span>
                 </td>
                 <td className="py-3 text-center">
@@ -268,20 +276,34 @@ export default function FinanceTable({
                 </td>
                 <td className="px-1 py-3 flex items-center justify-center">
                   <div className="hidden md:flex gap-1">
-                    <button className="btn btn-ghost" onClick={() => onEdit(f)}>
-                      ✏️
+                    <button
+                      className="btn btn-ghost"
+                      onClick={() => onEdit(f)}
+                      aria-label="Editar"
+                    >
+                      <Pencil size={18} />
                     </button>
                     <button
                       className="btn btn-ghost"
                       onClick={() => onCancelToggle(f.id)}
+                      aria-label={
+                        f.status === 'Pendente' || f.status === 'ativo'
+                          ? 'Cancelar'
+                          : 'Pendente'
+                      }
                     >
-                      🚫
+                      {f.status === 'Pendente' || f.status === 'ativo' ? (
+                        <Ban size={18} />
+                      ) : (
+                        <CheckCircle size={18} />
+                      )}
                     </button>
                     <button
                       className="btn btn-ghost"
                       onClick={() => setFinancaToDelete(f)}
+                      aria-label="Excluir"
                     >
-                      🗑️
+                      <Trash2 size={18} />
                     </button>
                   </div>
                 </td>
@@ -304,14 +326,21 @@ export default function FinanceTable({
                         <span
                           className={
                             'px-2 py-1 rounded-full text-xs font-semibold ' +
-                            (f.status === 'ativo'
+                            (f.paid
                               ? 'bg-green-100 text-green-700 dark:bg-green-500/30 dark:text-green-300'
-                              : f.status === 'cancelado'
-                                ? 'bg-red-100 text-red-700 dark:bg-red-500/30 dark:text-red-300'
-                                : 'bg-gray-200 text-gray-700 dark:bg-gray-600 dark:text-gray-300')
+                              : f.status === 'Pendente' || f.status === 'ativo'
+                                ? 'bg-yellow-100 text-yellow-700 dark:bg-yellow-500/30 dark:text-yellow-300'
+                                : f.status === 'Cancelado'
+                                  ? 'bg-red-100 text-red-700 dark:bg-red-500/30 dark:text-red-300'
+                                  : 'bg-gray-200 text-gray-700 dark:bg-gray-600 dark:text-gray-300')
                           }
                         >
-                          {f.status}
+                          {f.paid
+                            ? 'Pago'
+                            : f.status === 'Pendente' || f.status === 'ativo'
+                              ? 'Pendente'
+                              : f.status.charAt(0).toUpperCase() +
+                                f.status.slice(1)}
                         </span>
                       </div>
                       <div className="flex items-center gap-2 mt-1">
@@ -342,20 +371,31 @@ export default function FinanceTable({
                       <button
                         onClick={() => onEdit(f)}
                         className="btn btn-ghost text-xs"
+                        aria-label="Editar"
                       >
-                        ✏️
+                        <Pencil size={18} />
                       </button>
                       <button
                         onClick={() => onCancelToggle(f.id)}
                         className="btn btn-ghost text-xs"
+                        aria-label={
+                          f.status === 'Pendente' || f.status === 'ativo'
+                            ? 'Cancelar'
+                            : 'Pendente'
+                        }
                       >
-                        {f.status === 'ativo' ? '🚫' : '✅'}
+                        {f.status === 'Pendente' || f.status === 'ativo' ? (
+                          <Ban size={18} />
+                        ) : (
+                          <CheckCircle size={18} />
+                        )}
                       </button>
                       <button
                         onClick={() => setFinancaToDelete(f)}
                         className="btn btn-ghost text-xs"
+                        aria-label="Excluir"
                       >
-                        🗑️
+                        <Trash2 size={18} />
                       </button>
                     </div>
                   </div>
@@ -422,7 +462,7 @@ export default function FinanceTable({
                 Editar
               </button>
               <button
-                className="px-4 py-2 rounded bg-yellow-500 text-white"
+                className={`px-4 py-2 rounded text-white font-semibold capitalize ${actionModal.financa.status === 'Pendente' || actionModal.financa.status === 'ativo' ? 'bg-red-600' : 'bg-yellow-500'}`}
                 onClick={() => {
                   if (actionModal.financa) {
                     onCancelToggle(actionModal.financa.id);
@@ -430,7 +470,10 @@ export default function FinanceTable({
                   setActionModal({ open: false, financa: null });
                 }}
               >
-                {actionModal.financa.status === 'ativo' ? 'Cancelar' : 'Ativar'}
+                {actionModal.financa.status === 'Pendente' ||
+                actionModal.financa.status === 'ativo'
+                  ? 'Cancelar'
+                  : 'Pendente'}
               </button>
               <button
                 className="px-4 py-2 rounded bg-red-600 text-white"

@@ -14,15 +14,22 @@ export async function GET(req: NextRequest) {
     const userId = req.nextUrl.searchParams.get('userId') || user.id;
     let accountsSnap;
     if (!month || !year) {
-      accountsSnap = await firestore.collection('accounts').where('userId', '==', userId).get();
+      accountsSnap = await firestore
+        .collection('accounts')
+        .where('userId', '==', userId)
+        .get();
     } else {
-      accountsSnap = await firestore.collection('accounts')
+      accountsSnap = await firestore
+        .collection('accounts')
         .where('userId', '==', userId)
         .where('year', '>=', Number(year))
         .where('month', '>=', Number(month))
         .get();
     }
-    const accounts = accountsSnap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+    const accounts = accountsSnap.docs.map((doc) => ({
+      id: doc.id,
+      ...doc.data(),
+    }));
     return NextResponse.json(accounts);
   } catch (err: any) {
     return NextResponse.json({ error: err.message }, { status: 403 });
@@ -50,7 +57,10 @@ export async function POST(req: NextRequest) {
     } = await req.json();
     const uid = userId || user.id;
     if (!collaboratorId || !description || !value || !month || !year) {
-      return NextResponse.json({ error: 'Preencha todos os campos obrigatórios' }, { status: 400 });
+      return NextResponse.json(
+        { error: 'Preencha todos os campos obrigatórios' },
+        { status: 400 }
+      );
     }
     // Build account data and set defaults
     const accountData: any = {
@@ -60,14 +70,14 @@ export async function POST(req: NextRequest) {
       parcelasTotal: parcelasTotal === undefined ? null : parcelasTotal,
       month,
       year,
-      status: status || 'ativo',
+      status: status || 'Pendente',
       userId: uid,
       origem: origem || null,
       responsavel: responsavel || null,
       paid: false, // Adiciona coluna paid com valor False
     };
     // Remove any undefined values
-    Object.keys(accountData).forEach(key => {
+    Object.keys(accountData).forEach((key) => {
       if (accountData[key] === undefined) {
         delete accountData[key];
       }

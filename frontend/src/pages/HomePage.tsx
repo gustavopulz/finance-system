@@ -45,7 +45,7 @@ function normalizeAccount(a: any): Account {
         : Number(a.parcelasTotal),
     month: Math.min(12, Math.max(1, Number(a.month ?? 1))),
     year: Math.max(1900, Number(a.year ?? new Date().getFullYear())),
-    status: (a.status as Account['status']) ?? 'ativo',
+    status: (a.status as Account['status']) ?? 'Pendente',
     createdAt: a.createdAt ?? '',
     updatedAt: a.updatedAt ?? '',
     cancelledAt: a.cancelledAt ?? undefined,
@@ -192,9 +192,9 @@ export default function HomePage() {
         }
       });
     }
-    // Filtro de cancelados
+    // Filtro de Cancelados
     if (!showCancelled) {
-      result = result.filter((acc) => acc.status !== 'cancelado');
+      result = result.filter((acc) => acc.status !== 'Cancelado');
     }
     return result;
   }, [accounts, year, month, showAll, showCancelled]);
@@ -315,7 +315,7 @@ export default function HomePage() {
                 onChange={(e) => setShowCancelled(e.target.checked)}
                 className="custom-checkbox"
               />
-              <span className="text-slate-300">Ver cancelados</span>
+              <span className="text-slate-300">Ver Cancelados</span>
             </label>
           </div>
 

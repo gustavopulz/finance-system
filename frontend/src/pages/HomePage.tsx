@@ -1,4 +1,12 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
+import { DndContext, closestCenter } from '@dnd-kit/core';
+import {
+  arrayMove,
+  SortableContext,
+  verticalListSortingStrategy,
+  useSortable,
+} from '@dnd-kit/sortable';
+import { CSS } from '@dnd-kit/utilities';
 import type { Account, Collaborator } from '../lib/types';
 import { MONTHS_PT, brl } from '../lib/format';
 import { todayComp, monthsDiff } from '../lib/date';
@@ -26,7 +34,9 @@ function normalizeAccount(a: any): Account {
     description: String(a.description ?? ''),
     value: Number(a.value),
     parcelasTotal:
-      a.parcelasTotal === '' || a.parcelasTotal === null || a.parcelasTotal === undefined
+      a.parcelasTotal === '' ||
+      a.parcelasTotal === null ||
+      a.parcelasTotal === undefined
         ? null
         : Number(a.parcelasTotal),
     month: Math.min(12, Math.max(1, Number(a.month ?? 1))),
@@ -42,11 +52,43 @@ export default function HomePage() {
   const now = todayComp();
   const [month, setMonth] = useState(now.month);
   const [year, setYear] = useState(now.year);
+  // Salva a ordem dos colaboradores no backend
+  async function saveCollabOrder(newOrder: string[]) {
+    try {
+      await api.saveCollabOrder(newOrder);
+    } catch (err) {
+      console.error('Erro ao salvar ordem dos colaboradores:', err);
+    }
+  }
+
+  // Componente Sortable para cada colaborador
+  function SortableCollab({
+    id,
+    children,
+  }: {
+    id: string;
+    children: React.ReactNode;
+  }) {
+    const { attributes, listeners, setNodeRef, transform, transition } =
+      useSortable({ id });
+    return (
+      <div
+        ref={setNodeRef}
+        style={{ transform: CSS.Transform.toString(transform), transition }}
+        {...attributes}
+        {...listeners}
+      >
+        {children}
+      </div>
+    );
+  }
   const [showAll, setShowAll] = useState(false);
   const [showCancelled, setShowCancelled] = useState(true);
 
   const [dlg, setDlg] = useState<DialogState>({ mode: 'closed' });
   const [collabs, setCollabs] = useState<Collaborator[]>([]);
+  // Ordem dos IDs dos colaboradores
+  const [collabOrder, setCollabOrder] = useState<string[]>([]);
   const [accounts, setAccounts] = useState<Account[]>([]);
   const [loading, setLoading] = useState(false);
 
@@ -62,7 +104,57 @@ export default function HomePage() {
       const normalizedAccounts = (data.accounts as any[]).map(normalizeAccount);
       setAccounts(normalizedAccounts);
       // Normaliza colaboradores
-      setCollabs((data.collabs as Collaborator[]) || []);
+      const collabList = (data.collabs as Collaborator[]) || [];
+      setCollabs(collabList);
+      // Busca ordem salva
+      try {
+        const orderResp = await api.getCollabOrder();
+        if (orderResp && Array.isArray(orderResp.order)) {
+          // Garante que só IDs válidos entram
+          const validOrder = orderResp.order.filter((id: string) =>
+            collabList.some((c) => c.id === id)
+          );
+          // Adiciona IDs novos ao final
+          const missing = collabList
+            .map((c) => c.id)
+            .filter((id) => !validOrder.includes(id));
+          setCollabOrder([...validOrder, ...missing]);
+        } else {
+          setCollabOrder(collabList.map((c) => c.id));
+        }
+      } catch {
+        setCollabOrder(collabList.map((c) => c.id));
+      }
+      // Salva a ordem dos colaboradores no backend
+      async function saveCollabOrder(newOrder: string[]) {
+        try {
+          await api.saveCollabOrder(newOrder);
+        } catch (err) {
+          console.error('Erro ao salvar ordem dos colaboradores:', err);
+        }
+      }
+
+      // Componente Sortable para cada colaborador
+      function SortableCollab({
+        id,
+        children,
+      }: {
+        id: string;
+        children: React.ReactNode;
+      }) {
+        const { attributes, listeners, setNodeRef, transform, transition } =
+          useSortable({ id });
+        return (
+          <div
+            ref={setNodeRef}
+            style={{ transform: CSS.Transform.toString(transform), transition }}
+            {...attributes}
+            {...listeners}
+          >
+            {children}
+          </div>
+        );
+      }
     } finally {
       setLoading(false);
     }
@@ -254,34 +346,63 @@ export default function HomePage() {
         </div>
       </div>
 
-      {/* Cards dinâmicos por colaborador */}
-      <div className="flex flex-col gap-6">
-        {collabs.map((c) => (
-          <FinanceTable
-            key={c.id}
-            collaboratorId={c.id}
-            title={c.name}
-            items={byCollab(c.id)}
-            currentComp={{ year, month }}
-            onDelete={(id) => {
-              removeAccount(id);
-            }}
-            onEdit={(account) => setDlg({ mode: 'editAccount', account })}
-            onCancelToggle={(id) => {
-              toggleCancel(id);
-            }}
-            onCollabDeleted={(id) => {
-              setCollabs((prev) => prev.filter((cc) => cc.id !== id));
-            }}
-          />
-        ))}
-        {collabs.length === 0 && (
-          <div className="card p-6 text-center text-slate-500 dark:text-slate-400 dark:bg-slate-800">
-            Nenhum colaborador. Clique em <strong>Adicionar colaborador</strong>{' '}
-            para começar.
+      {/* Cards dinâmicos por colaborador com drag-and-drop */}
+      <DndContext
+        collisionDetection={closestCenter}
+        onDragEnd={(e) => {
+          const { active, over } = e;
+          if (active.id !== over?.id) {
+            const oldIndex = collabOrder.indexOf(String(active.id));
+            const newIndex = collabOrder.indexOf(String(over?.id));
+            const newOrder = arrayMove(collabOrder, oldIndex, newIndex);
+            setCollabOrder(newOrder);
+            saveCollabOrder(newOrder);
+          }
+        }}
+      >
+        <SortableContext
+          items={collabOrder}
+          strategy={verticalListSortingStrategy}
+        >
+          <div className="flex flex-col gap-6">
+            {collabOrder.map((id) => {
+              const c = collabs.find((cc) => cc.id === id);
+              if (!c) return null;
+              return (
+                <SortableCollab key={c.id} id={c.id}>
+                  <FinanceTable
+                    collaboratorId={c.id}
+                    title={c.name}
+                    items={byCollab(c.id)}
+                    currentComp={{ year, month }}
+                    onDelete={(id) => {
+                      removeAccount(id);
+                    }}
+                    onEdit={(account) =>
+                      setDlg({ mode: 'editAccount', account })
+                    }
+                    onCancelToggle={(id) => {
+                      toggleCancel(id);
+                    }}
+                    onCollabDeleted={(id) => {
+                      setCollabs((prev) => prev.filter((cc) => cc.id !== id));
+                      setCollabOrder((prev) =>
+                        prev.filter((cid) => cid !== id)
+                      );
+                    }}
+                  />
+                </SortableCollab>
+              );
+            })}
+            {collabs.length === 0 && (
+              <div className="card p-6 text-center text-slate-500 dark:text-slate-400 dark:bg-slate-800">
+                Nenhum colaborador. Clique em{' '}
+                <strong>Adicionar colaborador</strong> para começar.
+              </div>
+            )}
           </div>
-        )}
-      </div>
+        </SortableContext>
+      </DndContext>
 
       <div className="card p-4">
         <div className="flex items-center justify-between">

@@ -1,3 +1,20 @@
+// Salva a ordem dos colaboradores
+export async function saveCollabOrder(order: string[]) {
+  const res = await fetch('/api/collabs/order', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ order }),
+  });
+  if (!res.ok) throw new Error('Erro ao salvar ordem');
+  return await res.json();
+}
+
+// Busca a ordem dos colaboradores
+export async function getCollabOrder() {
+  const res = await fetch('/api/collabs/order');
+  if (!res.ok) throw new Error('Erro ao buscar ordem');
+  return await res.json();
+}
 // -------------------- UPDATE USER --------------------
 export function updateUserName(username: string) {
   return json<{ success: boolean; username: string }>(`${API_URL}/users/me`, {

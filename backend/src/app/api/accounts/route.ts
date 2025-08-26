@@ -64,6 +64,7 @@ export async function POST(req: NextRequest) {
       userId: uid,
       origem: origem || null,
       responsavel: responsavel || null,
+      paid: false, // Adiciona coluna paid com valor False
     };
     // Remove any undefined values
     Object.keys(accountData).forEach(key => {

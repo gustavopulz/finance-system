@@ -104,27 +104,18 @@ export default function HomePage() {
       const normalizedAccounts = (data.accounts as any[]).map(normalizeAccount);
       setAccounts(normalizedAccounts);
       // Normaliza colaboradores
-      const collabList = (data.collabs as Collaborator[]) || [];
-      setCollabs(collabList);
-      // Busca ordem salva
-      try {
-        const orderResp = await api.getCollabOrder();
-        if (orderResp && Array.isArray(orderResp.order)) {
-          // Garante que só IDs válidos entram
-          const validOrder = orderResp.order.filter((id: string) =>
-            collabList.some((c) => c.id === id)
-          );
-          // Adiciona IDs novos ao final
-          const missing = collabList
-            .map((c) => c.id)
-            .filter((id) => !validOrder.includes(id));
-          setCollabOrder([...validOrder, ...missing]);
-        } else {
-          setCollabOrder(collabList.map((c) => c.id));
+        let collabList = (data.collabs as Collaborator[]) || [];
+        // Se existir orderId, ordena pelo campo
+        if (collabList.length && 'orderId' in collabList[0]) {
+          collabList = [...collabList].sort((a, b) => {
+            const va = typeof a.orderId === 'number' ? a.orderId : Number(a.orderId ?? 0);
+            const vb = typeof b.orderId === 'number' ? b.orderId : Number(b.orderId ?? 0);
+            return va - vb;
+          });
         }
-      } catch {
-        setCollabOrder(collabList.map((c) => c.id));
-      }
+        setCollabs(collabList);
+      // Usa a ordem dos colaboradores já ordenada pelo campo orderId
+      setCollabOrder(collabList.map((c) => c.id));
     } finally {
       setLoading(false);
     }

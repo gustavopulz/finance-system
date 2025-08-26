@@ -34,8 +34,11 @@ export async function POST(req: NextRequest) {
     if (!existingSnap.empty) {
       return NextResponse.json({ error: 'Já existe um colaborador com esse nome' }, { status: 400 });
     }
-    const collabRef = await firestore.collection('collaborators').add({ name: nome.trim(), userId: uid });
-    return NextResponse.json({ id: collabRef.id, name: nome.trim(), userId: uid });
+    // Busca quantidade de colaboradores para definir orderId
+    const allCollabsSnap = await firestore.collection('collaborators').where('userId', '==', uid).get();
+    const orderId = allCollabsSnap.size + 1;
+    const collabRef = await firestore.collection('collaborators').add({ name: nome.trim(), userId: uid, orderId });
+    return NextResponse.json({ id: collabRef.id, name: nome.trim(), userId: uid, orderId });
   } catch (err: any) {
     return NextResponse.json({ error: err.message }, { status: 500 });
   }

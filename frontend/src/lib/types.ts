@@ -3,6 +3,7 @@ export type Status = 'ativo' | 'cancelado' | 'quitado';
 export type Collaborator = {
   id: string;
   name: string;
+  orderId?: number;
 };
 
 export interface Competencia {

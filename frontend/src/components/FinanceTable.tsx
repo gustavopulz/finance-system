@@ -118,20 +118,42 @@ export default function FinanceTable({
   }
 
   return (
-    <section className="card relative">
-      {/* Cabeçalho (inclui o padding superior, é a área de drag) */}
-      <div
-        className="flex items-center justify-between p-4 pb-2 cursor-grab"
-        {...(dragHandleProps || {})}
-        style={{ ...(dragHandleProps?.style || {}), userSelect: 'none' }}
-      >
-        <div className="flex items-center gap-2 flex-1">
+    <section className="card p-4 relative">
+      {/* Cabeçalho DESKTOP */}
+      <div className="hidden md:flex items-center justify-between mb-2">
+        <div
+          className="flex items-center gap-2 flex-1"
+          {...(dragHandleProps || {})}
+          style={{ ...(dragHandleProps?.style || {}), userSelect: 'none' }}
+        >
           <h3 className="text-lg font-semibold">{title}</h3>
         </div>
 
-        {/* Botões do cabeçalho (não arrastáveis) */}
         <div className="flex items-center gap-2">
           <div className="badge">Total: {brl(Number(total))}</div>
+          <button
+            onClick={() => setShowConfirm(true)}
+            className="text-red-500 hover:text-red-700 text-sm font-medium flex items-center gap-1"
+          >
+            <Trash2 size={16} /> Excluir colaborador
+          </button>
+        </div>
+      </div>
+
+      {/* Cabeçalho MOBILE */}
+      <div className="md:hidden mb-2">
+        {/* Linha 1: Nome + Total */}
+        <div
+          className="flex items-center justify-between"
+          {...(dragHandleProps || {})}
+          style={{ ...(dragHandleProps?.style || {}), userSelect: 'none' }}
+        >
+          <h3 className="text-lg font-semibold">{title}</h3>
+          <div className="badge">Total: {brl(Number(total))}</div>
+        </div>
+
+        {/* Linha 2: Botão excluir colaborador */}
+        <div className="mt-2">
           <button
             onClick={() => setShowConfirm(true)}
             className="text-red-500 hover:text-red-700 text-sm font-medium flex items-center gap-1"
@@ -155,13 +177,15 @@ export default function FinanceTable({
             </tr>
           </thead>
           <tbody>
+            {/* Versão desktop */}
             {data.map((f, idx) => (
               <tr
                 key={f.id}
                 className={
-                  idx % 2 === 0
+                  'hidden md:table-row ' +
+                  (idx % 2 === 0
                     ? 'bg-slate-50 dark:bg-slate-900/40'
-                    : 'bg-white dark:bg-slate-800/40'
+                    : 'bg-white dark:bg-slate-800/40')
                 }
               >
                 <td className="px-2 py-3 font-medium min-w-[100px] md:min-w-[150px]">
@@ -196,35 +220,19 @@ export default function FinanceTable({
                     : ''}
                 </td>
                 <td className="px-1 py-3 flex items-center justify-center">
-                  {/* Mobile: botão de ações */}
-                  <button
-                    className="btn btn-ghost flex md:hidden min-w-[32px] justify-center"
-                    style={{ paddingLeft: 0, paddingRight: 0 }}
-                    onClick={() => setActionModal({ open: true, financa: f })}
-                    title="Ações"
-                  >
-                    ⋮
-                  </button>
-                  {/* Desktop: botões individuais */}
                   <div className="hidden md:flex gap-1">
-                    <button
-                      className="btn btn-ghost"
-                      onClick={() => onEdit(f)}
-                      title="Editar"
-                    >
+                    <button className="btn btn-ghost" onClick={() => onEdit(f)}>
                       ✏️
                     </button>
                     <button
                       className="btn btn-ghost"
                       onClick={() => onCancelToggle(f.id)}
-                      title="Cancelar / Ativar"
                     >
                       🚫
                     </button>
                     <button
                       className="btn btn-ghost"
                       onClick={() => setFinancaToDelete(f)}
-                      title="Excluir lançamento"
                     >
                       🗑️
                     </button>
@@ -232,9 +240,73 @@ export default function FinanceTable({
                 </td>
               </tr>
             ))}
+
+            {/* Versão mobile (cards lado esquerdo infos, direito ações) */}
+            {data.map((f) => (
+              <tr key={f.id} className="md:hidden">
+                <td colSpan={6} className="p-3">
+                  <div className="border rounded-lg p-3 bg-slate-50 dark:bg-slate-800 flex justify-between items-center gap-3">
+                    {/* Infos */}
+                    <div className="flex-1 space-y-2">
+                      <div className="font-medium">{f.description}</div>
+                      <div className="text-sm">{brl(Number(f.value))}</div>
+                      <div className="text-sm text-slate-500">
+                        Parcela: {parcelaLabel(f, currentComp)}
+                      </div>
+                      <div>
+                        <span
+                          className={
+                            'px-2 py-1 rounded-full text-xs font-semibold ' +
+                            (f.status === 'ativo'
+                              ? 'bg-green-100 text-green-700 dark:bg-green-500/30 dark:text-green-300'
+                              : f.status === 'cancelado'
+                                ? 'bg-red-100 text-red-700 dark:bg-red-500/30 dark:text-red-300'
+                                : 'bg-gray-200 text-gray-700 dark:bg-gray-600 dark:text-gray-300')
+                          }
+                        >
+                          {f.status}
+                        </span>
+                      </div>
+                      {f.cancelledAt && (
+                        <div className="text-xs text-slate-400">
+                          Cancelado em:{' '}
+                          {new Date(f.cancelledAt).toLocaleDateString('pt-BR', {
+                            year: 'numeric',
+                            month: '2-digit',
+                          })}
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Ações */}
+                    <div className="flex flex-col gap-2">
+                      <button
+                        onClick={() => onEdit(f)}
+                        className="btn btn-ghost text-xs"
+                      >
+                        ✏️
+                      </button>
+                      <button
+                        onClick={() => onCancelToggle(f.id)}
+                        className="btn btn-ghost text-xs"
+                      >
+                        {f.status === 'ativo' ? '🚫' : '✅'}
+                      </button>
+                      <button
+                        onClick={() => setFinancaToDelete(f)}
+                        className="btn btn-ghost text-xs"
+                      >
+                        🗑️
+                      </button>
+                    </div>
+                  </div>
+                </td>
+              </tr>
+            ))}
+
             {data.length === 0 && (
               <tr>
-                <td colSpan={5} className="py-6 text-center text-slate-500">
+                <td colSpan={6} className="py-6 text-center text-slate-500">
                   Sem lançamentos
                 </td>
               </tr>

@@ -87,7 +87,7 @@ export default function HomePage() {
         style={{
           transform: CSS.Transform.toString(transform),
           transition,
-          opacity: isDragging ? 0.5 : 1,   // deixa mais transparente durante drag
+          opacity: isDragging ? 0.5 : 1, // deixa mais transparente durante drag
         }}
       >
         {React.cloneElement(children, {
@@ -269,16 +269,20 @@ export default function HomePage() {
   }
 
   return (
-    <div className="px-10 2xl:px-60 lg:px-20 grid gap-6">
+    <div className="px-4 sm:px-6 lg:px-20 2xl:px-60 grid gap-6">
       <div className="card p-4">
-        <div className="flex flex-row items-center justify-between flex-wrap gap-2">
-          <h1 className="text-xl font-bold">Resumo</h1>
-          <div className="flex items-center gap-2 flex-wrap">
+        {/* Header */}
+        <h1 className="text-xl font-bold mb-4">Resumo</h1>
+
+        {/* Container flex: muda no mobile */}
+        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+          {/* Grupo de filtros */}
+          <div className="flex flex-col sm:flex-row sm:items-center sm:flex-wrap gap-2">
             <span className="inline-flex items-center gap-2 text-slate-600">
               <Filter size={16} /> Filtros:
             </span>
             <select
-              className="select w-44"
+              className="select w-full sm:w-44"
               value={showAll ? 'all' : month}
               onChange={(e) => {
                 if (e.target.value === 'all') {
@@ -297,7 +301,7 @@ export default function HomePage() {
               ))}
             </select>
             <input
-              className="input w-28"
+              className="input w-full sm:w-28"
               type="number"
               value={year}
               onChange={(e) => setYear(Number(e.target.value))}
@@ -311,14 +315,18 @@ export default function HomePage() {
               />
               Ver cancelados
             </label>
+          </div>
+
+          {/* Grupo de botões */}
+          <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
             <button
-              className="btn btn-ghost"
+              className="btn btn-ghost justify-center"
               onClick={() => setDlg({ mode: 'addCollab' })}
             >
               <UserPlus size={18} /> Adicionar colaborador
             </button>
             <button
-              className="btn btn-primary"
+              className="btn btn-primary justify-center"
               onClick={() => setDlg({ mode: 'addAccount' })}
             >
               <Plus size={18} /> Adicionar finança
@@ -348,7 +356,10 @@ export default function HomePage() {
           }
         }}
       >
-        <SortableContext items={collabOrder} strategy={verticalListSortingStrategy}>
+        <SortableContext
+          items={collabOrder}
+          strategy={verticalListSortingStrategy}
+        >
           <div className="flex flex-col gap-6">
             {collabOrder.map((id) => {
               const c = collabs.find((cc) => cc.id === id);
@@ -361,11 +372,15 @@ export default function HomePage() {
                     items={byCollab(c.id)}
                     currentComp={{ year, month }}
                     onDelete={(id) => removeAccount(id)}
-                    onEdit={(account) => setDlg({ mode: 'editAccount', account })}
+                    onEdit={(account) =>
+                      setDlg({ mode: 'editAccount', account })
+                    }
                     onCancelToggle={(id) => toggleCancel(id)}
                     onCollabDeleted={(id) => {
                       setCollabs((prev) => prev.filter((cc) => cc.id !== id));
-                      setCollabOrder((prev) => prev.filter((cid) => cid !== id));
+                      setCollabOrder((prev) =>
+                        prev.filter((cid) => cid !== id)
+                      );
                     }}
                   />
                 </SortableCollab>

@@ -65,17 +65,39 @@ export default function AddFinanceDialog({
   } = useForm<FormData>({
     resolver: zodResolver(schema),
     defaultValues: {
-      collaboratorId: initial?.collaboratorId ? String(initial.collaboratorId) : (collaborators[0]?.id ? String(collaborators[0].id) : ''),
+      collaboratorId: initial?.collaboratorId
+        ? String(initial.collaboratorId)
+        : collaborators[0]?.id
+          ? String(collaborators[0].id)
+          : '',
       description: initial?.description ?? '',
       value:
         initial?.value != null ? String(initial.value).replace('.', ',') : '',
       parcelasTotal:
-        initial?.parcelasTotal == null ? ('X' as const) : initial.parcelasTotal,
+        initial?.parcelasTotal == null || initial?.parcelasTotal === 0
+          ? '-'
+          : initial.parcelasTotal,
       month: initial?.month ?? defaultMonth,
       year: initial?.year ?? defaultYear,
       status: initial?.status ?? 'ativo',
     },
   });
+  // Formata o valor como moeda brasileira ao digitar
+  function handleValueChange(e: React.ChangeEvent<HTMLInputElement>) {
+    let value = e.target.value.replace(/\D/g, ''); // remove não dígitos
+    if (!value) {
+      setValue('value', '');
+      return;
+    }
+    // Garante pelo menos dois dígitos para centavos
+    if (value.length < 3) {
+      value = value.padStart(3, '0');
+    }
+    const reais = value.slice(0, -2);
+    const centavos = value.slice(-2);
+    const formatted = `${Number(reais)}${reais ? '' : '0'},${centavos}`;
+    setValue('value', formatted);
+  }
 
   // garante colaborador setado quando a lista chega depois
   useEffect(() => {
@@ -103,11 +125,12 @@ export default function AddFinanceDialog({
       status: d.status as Status,
     };
     if (d.parcelasTotal !== null) {
-      payload.parcelasTotal = d.parcelasTotal === 'X'
-        ? undefined
-        : d.parcelasTotal === '-'
-          ? 0
-          : (d.parcelasTotal as number);
+      payload.parcelasTotal =
+        d.parcelasTotal === 'X'
+          ? undefined
+          : d.parcelasTotal === '-'
+            ? 0
+            : (d.parcelasTotal as number);
     }
 
     onSave(payload, initial?.id); // edita se houver id; senão, cria
@@ -168,6 +191,8 @@ export default function AddFinanceDialog({
               placeholder="Ex.: 119,00"
               inputMode="decimal"
               disabled={disabled}
+              onChange={handleValueChange}
+              maxLength={10}
             />
             {errors.value && (
               <span className="text-xs text-red-600">
@@ -181,8 +206,9 @@ export default function AddFinanceDialog({
               <span className="text-sm font-medium">Parcelas</span>
               <select
                 className="select select-full"
-                {...register('parcelasTotal')} // agora o schema converte
+                {...register('parcelasTotal')}
                 disabled={disabled}
+                defaultValue="-"
               >
                 <option value="-">Avulsa</option>
                 <option value="X">Fixo</option>

@@ -3,6 +3,15 @@ import { useAuth } from '../context/AuthContext';
 import { generateShareToken, useShareToken } from '../lib/api';
 import { updateUserName, updateUserPassword } from '../lib/api';
 import { getLinks } from '../lib/share';
+import {
+  Plus,
+  Pencil,
+  Lock,
+  Link as LinkIcon,
+  Eye,
+  User,
+  X,
+} from 'lucide-react';
 
 export default function UserPanelPage() {
   const auth = useAuth();
@@ -57,10 +66,6 @@ export default function UserPanelPage() {
     setSharedToken('');
   };
 
-  // Desvincular
-  async function handleUnlink() {
-    await fetchLinks();
-  }
   // Simulação: alterar nome/senha
   const handleChangeName = () => {
     setEditingName(true);
@@ -96,70 +101,34 @@ export default function UserPanelPage() {
   };
 
   return (
-    <div className="px-10 2xl:px-60 lg:px-20 grid gap-8 py-10">
+    <div className="px-4 sm:px-6 lg:px-20 2xl:px-60 grid gap-8 py-10">
       {/* Card principal */}
-      <div className="bg-white dark:bg-slate-900 rounded-xl shadow-md p-8 flex flex-col gap-6 border border-slate-200 dark:border-slate-800">
-        <div className="flex items-center justify-between mb-2">
+      <div className="bg-white dark:bg-slate-900 rounded-xl shadow-md p-6 sm:p-8 flex flex-col gap-6 border border-slate-200 dark:border-slate-800">
+        {/* Header */}
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-2 gap-3">
           <div className="flex items-center gap-2">
             <span className="w-8 h-8 rounded-full flex items-center justify-center">
-              {/* User icon SVG */}
-              <svg
-                width="24"
-                height="24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-                viewBox="0 0 24 24"
-                className="text-slate-500 w-6 h-6"
-              >
-                <circle cx="12" cy="8" r="4" />
-                <path d="M4 20c0-4 4-6 8-6s8 2 8 6" />
-              </svg>
+              <User className="text-slate-500 w-6 h-6" />
             </span>
             <span className="text-2xl font-bold">Painel do Usuário</span>
             <button
-              className="btn btn-secondary ml-2"
+              className="btn btn-secondary ml-2 p-2"
               onClick={() => setShowInfo(!showInfo)}
               title="Informações"
-              style={{ padding: '0.4rem' }}
             >
-              <span>
-                {/* Info icon SVG (circle with 'i') */}
-                <svg
-                  width="20"
-                  height="20"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  viewBox="0 0 24 24"
-                  className="inline-block align-middle text-slate-100"
-                >
-                  <circle cx="12" cy="12" r="10" />
-                  <line x1="12" y1="16" x2="12" y2="12" />
-                  <circle cx="12" cy="9" r="1" />
-                </svg>
-              </span>
+              <Eye size={18} className="text-white" />
             </button>
           </div>
-          <button className="btn btn-primary" onClick={handleGenerateToken}>
-            <span className="mr-1">
-              {/* Plus icon SVG */}
-              <svg
-                width="18"
-                height="18"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-                viewBox="0 0 24 24"
-                className="inline-block align-middle text-slate-100"
-              >
-                <line x1="12" y1="5" x2="12" y2="19" />
-                <line x1="5" y1="12" x2="19" y2="12" />
-              </svg>
-            </span>{' '}
+          <button
+            className="btn btn-primary w-full sm:w-auto flex items-center gap-2"
+            onClick={handleGenerateToken}
+          >
+            <Plus size={18} className="text-white" />
             Gerar Token
           </button>
         </div>
+
+        {/* Info extra */}
         {showInfo && (
           <div className="bg-slate-100 dark:bg-slate-800 rounded p-4 text-sm text-slate-700 dark:text-slate-300 mb-2">
             <strong>Como funciona:</strong>
@@ -176,16 +145,19 @@ export default function UserPanelPage() {
             </ul>
           </div>
         )}
-        <p className="text-slate-500 dark:text-slate-400 mb-2 -mt-4">
+
+        <p className="text-slate-500 dark:text-slate-400 -mt-2">
           Gerencie seu perfil, compartilhamento e vínculos de acesso.
         </p>
+
+        {/* Token exibido */}
         {token && (
-          <div className="flex items-center gap-2 mb-2">
-            <span className="font-mono bg-slate-100 dark:bg-slate-800 px-2 py-1 rounded text-xs border border-slate-300 dark:border-slate-700">
+          <div className="flex flex-col sm:flex-row items-center gap-2 mb-2">
+            <span className="font-mono bg-slate-100 dark:bg-slate-800 px-2 py-1 rounded text-xs border border-slate-300 dark:border-slate-700 w-full sm:w-auto text-center sm:text-left">
               {token}
             </span>
             <button
-              className={`btn btn-secondary ${copied ? 'text-green-600' : ''}`}
+              className={`btn btn-secondary w-full sm:w-auto ${copied ? 'text-green-600' : ''}`}
               onClick={() => {
                 navigator.clipboard.writeText(token);
                 setCopied(true);
@@ -195,11 +167,13 @@ export default function UserPanelPage() {
             </button>
           </div>
         )}
+
+        {/* Usar Token */}
         <div className="mt-4">
           <label className="block mb-2 font-semibold text-slate-700 dark:text-slate-300">
             Usar Token para Mesclar Contas:
           </label>
-          <div className="flex gap-2">
+          <div className="flex flex-col sm:flex-row gap-2">
             <input
               type="text"
               className="input input-bordered w-full"
@@ -207,64 +181,46 @@ export default function UserPanelPage() {
               value={sharedToken}
               onChange={(e) => setSharedToken(e.target.value)}
             />
-            <button className="btn btn-primary" onClick={handleUseToken}>
-              <span className="mr-1">
-                {/* Merge icon SVG */}
-                <svg
-                  width="18"
-                  height="18"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  viewBox="0 0 24 24"
-                  className="inline-block align-middle text-slate-100"
-                >
-                  <path d="M17 8a5 5 0 0 0-10 0v8" />
-                  <polyline points="12 17 17 12 12 7" />
-                </svg>
-              </span>{' '}
+            <button
+              className="btn btn-primary w-full sm:w-auto flex items-center gap-2"
+              onClick={handleUseToken}
+            >
+              <LinkIcon size={18} className="text-white" />
               Mesclar
             </button>
           </div>
         </div>
-        <div className="mt-4 flex gap-2">
+
+        {/* Alterar Nome e Senha */}
+        <div className="mt-4 flex flex-col sm:flex-row gap-2">
           {/* Alterar nome */}
-          <div className="flex flex-col gap-2 w-1/2">
+          <div className="flex-1">
             {!editingName ? (
               <button
-                className="btn btn-primary w-full"
+                className="btn btn-primary w-full flex items-center gap-2"
                 onClick={handleChangeName}
               >
-                <span className="mr-1">
-                  {/* Edit icon SVG */}
-                  <svg
-                    width="18"
-                    height="18"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                    viewBox="0 0 24 24"
-                    className="inline-block align-middle text-slate-100"
-                  >
-                    <path d="M12 20h9" />
-                    <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4 12.5-12.5z" />
-                  </svg>
-                </span>{' '}
+                <Pencil size={18} className="text-white" />
                 Alterar Nome
               </button>
             ) : (
-              <div className="flex gap-2 items-center">
+              <div className="flex flex-col sm:flex-row gap-2 items-center">
                 <input
                   type="text"
                   className="input input-bordered w-full"
                   value={newName}
                   onChange={(e) => setNewName(e.target.value)}
                 />
-                <button className="btn btn-success" onClick={handleSaveName}>
+                <button
+                  type="button"
+                  className="btn btn-success w-full sm:w-auto"
+                  onClick={handleSaveName}
+                >
                   Salvar
                 </button>
                 <button
-                  className="btn btn-secondary"
+                  type="button"
+                  className="btn btn-secondary w-full sm:w-auto"
                   onClick={() => setEditingName(false)}
                 >
                   Cancelar
@@ -277,32 +233,19 @@ export default function UserPanelPage() {
               </div>
             )}
           </div>
+
           {/* Alterar senha */}
-          <div className="flex flex-col gap-2 w-1/2">
+          <div className="flex-1">
             {!editingPassword ? (
               <button
-                className="btn btn-primary w-full"
+                className="btn btn-primary w-full flex items-center gap-2"
                 onClick={handleChangePassword}
               >
-                <span className="mr-1">
-                  {/* Lock icon SVG */}
-                  <svg
-                    width="18"
-                    height="18"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                    viewBox="0 0 24 24"
-                    className="inline-block align-middle text-slate-100"
-                  >
-                    <rect x="3" y="11" width="18" height="11" rx="2" />
-                    <path d="M7 11V7a5 5 0 0 1 10 0v4" />
-                  </svg>
-                </span>{' '}
+                <Lock size={18} className="text-white" />
                 Alterar Senha
               </button>
             ) : (
-              <div className="flex gap-2 items-center">
+              <div className="flex flex-col sm:flex-row gap-2 items-center">
                 <input
                   type="password"
                   className="input input-bordered w-full"
@@ -310,13 +253,15 @@ export default function UserPanelPage() {
                   onChange={(e) => setNewPassword(e.target.value)}
                 />
                 <button
-                  className="btn btn-success"
+                  type="button"
+                  className="btn btn-success w-full sm:w-auto"
                   onClick={handleSavePassword}
                 >
                   Salvar
                 </button>
                 <button
-                  className="btn btn-secondary"
+                  type="button"
+                  className="btn btn-secondary w-full sm:w-auto"
                   onClick={() => setEditingPassword(false)}
                 >
                   Cancelar
@@ -331,24 +276,11 @@ export default function UserPanelPage() {
           </div>
         </div>
       </div>
+
       {/* Card de vínculos */}
-      <div className="bg-white dark:bg-slate-900 rounded-xl shadow-md p-8 border border-slate-200 dark:border-slate-800">
+      <div className="bg-white dark:bg-slate-900 rounded-xl shadow-md p-6 sm:p-8 border border-slate-200 dark:border-slate-800">
         <h3 className="text-xl font-bold mb-4 flex items-center gap-2">
-          <span className="w-7 h-7 rounded-full flex items-center justify-center">
-            {/* Link icon SVG */}
-            <svg
-              width="22"
-              height="22"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-              viewBox="0 0 24 24"
-              className="text-slate-500 w-5 h-5"
-            >
-              <path d="M10 14L21 3" />
-              <path d="M8 6a5 5 0 0 1 7.07 0l3.54 3.54a5 5 0 0 1 0 7.07l-3.54 3.54a5 5 0 0 1-7.07 0l-1.5-1.5" />
-            </svg>
-          </span>
+          <LinkIcon size={20} className="text-slate-500" />
           Vínculos de Compartilhamento
         </h3>
         {loadingLinks ? (
@@ -356,10 +288,11 @@ export default function UserPanelPage() {
             Carregando vínculos...
           </div>
         ) : (
-          <div className="grid md:grid-cols-2 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {/* Você vê */}
             <div>
               <div className="font-semibold text-slate-700 dark:text-slate-300 mb-2 flex items-center gap-1">
-                <span>👁️</span> Você vê:
+                <Eye size={16} /> Você vê:
               </div>
               {links.iSee.length === 0 ? (
                 <div className="text-slate-400">Nenhum vínculo.</div>
@@ -371,52 +304,22 @@ export default function UserPanelPage() {
                       className="flex items-center justify-between py-2"
                     >
                       <span className="flex items-center gap-2">
-                        <span className="w-7 h-7 rounded-full flex items-center justify-center">
-                          {/* User icon SVG */}
-                          <svg
-                            width="20"
-                            height="20"
-                            fill="none"
-                            stroke="currentColor"
-                            strokeWidth="2"
-                            viewBox="0 0 24 24"
-                            className="text-slate-500 w-5 h-5"
-                          >
-                            <circle cx="12" cy="8" r="4" />
-                            <path d="M4 20c0-4 4-6 8-6s8 2 8 6" />
-                          </svg>
-                        </span>
+                        <User size={18} className="text-slate-500" />
                         <span className="font-medium">{u.username}</span>
                       </span>
-                      <button
-                        className="btn btn-xs btn-error"
-                        onClick={handleUnlink}
-                      >
-                        <span className="mr-1">
-                          {/* Unlink icon SVG */}
-                          <svg
-                            width="16"
-                            height="16"
-                            fill="none"
-                            stroke="currentColor"
-                            strokeWidth="2"
-                            viewBox="0 0 24 24"
-                            className="inline-block align-middle"
-                          >
-                            <line x1="18" y1="6" x2="6" y2="18" />
-                            <line x1="6" y1="6" x2="18" y2="18" />
-                          </svg>
-                        </span>{' '}
-                        Desvincular
+                      <button className="btn btn-xs btn-error bg-red-600 text-white flex items-center gap-1">
+                        <X size={14} /> Desvincular
                       </button>
                     </li>
                   ))}
                 </ul>
               )}
             </div>
+
+            {/* Vê sua conta */}
             <div>
               <div className="font-semibold text-slate-700 dark:text-slate-300 mb-2 flex items-center gap-1">
-                <span>🔒</span> Vê sua conta:
+                <Lock size={16} /> Vê sua conta:
               </div>
               {links.seeMe.length === 0 ? (
                 <div className="text-slate-400">Nenhum vínculo.</div>
@@ -428,16 +331,11 @@ export default function UserPanelPage() {
                       className="flex items-center justify-between py-2"
                     >
                       <span className="flex items-center gap-2">
-                        <span className="w-7 h-7 bg-slate-200 dark:bg-slate-700 rounded-full text-center flex items-center justify-center">
-                          👤
-                        </span>
+                        <User size={18} className="text-slate-500" />
                         <span className="font-medium">{u.username}</span>
                       </span>
-                      <button
-                        className="btn btn-xs btn-error"
-                        onClick={handleUnlink}
-                      >
-                        <span className="mr-1">❌</span> Desvincular
+                      <button className="btn btn-xs btn-error bg-red-600 text-white flex items-center gap-1">
+                        <X size={14} /> Desvincular
                       </button>
                     </li>
                   ))}

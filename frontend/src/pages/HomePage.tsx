@@ -11,6 +11,8 @@ import { CSS } from '@dnd-kit/utilities';
 import type { Account, Collaborator } from '../lib/types';
 import { MONTHS_PT, brl } from '../lib/format';
 import { todayComp, monthsDiff } from '../lib/date';
+import type { ReactElement } from 'react';
+import type { FinanceTableProps } from '../components/FinanceTable';
 import FinanceTable from '../components/FinanceTable';
 import FinanceDialog from '../components/AddFinanceDialog';
 import AddCollaboratorDialog from '../components/AddCollaboratorDialog';
@@ -68,7 +70,7 @@ export default function HomePage() {
     children,
   }: {
     id: string;
-    children: React.ReactNode;
+    children: ReactElement<FinanceTableProps>;
   }) {
     const {
       attributes,
@@ -78,23 +80,19 @@ export default function HomePage() {
       transition,
       isDragging,
     } = useSortable({ id });
-    // Espera que o filho seja um React element (FinanceTable)
+
     return (
       <div
         ref={setNodeRef}
         style={{ transform: CSS.Transform.toString(transform), transition }}
       >
-        {React.isValidElement(children)
-          ? React.cloneElement(children, {
-              dragHandleProps: {
-                ...attributes,
-                ...listeners,
-                style: {
-                  cursor: isDragging ? 'grabbing' : 'grab',
-                },
-              },
-            })
-          : children}
+        {React.cloneElement(children, {
+          dragHandleProps: {
+            ...attributes,
+            ...listeners,
+            style: { cursor: isDragging ? 'grabbing' : 'grab' },
+          },
+        })}
       </div>
     );
   }

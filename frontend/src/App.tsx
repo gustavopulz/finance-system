@@ -28,7 +28,6 @@ function AdminRoute({ children }: { children: JSX.Element }) {
   return children;
 }
 
-
 function AppWithHeader() {
   const location = useLocation();
   const hideHeader = location.pathname === '/login';

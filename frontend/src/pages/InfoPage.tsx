@@ -11,10 +11,8 @@ export default function InfoPage() {
     setError(null);
     fetch('/api/dashboard')
       .then(async (r) => {
-        // Tenta parsear como JSON, se falhar, trata erro
         try {
           const data = await r.json();
-          // Se não vier objeto esperado, trata como erro
           if (!data || typeof data !== 'object' || Array.isArray(data)) {
             throw new Error('Resposta inesperada do servidor');
           }
@@ -44,7 +42,6 @@ export default function InfoPage() {
     setEditSalary(false);
     setLoading(true);
     setError(null);
-    // Recarrega dashboard
     fetch('/api/dashboard')
       .then(async (r) => {
         try {

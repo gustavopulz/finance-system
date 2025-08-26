@@ -14,7 +14,6 @@ export default function AddCollaboratorDialog({
   const { register, handleSubmit } = useForm<FormData>();
 
   const submit = (data: FormData) => {
-    console.log('📤 Enviando para API:', data); // <-- debug
     onSave(data.nome.trim());
   };
 

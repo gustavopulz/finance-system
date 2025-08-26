@@ -22,7 +22,7 @@ export default function InfoPage() {
           setSalaryInput(data.salary ? String(data.salary) : '');
         } catch (e) {
           setError(
-            'Erro ao carregar dados. Verifique se está logado e se o servidor está ativo.'
+            'Erro ao carregar dados. Verifique se está logado e se o servidor está Pendente.'
           );
         }
       })
@@ -53,7 +53,7 @@ export default function InfoPage() {
           setSalaryInput(data.salary ? String(data.salary) : '');
         } catch (e) {
           setError(
-            'Erro ao carregar dados. Verifique se está logado e se o servidor está ativo.'
+            'Erro ao carregar dados. Verifique se está logado e se o servidor está Pendente.'
           );
         }
       })

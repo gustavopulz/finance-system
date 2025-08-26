@@ -30,15 +30,15 @@ export const MONTHS_PT = [
 
 /**
  * Rótulo de parcela para o modelo novo (Account) considerando a competência atual.
- * - cancelado -> "—"
+ * - Cancelado -> "—"
  * - parcelasTotal === null -> "Indeterminada"
  * - parcelasTotal = número -> "k/N", onde k = monthsDiff(início, atual) + 1 (clamp 1..N)
  * - se k > N -> "Quitado"
  * OBS: visibilidade é controlada por isVisibleInMonth; aqui é só o rótulo.
  */
 export function parcelaLabel(f: Account, inMonth: Competencia): string {
-  // Se cancelado, só mostra '—' se o mês filtrado for após o cancelamento
-  if (f.status === 'cancelado' && f.cancelledAt) {
+  // Se Cancelado, só mostra '—' se o mês filtrado for após o cancelamento
+  if (f.status === 'Cancelado' && f.cancelledAt) {
     const cancelledDate = new Date(f.cancelledAt);
     const cancelledYear = cancelledDate.getFullYear();
     const cancelledMonth = cancelledDate.getMonth() + 1;

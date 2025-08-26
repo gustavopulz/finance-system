@@ -1,4 +1,4 @@
-export type Status = 'ativo' | 'cancelado' | 'quitado';
+export type Status = 'Pendente' | 'Cancelado' | 'quitado';
 
 export type Collaborator = {
   id: string;
@@ -20,7 +20,7 @@ export type Account = {
   parcelasTotal: number | null;
   month: number;
   year: number;
-  status: Status;
+  status: 'Cancelado' | 'quitado' | 'ativo' | 'Pendente';
   createdAt: string;
   updatedAt: string;
   cancelledAt?: string;
@@ -34,7 +34,7 @@ export type Finance = {
   valor: number;
   start?: Competencia;
   parcelasTotal: number | 'X';
-  status: 'ativo' | 'cancelado' | 'quitado';
+  status: 'ativo' | 'Pendente' | 'Cancelado' | 'quitado';
   createdAt: string;
   competencia?: Competencia;
 };

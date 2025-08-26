@@ -1,8 +1,8 @@
 import { parcelaLabel, brl } from '../lib/format';
-import { markAccountPaid } from '../lib/api';
+import { updateAccount } from '../lib/api';
 import type { Account } from '../lib/types';
-import { ArrowUpDown, Trash2 } from 'lucide-react';
-import { useMemo, useState } from 'react';
+import { ArrowUpDown, Trash2, Pencil, Ban, CheckCircle } from 'lucide-react';
+import { useMemo, useState, useEffect } from 'react';
 import { deleteCollab } from '../lib/api';
 
 type SortKey = 'description' | 'value' | 'parcelas' | 'status';
@@ -17,6 +17,7 @@ export interface FinanceTableProps {
   onEdit: (a: Account) => void;
   onCancelToggle: (id: string) => void;
   onCollabDeleted: (id: string) => void;
+  onPaidUpdate?: (id: string, paid: boolean) => void; // Nova callback
   dragHandleProps?: React.HTMLAttributes<HTMLElement>;
 }
 
@@ -29,8 +30,10 @@ export default function FinanceTable({
   onEdit,
   onCancelToggle,
   onCollabDeleted,
+  onPaidUpdate,
   dragHandleProps,
 }: FinanceTableProps) {
+  const [localItems, setLocalItems] = useState<Account[]>(items);
   const [sortKey, setSortKey] = useState<SortKey>('description');
   const [sortDir, setSortDir] = useState<SortDir>('asc');
   const [showConfirm, setShowConfirm] = useState(false);
@@ -41,6 +44,11 @@ export default function FinanceTable({
     financa: Account | null;
   }>({ open: false, financa: null });
 
+  // Atualiza localItems quando items mudar
+  useEffect(() => {
+    setLocalItems(items);
+  }, [items]);
+
   function toggleSort(key: SortKey) {
     if (key === sortKey) setSortDir((d) => (d === 'asc' ? 'desc' : 'asc'));
     else {
@@ -50,7 +58,7 @@ export default function FinanceTable({
   }
 
   const data = useMemo(() => {
-    const copy = [...items];
+    const copy = [...localItems];
     copy.sort((a, b) => {
       let va: any, vb: any;
       switch (sortKey) {
@@ -84,14 +92,15 @@ export default function FinanceTable({
       return 0;
     });
     return copy;
-  }, [items, sortKey, sortDir, currentComp]);
+  }, [localItems, sortKey, sortDir, currentComp]);
 
-  const total = data.reduce((acc, f) => acc + Number(f.value), 0);
-  const totalPago = data
-    .filter((f) => f.paid)
+  // Totais considerando o campo paid
+  const total = localItems.reduce((acc, f) => acc + Number(f.value), 0);
+  const totalPendente = localItems
+    .filter((f) => !f.paid)
     .reduce((acc, f) => acc + Number(f.value), 0);
-  const totalAtivo = data
-    .filter((f) => f.status === 'ativo')
+  const totalPago = localItems
+    .filter((f) => f.paid)
     .reduce((acc, f) => acc + Number(f.value), 0);
 
   const Th = ({ label, keyName }: { label: string; keyName: SortKey }) => (
@@ -108,12 +117,22 @@ export default function FinanceTable({
 
   async function handlePaidToggle(account: Account) {
     try {
-      await markAccountPaid(account.id, !account.paid);
-      setToast(
-        `Finança marcada como ${!account.paid ? 'paga' : 'não paga'} ✅`
+      // Atualiza apenas o campo paid
+      const newPaid = !account.paid;
+      await updateAccount(account.id, {
+        paid: newPaid,
+      });
+      setLocalItems((prev) =>
+        prev.map((item) =>
+          item.id === account.id ? { ...item, paid: newPaid } : item
+        )
       );
+      // Notifica o componente pai sobre a mudança
+      onPaidUpdate?.(account.id, newPaid);
+      setToast(`Finança marcada como ${newPaid ? 'paga' : 'não paga'} ✅`);
       setTimeout(() => setToast(null), 2000);
     } catch (e) {
+      console.error('Erro ao marcar como pago:', e);
       setToast('Erro ao marcar como pago');
       setTimeout(() => setToast(null), 2000);
     }
@@ -135,6 +154,35 @@ export default function FinanceTable({
     setTimeout(() => setToast(null), 3000);
   }
 
+  function getStatusBadge(account: Account): React.JSX.Element {
+    if (account.paid) {
+      return (
+        <span className="badge bg-green-100 dark:bg-green-500/30 text-green-700 dark:text-green-300">
+          Pago
+        </span>
+      );
+    }
+    if (account.status === 'Pendente') {
+      return (
+        <span className="badge bg-yellow-100 dark:bg-yellow-500/30 text-yellow-700 dark:text-yellow-300">
+          Pendente
+        </span>
+      );
+    }
+    if (account.status === 'Cancelado') {
+      return (
+        <span className="badge bg-red-100 dark:bg-red-500/30 text-red-700 dark:text-red-300">
+          Cancelado
+        </span>
+      );
+    }
+    return (
+      <span className="badge bg-slate-100 dark:bg-slate-900/60 text-slate-700 dark:text-slate-100">
+        {account.status}
+      </span>
+    );
+  }
+
   return (
     <section className="card relative">
       {/* Cabeçalho DESKTOP */}
@@ -150,43 +198,51 @@ export default function FinanceTable({
           <div className="badge bg-slate-100 dark:bg-slate-900/60 text-slate-700 dark:text-slate-100">
             Total: {brl(Number(total))}
           </div>
+          <div className="badge bg-yellow-100 dark:bg-yellow-500/30 text-yellow-700 dark:text-yellow-300">
+            Total pendente: {brl(Number(totalPendente))}
+          </div>
           <div className="badge bg-green-100 dark:bg-green-500/30 text-green-700 dark:text-green-300">
             Total pago: {brl(Number(totalPago))}
           </div>
-          <div className="badge bg-blue-100 dark:bg-blue-500/30 text-blue-700 dark:text-blue-300">
-            Total ativo: {brl(Number(totalAtivo))}
-          </div>
           <button
             onClick={() => setShowConfirm(true)}
-            className="text-red-500 hover:text-red-700 text-sm font-medium flex items-center gap-1"
+            onPointerDown={(e) => e.stopPropagation()}
+            className="text-red-500 hover:text-red-700 text-sm font-medium flex items-center gap-1 ml-2"
           >
-            <Trash2 size={16} /> Excluir colaborador
+            <Trash2 size={16} />
           </button>
         </div>
       </div>
 
       {/* Cabeçalho MOBILE */}
-      <div className="md:hidden mb-2">
+      <div className="md:hidden p-4 pb-2">
         {/* Linha 1: Nome + Total */}
         <div
           className="flex items-center justify-between"
           {...(dragHandleProps || {})}
           style={{ ...(dragHandleProps?.style || {}), userSelect: 'none' }}
         >
-          <h3 className="text-lg font-semibold">{title}</h3>
-          <div className="badge bg-slate-100 dark:bg-slate-900/60 text-slate-700 dark:text-slate-100">
-            Total: {brl(Number(total))}
+          <div className="flex items-center gap-2">
+            <h3 className="text-lg font-semibold">{title}</h3>
           </div>
-        </div>
-
-        {/* Linha 2: Botão excluir colaborador */}
-        <div className="mt-2">
-          <button
-            onClick={() => setShowConfirm(true)}
-            className="text-red-500 hover:text-red-700 text-sm font-medium flex items-center gap-1"
-          >
-            <Trash2 size={16} /> Excluir colaborador
-          </button>
+          <div className="flex items-center gap-2">
+            <div className="badge bg-slate-100 dark:bg-slate-900/60 text-slate-700 dark:text-slate-100">
+              Total: {brl(Number(total))}
+            </div>
+            <div className="badge bg-yellow-100 dark:bg-yellow-500/30 text-yellow-700 dark:text-yellow-300">
+              Total Pendente: {brl(Number(totalPendente))}
+            </div>
+            <div className="badge bg-green-100 dark:bg-green-500/30 text-green-700 dark:text-green-300">
+              Total pago: {brl(Number(totalPago))}
+            </div>
+            <button
+              onClick={() => setShowConfirm(true)}
+              onPointerDown={(e) => e.stopPropagation()}
+              className="text-red-500 hover:text-red-700 text-sm font-medium flex items-center gap-1 ml-2"
+            >
+              <Trash2 size={16} />
+            </button>
+          </div>
         </div>
       </div>
 
@@ -199,7 +255,11 @@ export default function FinanceTable({
               <Th label="Valor" keyName="value" />
               <Th label="Parcela" keyName="parcelas" />
               <Th label="Status" keyName="status" />
-              <th className="w-16 text-center">Pago</th>
+              <th>
+                <div className="flex justify-center items-center h-full">
+                  Pago
+                </div>
+              </th>
               <th className="hidden md:table-cell">Cancelado em</th>
               <th className="w-8 md:w-36 text-center"></th>
             </tr>
@@ -226,27 +286,21 @@ export default function FinanceTable({
                   {parcelaLabel(f, currentComp)}
                 </td>
                 <td className="py-3 min-w-[60px] md:min-w-[90px]">
-                  <span
-                    className={
-                      'px-2 py-1 rounded-full text-xs font-semibold ' +
-                      (f.status === 'ativo'
-                        ? 'bg-green-100 text-green-700 dark:bg-green-500/30 dark:text-green-300'
-                        : f.status === 'cancelado'
-                          ? 'bg-red-100 text-red-700 dark:bg-red-500/30 dark:text-red-300'
-                          : 'bg-gray-200 text-gray-700 dark:bg-gray-600 dark:text-gray-300')
-                    }
-                  >
-                    {f.status}
-                  </span>
+                  {getStatusBadge(f)}
                 </td>
-                <td className="py-3 text-center">
-                  <input
-                    type="checkbox"
-                    checked={!!f.paid}
-                    onChange={() => handlePaidToggle(f)}
-                    aria-label="Marcar como pago"
-                  />
+                {/* Célula */}
+                <td className="py-3">
+                  <div className="flex justify-center items-center h-full">
+                    <input
+                      type="checkbox"
+                      checked={!!f.paid}
+                      onChange={() => handlePaidToggle(f)}
+                      aria-label="Marcar como pago"
+                      className="custom-checkbox"
+                    />
+                  </div>
                 </td>
+
                 <td className="py-3 text-xs text-slate-500 hidden md:table-cell">
                   {f.cancelledAt
                     ? new Date(f.cancelledAt).toLocaleDateString('pt-BR', {
@@ -257,20 +311,34 @@ export default function FinanceTable({
                 </td>
                 <td className="px-1 py-3 flex items-center justify-center">
                   <div className="hidden md:flex gap-1">
-                    <button className="btn btn-ghost" onClick={() => onEdit(f)}>
-                      ✏️
+                    <button
+                      className="btn btn-ghost"
+                      onClick={() => onEdit(f)}
+                      aria-label="Editar"
+                    >
+                      <Pencil size={18} />
                     </button>
                     <button
                       className="btn btn-ghost"
                       onClick={() => onCancelToggle(f.id)}
+                      aria-label={
+                        f.status === 'Pendente' || f.status === 'ativo'
+                          ? 'Cancelar'
+                          : 'Pendente'
+                      }
                     >
-                      🚫
+                      {f.status === 'Pendente' || f.status === 'ativo' ? (
+                        <Ban size={18} />
+                      ) : (
+                        <CheckCircle size={18} />
+                      )}
                     </button>
                     <button
                       className="btn btn-ghost"
                       onClick={() => setFinancaToDelete(f)}
+                      aria-label="Excluir"
                     >
-                      🗑️
+                      <Trash2 size={18} />
                     </button>
                   </div>
                 </td>
@@ -293,14 +361,21 @@ export default function FinanceTable({
                         <span
                           className={
                             'px-2 py-1 rounded-full text-xs font-semibold ' +
-                            (f.status === 'ativo'
+                            (f.paid
                               ? 'bg-green-100 text-green-700 dark:bg-green-500/30 dark:text-green-300'
-                              : f.status === 'cancelado'
-                                ? 'bg-red-100 text-red-700 dark:bg-red-500/30 dark:text-red-300'
-                                : 'bg-gray-200 text-gray-700 dark:bg-gray-600 dark:text-gray-300')
+                              : f.status === 'Pendente' || f.status === 'ativo'
+                                ? 'bg-yellow-100 text-yellow-700 dark:bg-yellow-500/30 dark:text-yellow-300'
+                                : f.status === 'Cancelado'
+                                  ? 'bg-red-100 text-red-700 dark:bg-red-500/30 dark:text-red-300'
+                                  : 'bg-gray-200 text-gray-700 dark:bg-gray-600 dark:text-gray-300')
                           }
                         >
-                          {f.status}
+                          {f.paid
+                            ? 'Pago'
+                            : f.status === 'Pendente' || f.status === 'ativo'
+                              ? 'Pendente'
+                              : f.status.charAt(0).toUpperCase() +
+                                f.status.slice(1)}
                         </span>
                       </div>
                       <div className="flex items-center gap-2 mt-1">
@@ -331,20 +406,31 @@ export default function FinanceTable({
                       <button
                         onClick={() => onEdit(f)}
                         className="btn btn-ghost text-xs"
+                        aria-label="Editar"
                       >
-                        ✏️
+                        <Pencil size={18} />
                       </button>
                       <button
                         onClick={() => onCancelToggle(f.id)}
                         className="btn btn-ghost text-xs"
+                        aria-label={
+                          f.status === 'Pendente' || f.status === 'ativo'
+                            ? 'Cancelar'
+                            : 'Pendente'
+                        }
                       >
-                        {f.status === 'ativo' ? '🚫' : '✅'}
+                        {f.status === 'Pendente' || f.status === 'ativo' ? (
+                          <Ban size={18} />
+                        ) : (
+                          <CheckCircle size={18} />
+                        )}
                       </button>
                       <button
                         onClick={() => setFinancaToDelete(f)}
                         className="btn btn-ghost text-xs"
+                        aria-label="Excluir"
                       >
-                        🗑️
+                        <Trash2 size={18} />
                       </button>
                     </div>
                   </div>
@@ -411,7 +497,7 @@ export default function FinanceTable({
                 Editar
               </button>
               <button
-                className="px-4 py-2 rounded bg-yellow-500 text-white"
+                className={`px-4 py-2 rounded text-white font-semibold capitalize ${actionModal.financa.status === 'Pendente' || actionModal.financa.status === 'ativo' ? 'bg-red-600' : 'bg-yellow-500'}`}
                 onClick={() => {
                   if (actionModal.financa) {
                     onCancelToggle(actionModal.financa.id);
@@ -419,7 +505,10 @@ export default function FinanceTable({
                   setActionModal({ open: false, financa: null });
                 }}
               >
-                {actionModal.financa.status === 'ativo' ? 'Cancelar' : 'Ativar'}
+                {actionModal.financa.status === 'Pendente' ||
+                actionModal.financa.status === 'ativo'
+                  ? 'Cancelar'
+                  : 'Pendente'}
               </button>
               <button
                 className="px-4 py-2 rounded bg-red-600 text-white"

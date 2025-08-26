@@ -36,8 +36,8 @@ export function isVisibleInMonth(
       return false;
     }
 
-    // Se status for cancelado, só aparece até o mês/ano do cancelamento (inclusive)
-    if (f.status === 'cancelado') {
+    // Se status for Cancelado, só aparece até o mês/ano do cancelamento (inclusive)
+    if (f.status === 'Cancelado') {
       if (!f.cancelledAt) return false;
       const cancelledDate = new Date(f.cancelledAt);
       const cancelledYear = cancelledDate.getFullYear();
@@ -84,7 +84,7 @@ export function willCountInMonth(
   f: Finance | Account,
   month: Competencia
 ): boolean {
-  if (f.status === 'cancelado' || f.status === 'quitado') return false;
+  if (f.status === 'Cancelado' || f.status === 'quitado') return false;
 
   if (isAccountLike(f)) {
     const start = { year: num(f.year), month: num(f.month) };
@@ -140,7 +140,7 @@ function seedData(): Finance[] {
       valor: 60.5,
       start,
       parcelasTotal: 3,
-      status: 'ativo',
+      status: 'Pendente',
       createdAt: nowISO,
     },
     {
@@ -150,7 +150,7 @@ function seedData(): Finance[] {
       valor: 97.71,
       start,
       parcelasTotal: 10,
-      status: 'ativo',
+      status: 'Pendente',
       createdAt: nowISO,
     },
   ];

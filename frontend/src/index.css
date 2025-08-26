@@ -76,14 +76,15 @@ body {
   -moz-appearance: none;
   width: 20px;
   height: 20px;
-  border: 1px solid #cbd5e1; /* border-slate-300 no light */
-  border-radius: 0.375rem; /* rounded-md */
-  background-color: #ffffff; /* bg-white no light */
+  border: 1px solid #cbd5e1;
+  border-radius: 0.375rem;
+  background-color: #ffffff;
   cursor: pointer;
-  display: inline-flex;
+  display: flex; /* garante alinhamento interno */
   align-items: center;
   justify-content: center;
   transition: all 0.2s ease-in-out;
+  margin: auto; /* 🔹 força centralização dentro da célula */
 }
 
 .custom-checkbox:checked {

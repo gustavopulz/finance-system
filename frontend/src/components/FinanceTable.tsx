@@ -97,7 +97,7 @@ export default function FinanceTable({
     .filter((f) => f.paid)
     .reduce((acc, f) => acc + Number(f.value), 0);
   const totalPendente = data
-    .filter((f) => f.status === 'Pendente')
+    .filter((f) => !f.paid && (f.status === 'Pendente' || f.status === 'ativo'))
     .reduce((acc, f) => acc + Number(f.value), 0);
 
   const Th = ({ label, keyName }: { label: string; keyName: SortKey }) => (
@@ -155,27 +155,25 @@ export default function FinanceTable({
         style={{ ...(dragHandleProps?.style || {}), userSelect: 'none' }}
       >
         <div className="flex items-center gap-2 flex-1">
-          <h3 className="text-lg font-semibold flex items-center gap-2">
-            {title}
-            <button
-              onClick={() => setShowConfirm(true)}
-              className="text-red-500 hover:text-red-700"
-              aria-label="Excluir colaborador"
-            >
-              <Trash2 size={20} />
-            </button>
-          </h3>
+          <h3 className="text-lg font-semibold">{title}</h3>
         </div>
         <div className="flex items-center gap-2">
           <div className="badge bg-slate-100 dark:bg-slate-900/60 text-slate-700 dark:text-slate-100">
             Total: {brl(Number(total))}
           </div>
+          <div className="badge bg-yellow-100 dark:bg-yellow-500/30 text-yellow-700 dark:text-yellow-300">
+            Total Pendente: {brl(Number(totalPendente))}
+          </div>
           <div className="badge bg-green-100 dark:bg-green-500/30 text-green-700 dark:text-green-300">
             Total pago: {brl(Number(totalPago))}
           </div>
-          <div className="badge bg-blue-100 dark:bg-blue-500/30 text-blue-700 dark:text-blue-300">
-            Total pendente: {brl(Number(totalPendente))}
-          </div>
+          <button
+            onClick={() => setShowConfirm(true)}
+            onPointerDown={(e) => e.stopPropagation()}
+            className="text-red-500 hover:text-red-700 text-sm font-medium flex items-center gap-1 ml-2"
+          >
+            <Trash2 size={16} />
+          </button>
         </div>
       </div>
 
@@ -187,18 +185,26 @@ export default function FinanceTable({
           {...(dragHandleProps || {})}
           style={{ ...(dragHandleProps?.style || {}), userSelect: 'none' }}
         >
-          <h3 className="text-lg font-semibold flex items-center gap-2">
-            {title}
+          <div className="flex items-center gap-2">
+            <h3 className="text-lg font-semibold">{title}</h3>
+          </div>
+          <div className="flex items-center gap-2">
+            <div className="badge bg-slate-100 dark:bg-slate-900/60 text-slate-700 dark:text-slate-100">
+              Total: {brl(Number(total))}
+            </div>
+            <div className="badge bg-yellow-100 dark:bg-yellow-500/30 text-yellow-700 dark:text-yellow-300">
+              Total Pendente: {brl(Number(totalPendente))}
+            </div>
+            <div className="badge bg-green-100 dark:bg-green-500/30 text-green-700 dark:text-green-300">
+              Total pago: {brl(Number(totalPago))}
+            </div>
             <button
               onClick={() => setShowConfirm(true)}
-              className="text-red-500 hover:text-red-700"
-              aria-label="Excluir colaborador"
+              onPointerDown={(e) => e.stopPropagation()}
+              className="text-red-500 hover:text-red-700 text-sm font-medium flex items-center gap-1 ml-2"
             >
-              <Trash2 size={20} />
+              <Trash2 size={16} />
             </button>
-          </h3>
-          <div className="badge bg-slate-100 dark:bg-slate-900/60 text-slate-700 dark:text-slate-100">
-            Total: {brl(Number(total))}
           </div>
         </div>
       </div>
@@ -212,7 +218,11 @@ export default function FinanceTable({
               <Th label="Valor" keyName="value" />
               <Th label="Parcela" keyName="parcelas" />
               <Th label="Status" keyName="status" />
-              <th className="w-16 text-center">Pago</th>
+              <th>
+                <div className="flex justify-center items-center h-full mr-2">
+                  Pago
+                </div>
+              </th>
               <th className="hidden md:table-cell">Cancelado em</th>
               <th className="w-8 md:w-36 text-center"></th>
             </tr>
@@ -258,14 +268,19 @@ export default function FinanceTable({
                         : f.status.charAt(0).toUpperCase() + f.status.slice(1)}
                   </span>
                 </td>
-                <td className="py-3 text-center">
-                  <input
-                    type="checkbox"
-                    checked={!!f.paid}
-                    onChange={() => handlePaidToggle(f)}
-                    aria-label="Marcar como pago"
-                  />
+                {/* Célula */}
+                <td className="py-3">
+                  <div className="flex justify-center items-center h-full">
+                    <input
+                      type="checkbox"
+                      checked={!!f.paid}
+                      onChange={() => handlePaidToggle(f)}
+                      aria-label="Marcar como pago"
+                      className="custom-checkbox"
+                    />
+                  </div>
                 </td>
+
                 <td className="py-3 text-xs text-slate-500 hidden md:table-cell">
                   {f.cancelledAt
                     ? new Date(f.cancelledAt).toLocaleDateString('pt-BR', {

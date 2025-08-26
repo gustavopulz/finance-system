@@ -120,12 +120,12 @@ export default function FinanceTable({
   return (
     <section className="card relative">
       {/* Cabeçalho DESKTOP */}
-      <div className="hidden md:flex items-center justify-between p-4 pb-2 cursor-grab">
-        <div
-          className="flex items-center gap-2 flex-1"
-          {...(dragHandleProps || {})}
-          style={{ ...(dragHandleProps?.style || {}), userSelect: 'none' }}
-        >
+      <div
+        className="hidden md:flex items-center justify-between p-4 pb-2 cursor-grab"
+        {...(dragHandleProps || {})}
+        style={{ ...(dragHandleProps?.style || {}), userSelect: 'none' }}
+      >
+        <div className="flex items-center gap-2 flex-1">
           <h3 className="text-lg font-semibold">{title}</h3>
         </div>
 

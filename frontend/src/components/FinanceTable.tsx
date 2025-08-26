@@ -2,7 +2,7 @@ import { parcelaLabel, brl } from '../lib/format';
 import { markAccountPaid } from '../lib/api';
 import type { Account } from '../lib/types';
 import { ArrowUpDown, Trash2 } from 'lucide-react';
-import { useMemo, useState } from 'react';
+import { useMemo, useState, useEffect } from 'react';
 import { deleteCollab } from '../lib/api';
 
 type SortKey = 'description' | 'value' | 'parcelas' | 'status';
@@ -31,6 +31,7 @@ export default function FinanceTable({
   onCollabDeleted,
   dragHandleProps,
 }: FinanceTableProps) {
+  const [localItems, setLocalItems] = useState<Account[]>(items);
   const [sortKey, setSortKey] = useState<SortKey>('description');
   const [sortDir, setSortDir] = useState<SortDir>('asc');
   const [showConfirm, setShowConfirm] = useState(false);
@@ -41,6 +42,11 @@ export default function FinanceTable({
     financa: Account | null;
   }>({ open: false, financa: null });
 
+  // Atualiza localItems quando items mudar
+  useEffect(() => {
+    setLocalItems(items);
+  }, [items]);
+
   function toggleSort(key: SortKey) {
     if (key === sortKey) setSortDir((d) => (d === 'asc' ? 'desc' : 'asc'));
     else {
@@ -50,7 +56,7 @@ export default function FinanceTable({
   }
 
   const data = useMemo(() => {
-    const copy = [...items];
+    const copy = [...localItems];
     copy.sort((a, b) => {
       let va: any, vb: any;
       switch (sortKey) {
@@ -109,6 +115,11 @@ export default function FinanceTable({
   async function handlePaidToggle(account: Account) {
     try {
       await markAccountPaid(account.id, !account.paid);
+      setLocalItems((prev) =>
+        prev.map((item) =>
+          item.id === account.id ? { ...item, paid: !account.paid } : item
+        )
+      );
       setToast(
         `Finança marcada como ${!account.paid ? 'paga' : 'não paga'} ✅`
       );

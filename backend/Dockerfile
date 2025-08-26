@@ -14,11 +14,14 @@ WORKDIR /app
 ENV NODE_ENV=production
 ENV PORT=3000
 
-# Copiar standalone que já inclui node_modules + binários
+# Copiar build standalone completo (inclui node_modules e server.js)
 COPY --from=builder /app/.next/standalone ./
 COPY --from=builder /app/.next/static ./.next/static
-COPY --from=builder /app/public ./public || true
+# Se não tiver public, tudo bem, removemos
+# COPY --from=builder /app/public ./public
+COPY --from=builder /app/package*.json ./
 
 EXPOSE 3000
 
+# Rodar pelo server.js gerado pelo Next standalone
 CMD ["node", "server.js"]

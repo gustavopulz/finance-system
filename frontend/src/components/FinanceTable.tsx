@@ -1,4 +1,5 @@
 import { parcelaLabel, brl } from '../lib/format';
+import { markAccountPaid } from '../lib/api';
 import type { Account } from '../lib/types';
 import { ArrowUpDown, Trash2 } from 'lucide-react';
 import { useMemo, useState } from 'react';
@@ -85,8 +86,12 @@ export default function FinanceTable({
     return copy;
   }, [items, sortKey, sortDir, currentComp]);
 
-  const total = data
-    .filter((f) => f.status !== 'cancelado')
+  const total = data.reduce((acc, f) => acc + Number(f.value), 0);
+  const totalPago = data
+    .filter((f) => f.paid)
+    .reduce((acc, f) => acc + Number(f.value), 0);
+  const totalAtivo = data
+    .filter((f) => f.status === 'ativo')
     .reduce((acc, f) => acc + Number(f.value), 0);
 
   const Th = ({ label, keyName }: { label: string; keyName: SortKey }) => (
@@ -100,6 +105,19 @@ export default function FinanceTable({
       </span>
     </th>
   );
+
+  async function handlePaidToggle(account: Account) {
+    try {
+      await markAccountPaid(account.id, !account.paid);
+      setToast(
+        `Finança marcada como ${!account.paid ? 'paga' : 'não paga'} ✅`
+      );
+      setTimeout(() => setToast(null), 2000);
+    } catch (e) {
+      setToast('Erro ao marcar como pago');
+      setTimeout(() => setToast(null), 2000);
+    }
+  }
 
   async function confirmDeleteCollab() {
     await deleteCollab(collaboratorId);
@@ -128,10 +146,15 @@ export default function FinanceTable({
         <div className="flex items-center gap-2 flex-1">
           <h3 className="text-lg font-semibold">{title}</h3>
         </div>
-
         <div className="flex items-center gap-2">
           <div className="badge bg-slate-100 dark:bg-slate-900/60 text-slate-700 dark:text-slate-100">
             Total: {brl(Number(total))}
+          </div>
+          <div className="badge bg-green-100 dark:bg-green-500/30 text-green-700 dark:text-green-300">
+            Total pago: {brl(Number(totalPago))}
+          </div>
+          <div className="badge bg-blue-100 dark:bg-blue-500/30 text-blue-700 dark:text-blue-300">
+            Total ativo: {brl(Number(totalAtivo))}
           </div>
           <button
             onClick={() => setShowConfirm(true)}
@@ -176,6 +199,7 @@ export default function FinanceTable({
               <Th label="Valor" keyName="value" />
               <Th label="Parcela" keyName="parcelas" />
               <Th label="Status" keyName="status" />
+              <th className="w-16 text-center">Pago</th>
               <th className="hidden md:table-cell">Cancelado em</th>
               <th className="w-8 md:w-36 text-center"></th>
             </tr>
@@ -215,6 +239,14 @@ export default function FinanceTable({
                     {f.status}
                   </span>
                 </td>
+                <td className="py-3 text-center">
+                  <input
+                    type="checkbox"
+                    checked={!!f.paid}
+                    onChange={() => handlePaidToggle(f)}
+                    aria-label="Marcar como pago"
+                  />
+                </td>
                 <td className="py-3 text-xs text-slate-500 hidden md:table-cell">
                   {f.cancelledAt
                     ? new Date(f.cancelledAt).toLocaleDateString('pt-BR', {
@@ -248,7 +280,7 @@ export default function FinanceTable({
             {/* Versão mobile (cards lado esquerdo infos, direito ações) */}
             {data.map((f) => (
               <tr key={f.id} className="md:hidden">
-                <td colSpan={6} className="p-3">
+                <td colSpan={7} className="p-3">
                   <div className="border rounded-lg p-3 bg-slate-50 dark:bg-slate-800 flex justify-between items-center gap-3">
                     {/* Infos */}
                     <div className="flex-1 space-y-2">
@@ -270,6 +302,18 @@ export default function FinanceTable({
                         >
                           {f.status}
                         </span>
+                      </div>
+                      <div className="flex items-center gap-2 mt-1">
+                        <label className="text-xs">
+                          Pago
+                          <input
+                            type="checkbox"
+                            checked={!!f.paid}
+                            onChange={() => handlePaidToggle(f)}
+                            aria-label="Marcar como pago"
+                            className="ml-1"
+                          />
+                        </label>
                       </div>
                       {f.cancelledAt && (
                         <div className="text-xs text-slate-400">

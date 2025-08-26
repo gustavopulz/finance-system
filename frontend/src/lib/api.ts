@@ -182,3 +182,10 @@ export function toggleCancel(id: string, month?: number, year?: number) {
     body: JSON.stringify(body),
   });
 }
+
+export async function markAccountPaid(id: string, paid: boolean) {
+  return json(`${API_URL}/accounts/${id}/mark-paid`, {
+    method: 'PATCH',
+    body: JSON.stringify({ paid }),
+  });
+}

@@ -24,6 +24,7 @@ export type Account = {
   createdAt: string;
   updatedAt: string;
   cancelledAt?: string;
+  paid?: boolean;
 };
 
 export type Finance = {

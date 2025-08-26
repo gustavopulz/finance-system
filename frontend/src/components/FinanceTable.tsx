@@ -46,14 +46,60 @@ export default function FinanceTable({
 
   // Atualiza localItems quando items mudar
   useEffect(() => {
-    setLocalItems(items);
+    // Atualiza localItems sem alterar a ordem atual
+    setLocalItems((prev) => {
+      if (prev.length === 0 || prev.length !== items.length) return items; // Inicializa ou sincroniza tamanho
+      return prev.map((item) => items.find((i) => i.id === item.id) || item); // Atualiza mantendo a ordem
+    });
   }, [items]);
 
+  // Reaplica a ordenação após qualquer atualização nos itens
+  useEffect(() => {
+    // Reaplica a ordenação após qualquer atualização nos itens
+    setLocalItems(() => {
+      const updatedItems = [...items];
+      updatedItems.sort((a, b) => {
+        let va: any, vb: any;
+        switch (sortKey) {
+          case 'value':
+            va = a.value;
+            vb = b.value;
+            break;
+          case 'status':
+            va = a.paid ? 1 : 0;
+            vb = b.paid ? 1 : 0;
+            break;
+          case 'parcelas': {
+            const la = parcelaLabel(a, currentComp);
+            const lb = parcelaLabel(b, currentComp);
+            va =
+              la === 'Indeterminada'
+                ? Number.MAX_SAFE_INTEGER
+                : Number(la.split('/')[0]) || 0;
+            vb =
+              lb === 'Indeterminada'
+                ? Number.MAX_SAFE_INTEGER
+                : Number(lb.split('/')[0]) || 0;
+            break;
+          }
+          default:
+            va = a.description.toLowerCase();
+            vb = b.description.toLowerCase();
+        }
+        if (va < vb) return sortDir === 'asc' ? -1 : 1;
+        if (va > vb) return sortDir === 'asc' ? 1 : -1;
+        return 0;
+      });
+      return updatedItems;
+    });
+  }, [items, sortKey, sortDir, currentComp]);
+
   function toggleSort(key: SortKey) {
-    if (key === sortKey) setSortDir((d) => (d === 'asc' ? 'desc' : 'asc'));
-    else {
+    if (key === sortKey) {
+      setSortDir((d) => (d === 'asc' ? 'desc' : 'asc'));
+    } else {
       setSortKey(key);
-      setSortDir('desc');
+      setSortDir('asc'); // Sempre começa com 'asc' ao mudar a coluna
     }
   }
 
@@ -67,8 +113,8 @@ export default function FinanceTable({
           vb = b.value;
           break;
         case 'status':
-          va = a.status;
-          vb = b.status;
+          va = a.paid ? 1 : 0; // Pagos primeiro se ascendente
+          vb = b.paid ? 1 : 0;
           break;
         case 'parcelas': {
           const la = parcelaLabel(a, currentComp);
@@ -97,7 +143,7 @@ export default function FinanceTable({
   // Totais considerando o campo paid
   const total = localItems.reduce((acc, f) => acc + Number(f.value), 0);
   const totalPendente = localItems
-    .filter((f) => !f.paid)
+    .filter((f) => !f.paid && f.status !== 'Cancelado') // Exclui itens cancelados
     .reduce((acc, f) => acc + Number(f.value), 0);
   const totalPago = localItems
     .filter((f) => f.paid)

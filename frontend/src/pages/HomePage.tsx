@@ -214,7 +214,7 @@ export default function HomePage() {
 
   const total = stableVisible.reduce((s, a) => s + Number(a.value), 0);
   const totalPendente = stableVisible
-    .filter((a) => !a.paid)
+    .filter((a) => !a.paid && a.status !== 'Cancelado') // Exclui itens cancelados
     .reduce((s, a) => s + Number(a.value), 0);
   const totalPago = stableVisible
     .filter((a) => a.paid)

@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
+import SkeletonCard from '../components/SkeletonCard';
 import React from 'react';
 import { DndContext, closestCenter } from '@dnd-kit/core';
 import {
@@ -270,6 +271,7 @@ export default function HomePage() {
 
   return (
     <div className="px-4 sm:px-6 lg:px-20 2xl:px-60 grid gap-6">
+      {loading && <SkeletonCard className="mb-4" />}
       <div className="card p-4">
         {/* Header */}
         <h1 className="text-xl font-bold mb-4">Resumo</h1>

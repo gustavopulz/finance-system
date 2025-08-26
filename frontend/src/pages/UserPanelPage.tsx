@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import SkeletonCard from '../components/SkeletonCard';
 import { useAuth } from '../context/AuthContext';
 import { generateShareToken, useShareToken } from '../lib/api';
 import { updateUserName, updateUserPassword } from '../lib/api';
@@ -284,9 +285,7 @@ export default function UserPanelPage() {
           Vínculos de Compartilhamento
         </h3>
         {loadingLinks ? (
-          <div className="text-slate-500 dark:text-slate-400">
-            Carregando vínculos...
-          </div>
+          <SkeletonCard className="mb-4" />
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {/* Você vê */}

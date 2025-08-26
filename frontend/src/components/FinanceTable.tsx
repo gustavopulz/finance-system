@@ -118,9 +118,9 @@ export default function FinanceTable({
   }
 
   return (
-    <section className="card p-4 relative">
+    <section className="card relative">
       {/* Cabeçalho DESKTOP */}
-      <div className="hidden md:flex items-center justify-between mb-2">
+      <div className="hidden md:flex items-center justify-between p-4 pb-2 cursor-grab">
         <div
           className="flex items-center gap-2 flex-1"
           {...(dragHandleProps || {})}

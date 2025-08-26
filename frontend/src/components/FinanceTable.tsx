@@ -1,5 +1,5 @@
 import { parcelaLabel, brl } from '../lib/format';
-import { markAccountPaid } from '../lib/api';
+import { updateAccount } from '../lib/api';
 import type { Account } from '../lib/types';
 import { ArrowUpDown, Trash2, Pencil, Ban, CheckCircle } from 'lucide-react';
 import { useMemo, useState, useEffect } from 'react';
@@ -17,6 +17,7 @@ export interface FinanceTableProps {
   onEdit: (a: Account) => void;
   onCancelToggle: (id: string) => void;
   onCollabDeleted: (id: string) => void;
+  onPaidUpdate?: (id: string, paid: boolean) => void; // Nova callback
   dragHandleProps?: React.HTMLAttributes<HTMLElement>;
 }
 
@@ -29,6 +30,7 @@ export default function FinanceTable({
   onEdit,
   onCancelToggle,
   onCollabDeleted,
+  onPaidUpdate,
   dragHandleProps,
 }: FinanceTableProps) {
   const [localItems, setLocalItems] = useState<Account[]>(items);
@@ -92,12 +94,13 @@ export default function FinanceTable({
     return copy;
   }, [localItems, sortKey, sortDir, currentComp]);
 
-  const total = data.reduce((acc, f) => acc + Number(f.value), 0);
-  const totalPago = data
-    .filter((f) => f.paid)
+  // Totais considerando o campo paid
+  const total = localItems.reduce((acc, f) => acc + Number(f.value), 0);
+  const totalPendente = localItems
+    .filter((f) => !f.paid)
     .reduce((acc, f) => acc + Number(f.value), 0);
-  const totalPendente = data
-    .filter((f) => !f.paid && (f.status === 'Pendente' || f.status === 'ativo'))
+  const totalPago = localItems
+    .filter((f) => f.paid)
     .reduce((acc, f) => acc + Number(f.value), 0);
 
   const Th = ({ label, keyName }: { label: string; keyName: SortKey }) => (
@@ -114,17 +117,22 @@ export default function FinanceTable({
 
   async function handlePaidToggle(account: Account) {
     try {
-      await markAccountPaid(account.id, !account.paid);
+      // Atualiza apenas o campo paid
+      const newPaid = !account.paid;
+      await updateAccount(account.id, {
+        paid: newPaid,
+      });
       setLocalItems((prev) =>
         prev.map((item) =>
-          item.id === account.id ? { ...item, paid: !account.paid } : item
+          item.id === account.id ? { ...item, paid: newPaid } : item
         )
       );
-      setToast(
-        `Finança marcada como ${!account.paid ? 'paga' : 'não paga'} ✅`
-      );
+      // Notifica o componente pai sobre a mudança
+      onPaidUpdate?.(account.id, newPaid);
+      setToast(`Finança marcada como ${newPaid ? 'paga' : 'não paga'} ✅`);
       setTimeout(() => setToast(null), 2000);
     } catch (e) {
+      console.error('Erro ao marcar como pago:', e);
       setToast('Erro ao marcar como pago');
       setTimeout(() => setToast(null), 2000);
     }
@@ -146,6 +154,35 @@ export default function FinanceTable({
     setTimeout(() => setToast(null), 3000);
   }
 
+  function getStatusBadge(account: Account): React.JSX.Element {
+    if (account.paid) {
+      return (
+        <span className="badge bg-green-100 dark:bg-green-500/30 text-green-700 dark:text-green-300">
+          Pago
+        </span>
+      );
+    }
+    if (account.status === 'Pendente') {
+      return (
+        <span className="badge bg-yellow-100 dark:bg-yellow-500/30 text-yellow-700 dark:text-yellow-300">
+          Pendente
+        </span>
+      );
+    }
+    if (account.status === 'Cancelado') {
+      return (
+        <span className="badge bg-red-100 dark:bg-red-500/30 text-red-700 dark:text-red-300">
+          Cancelado
+        </span>
+      );
+    }
+    return (
+      <span className="badge bg-slate-100 dark:bg-slate-900/60 text-slate-700 dark:text-slate-100">
+        {account.status}
+      </span>
+    );
+  }
+
   return (
     <section className="card relative">
       {/* Cabeçalho DESKTOP */}
@@ -162,7 +199,7 @@ export default function FinanceTable({
             Total: {brl(Number(total))}
           </div>
           <div className="badge bg-yellow-100 dark:bg-yellow-500/30 text-yellow-700 dark:text-yellow-300">
-            Total Pendente: {brl(Number(totalPendente))}
+            Total pendente: {brl(Number(totalPendente))}
           </div>
           <div className="badge bg-green-100 dark:bg-green-500/30 text-green-700 dark:text-green-300">
             Total pago: {brl(Number(totalPago))}
@@ -249,24 +286,7 @@ export default function FinanceTable({
                   {parcelaLabel(f, currentComp)}
                 </td>
                 <td className="py-3 min-w-[60px] md:min-w-[90px]">
-                  <span
-                    className={
-                      'px-2 py-1 rounded-full text-xs font-semibold ' +
-                      (f.paid
-                        ? 'bg-green-100 text-green-700 dark:bg-green-500/30 dark:text-green-300'
-                        : f.status === 'Pendente' || f.status === 'ativo'
-                          ? 'bg-yellow-100 text-yellow-700 dark:bg-yellow-500/30 dark:text-yellow-300'
-                          : f.status === 'Cancelado'
-                            ? 'bg-red-100 text-red-700 dark:bg-red-500/30 dark:text-red-300'
-                            : 'bg-gray-200 text-gray-700 dark:bg-gray-600 dark:text-gray-300')
-                    }
-                  >
-                    {f.paid
-                      ? 'Pago'
-                      : f.status === 'Pendente' || f.status === 'ativo'
-                        ? 'Pendente'
-                        : f.status.charAt(0).toUpperCase() + f.status.slice(1)}
-                  </span>
+                  {getStatusBadge(f)}
                 </td>
                 {/* Célula */}
                 <td className="py-3">

@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
+import SidebarTotalColabs from '../components/SidebarTotalColabs';
 import SkeletonCard from '../components/SkeletonCard';
 import React from 'react';
 import { DndContext, closestCenter } from '@dnd-kit/core';
@@ -10,7 +11,7 @@ import {
 } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import type { Account, Collaborator } from '../lib/types';
-import { MONTHS_PT, brl } from '../lib/format';
+import { MONTHS_PT } from '../lib/format';
 import { todayComp, monthsDiff } from '../lib/date';
 import type { ReactElement } from 'react';
 import type { FinanceTableProps } from '../components/FinanceTable';
@@ -19,7 +20,6 @@ import FinanceDialog from '../components/AddFinanceDialog';
 import AddCollaboratorDialog from '../components/AddCollaboratorDialog';
 import { Plus, Filter, UserPlus } from 'lucide-react';
 import { isVisibleInMonth } from '../lib/storage';
-import { willCountInMonth } from '../lib/storage';
 import * as api from '../lib/api';
 
 type DialogState =
@@ -46,6 +46,7 @@ function normalizeAccount(a: any): Account {
     month: Math.min(12, Math.max(1, Number(a.month ?? 1))),
     year: Math.max(1900, Number(a.year ?? new Date().getFullYear())),
     status: (a.status as Account['status']) ?? 'Pendente',
+    paid: Boolean(a.paid), // Inclui o campo paid na normalização
     createdAt: a.createdAt ?? '',
     updatedAt: a.updatedAt ?? '',
     cancelledAt: a.cancelledAt ?? undefined,
@@ -53,6 +54,27 @@ function normalizeAccount(a: any): Account {
 }
 
 export default function HomePage() {
+  // Refs para cada colaborador
+  const collabRefs = useRef<{ [id: string]: HTMLDivElement | null }>({});
+  const [selectedCollab, setSelectedCollab] = useState<string | null>(null);
+  // Remove seleção ao clicar fora ou clicar novamente no colaborador
+  useEffect(() => {
+    function handleClick(e: MouseEvent) {
+      // Sidebar
+      const sidebar = document.getElementById('sidebar-total-colabs');
+      // Conteúdo principal
+      const mainContent = document.getElementById('main-content');
+      if (!sidebar || !mainContent) return;
+      if (
+        !sidebar.contains(e.target as Node) &&
+        !mainContent.contains(e.target as Node)
+      ) {
+        setSelectedCollab(null);
+      }
+    }
+    document.addEventListener('mousedown', handleClick);
+    return () => document.removeEventListener('mousedown', handleClick);
+  }, [selectedCollab]);
   const now = todayComp();
   const [month, setMonth] = useState(now.month);
   const [year, setYear] = useState(now.year);
@@ -210,12 +232,13 @@ export default function HomePage() {
   const byCollab = (id: string) =>
     stableVisible.filter((a) => a.collaboratorId === id);
 
-  // Soma apenas contas que devem entrar no total do mês
-  const totalGeral = stableVisible
-    .filter((f) => {
-      const comp = { year, month };
-      return willCountInMonth(f, comp);
-    })
+  // Novos totais para a sidebar
+  const total = stableVisible.reduce((s, a) => s + Number(a.value), 0);
+  const totalPendente = stableVisible
+    .filter((a) => !a.paid)
+    .reduce((s, a) => s + Number(a.value), 0);
+  const totalPago = stableVisible
+    .filter((a) => a.paid)
     .reduce((s, a) => s + Number(a.value), 0);
 
   // CRUD handlers
@@ -269,144 +292,222 @@ export default function HomePage() {
     await load();
   }
 
+  // Função para atualizar o estado paid de uma conta local
+  function handlePaidUpdate(accountId: string, paid: boolean) {
+    setAccounts((prev) =>
+      prev.map((account) =>
+        account.id === accountId ? { ...account, paid } : account
+      )
+    );
+  }
+
   return (
-    <div className="px-4 sm:px-6 lg:px-20 2xl:px-60 grid gap-6">
-      <div className="card p-4">
-        {/* Header */}
-        <h1 className="text-xl font-bold mb-4">Resumo</h1>
-
-        {/* Container flex: muda no mobile */}
-        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-          {/* Grupo de filtros */}
-          <div className="flex flex-col sm:flex-row sm:items-center sm:flex-wrap gap-2">
-            <span className="inline-flex items-center gap-2 text-slate-600">
-              <Filter size={16} /> Filtros:
-            </span>
-            <select
-              className="select w-full sm:w-44"
-              value={showAll ? 'all' : month}
-              onChange={(e) => {
-                if (e.target.value === 'all') {
-                  setShowAll(true);
-                } else {
-                  setShowAll(false);
-                  setMonth(Number(e.target.value));
+    <div className="flex px-4 sm:px-6 lg:px-20 2xl:px-60 gap-6">
+      {/* Sidebar à esquerda - escondida em mobile */}
+      <div id="sidebar-total-colabs" className="hidden md:block">
+        <SidebarTotalColabs
+          total={total}
+          totalPendente={totalPendente}
+          totalPago={totalPago}
+          collaborators={collabs}
+          selectedId={selectedCollab}
+          onSelect={(id) => {
+            if (selectedCollab === id) {
+              setSelectedCollab(null);
+              return;
+            }
+            setSelectedCollab(id);
+            setTimeout(() => {
+              if (id !== null) {
+                const el = collabRefs.current[id];
+                if (el) {
+                  el.scrollIntoView({ behavior: 'smooth', block: 'center' });
                 }
-              }}
-            >
-              <option value="all">Ver todos os meses</option>
-              {MONTHS_PT.map((m, i) => (
-                <option key={i + 1} value={i + 1}>
-                  {m}
-                </option>
-              ))}
-            </select>
-            <input
-              className="input w-full sm:w-28"
-              type="number"
-              value={year}
-              onChange={(e) => setYear(Number(e.target.value))}
-              disabled={showAll}
-            />
-            <label className="flex items-center gap-2 cursor-pointer">
+              }
+            }, 100);
+          }}
+        />
+      </div>
+      {/* Conteúdo principal */}
+      <div id="main-content" className="flex-1 grid gap-6">
+        <div className="card p-4">
+          {/* Header */}
+          <h1 className="text-xl font-bold mb-4">Resumo</h1>
+
+          {/* Container flex: muda no mobile */}
+          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+            {/* Grupo de filtros */}
+            <div className="flex flex-col sm:flex-row sm:items-center sm:flex-wrap gap-2">
+              <span className="inline-flex items-center gap-2 text-slate-600">
+                <Filter size={16} /> Filtros:
+              </span>
+              <select
+                className="select w-full sm:w-44"
+                value={showAll ? 'all' : month}
+                onChange={(e) => {
+                  if (e.target.value === 'all') {
+                    setShowAll(true);
+                  } else {
+                    setShowAll(false);
+                    setMonth(Number(e.target.value));
+                  }
+                }}
+              >
+                <option value="all">Ver todos os meses</option>
+                {MONTHS_PT.map((m, i) => (
+                  <option key={i + 1} value={i + 1}>
+                    {m}
+                  </option>
+                ))}
+              </select>
               <input
-                type="checkbox"
-                checked={showCancelled}
-                onChange={(e) => setShowCancelled(e.target.checked)}
-                className="custom-checkbox"
+                className="input w-full sm:w-28"
+                type="number"
+                value={year}
+                onChange={(e) => setYear(Number(e.target.value))}
+                disabled={showAll}
               />
-              <span className="text-slate-300">Ver Cancelados</span>
-            </label>
-          </div>
+              <label className="flex items-center gap-2 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={showCancelled}
+                  onChange={(e) => setShowCancelled(e.target.checked)}
+                  className="custom-checkbox"
+                />
+                <span className="text-slate-300">Ver Cancelados</span>
+              </label>
+            </div>
 
-          {/* Grupo de botões */}
-          <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
-            <button
-              className="btn btn-ghost justify-center"
-              onClick={() => setDlg({ mode: 'addCollab' })}
-            >
-              <UserPlus size={18} /> Adicionar colaborador
-            </button>
-            <button
-              className="btn btn-primary justify-center"
-              onClick={() => setDlg({ mode: 'addAccount' })}
-            >
-              <Plus size={18} /> Adicionar finança
-            </button>
+            {/* Grupo de botões */}
+            <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
+              <button
+                className="btn btn-ghost justify-center"
+                onClick={() => setDlg({ mode: 'addCollab' })}
+              >
+                <UserPlus size={18} /> Adicionar colaborador
+              </button>
+              <button
+                className="btn btn-primary justify-center"
+                onClick={() => setDlg({ mode: 'addAccount' })}
+              >
+                <Plus size={18} /> Adicionar finança
+              </button>
+            </div>
           </div>
         </div>
-      </div>
 
-      {loading && <SkeletonCard className="mb-4" />}
-      {/* Cards dinâmicos por colaborador com drag-and-drop */}
-      <DndContext
-        collisionDetection={closestCenter}
-        onDragEnd={(e) => {
-          const { active, over } = e;
+        {loading && <SkeletonCard className="mb-4" />}
 
-          // Se o usuário soltou fora da área de drop, não faz nada
-          if (!over) return;
+        {/* Card de totais - apenas em mobile */}
+        <div className="md:hidden card p-4">
+          <h2 className="text-lg font-bold mb-3">Totais</h2>
+          <div className="grid grid-cols-1 gap-2">
+            <div className="flex justify-between items-center">
+              <span className="text-slate-600">Total:</span>
+              <span className="font-semibold text-slate-800 dark:text-slate-200">
+                {new Intl.NumberFormat('pt-BR', {
+                  style: 'currency',
+                  currency: 'BRL',
+                }).format(total)}
+              </span>
+            </div>
+            <div className="flex justify-between items-center">
+              <span className="text-yellow-600">Pendente:</span>
+              <span className="font-semibold text-yellow-700 dark:text-yellow-300">
+                {new Intl.NumberFormat('pt-BR', {
+                  style: 'currency',
+                  currency: 'BRL',
+                }).format(totalPendente)}
+              </span>
+            </div>
+            <div className="flex justify-between items-center">
+              <span className="text-green-600">Pago:</span>
+              <span className="font-semibold text-green-700 dark:text-green-300">
+                {new Intl.NumberFormat('pt-BR', {
+                  style: 'currency',
+                  currency: 'BRL',
+                }).format(totalPago)}
+              </span>
+            </div>
+          </div>
+        </div>
 
-          if (active.id !== over.id) {
-            const oldIndex = collabOrder.indexOf(String(active.id));
-            const newIndex = collabOrder.indexOf(String(over.id));
+        {/* Cards dinâmicos por colaborador com drag-and-drop */}
+        <DndContext
+          collisionDetection={closestCenter}
+          onDragEnd={(e) => {
+            const { active, over } = e;
 
-            if (oldIndex === -1 || newIndex === -1) return;
+            // Se o usuário soltou fora da área de drop, não faz nada
+            if (!over) return;
 
-            const newOrder = arrayMove(collabOrder, oldIndex, newIndex);
-            setCollabOrder(newOrder);
-            saveCollabOrder(newOrder);
-          }
-        }}
-      >
-        <SortableContext
-          items={collabOrder}
-          strategy={verticalListSortingStrategy}
+            if (active.id !== over.id) {
+              const oldIndex = collabOrder.indexOf(String(active.id));
+              const newIndex = collabOrder.indexOf(String(over.id));
+
+              if (oldIndex === -1 || newIndex === -1) return;
+
+              const newOrder = arrayMove(collabOrder, oldIndex, newIndex);
+              setCollabOrder(newOrder);
+              saveCollabOrder(newOrder);
+            }
+          }}
         >
-          <div className="flex flex-col gap-6">
-            {collabOrder.map((id) => {
-              const c = collabs.find((cc) => cc.id === id);
-              if (!c) return null;
-              return (
-                <SortableCollab key={c.id} id={c.id}>
-                  <FinanceTable
-                    collaboratorId={c.id}
-                    title={c.name}
-                    items={byCollab(c.id)}
-                    currentComp={{ year, month }}
-                    onDelete={(id) => removeAccount(id)}
-                    onEdit={(account) =>
-                      setDlg({ mode: 'editAccount', account })
-                    }
-                    onCancelToggle={(id) => toggleCancel(id)}
-                    onCollabDeleted={(id) => {
-                      setCollabs((prev) => prev.filter((cc) => cc.id !== id));
-                      setCollabOrder((prev) =>
-                        prev.filter((cid) => cid !== id)
-                      );
+          <SortableContext
+            items={collabOrder}
+            strategy={verticalListSortingStrategy}
+          >
+            <div className="flex flex-col gap-6">
+              {collabOrder.map((id) => {
+                const c = collabs.find((cc) => cc.id === id);
+                if (!c) return null;
+                return (
+                  <div
+                    key={c.id}
+                    ref={(el) => {
+                      collabRefs.current[c.id] = el;
                     }}
-                  />
-                </SortableCollab>
-              );
-            })}
-          </div>
-        </SortableContext>
-      </DndContext>
-
-      <div className="card p-4">
-        <div className="flex items-center justify-between">
-          <strong>Total (filtrado)</strong>
-          <span className="text-lg font-semibold">{brl(totalGeral)}</span>
-        </div>
+                    className={
+                      selectedCollab === c.id
+                        ? 'border-2 border-blue-500 rounded-xl transition-all'
+                        : 'rounded-xl'
+                    }
+                  >
+                    <SortableCollab id={c.id}>
+                      <FinanceTable
+                        collaboratorId={c.id}
+                        title={c.name}
+                        items={byCollab(c.id)}
+                        currentComp={{ year, month }}
+                        onDelete={(id) => removeAccount(id)}
+                        onEdit={(account) =>
+                          setDlg({ mode: 'editAccount', account })
+                        }
+                        onCancelToggle={(id) => toggleCancel(id)}
+                        onCollabDeleted={(id) => {
+                          setCollabs((prev) =>
+                            prev.filter((cc) => cc.id !== id)
+                          );
+                          setCollabOrder((prev) =>
+                            prev.filter((cid) => cid !== id)
+                          );
+                        }}
+                        onPaidUpdate={handlePaidUpdate}
+                      />
+                    </SortableCollab>
+                  </div>
+                );
+              })}
+            </div>
+          </SortableContext>
+        </DndContext>
       </div>
-
       {dlg.mode === 'addCollab' && (
         <AddCollaboratorDialog
           onClose={() => setDlg({ mode: 'closed' })}
           onSave={createCollab}
         />
       )}
-
       {(dlg.mode === 'addAccount' || dlg.mode === 'editAccount') && (
         <FinanceDialog
           initial={dlg.mode === 'editAccount' ? dlg.account : undefined}

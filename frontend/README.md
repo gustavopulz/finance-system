@@ -167,7 +167,7 @@ Modal para criar/editar finanças:
 O frontend se conecta ao backend através da URL configurada em `src/lib/api.ts`:
 
 ```typescript
-const API_URL = 'https://finance-system-br-backend.netlify.app/api';
+const API_URL = 'https://finance-system-api.prxlab.app/api';
 ```
 
 ### Tailwind CSS

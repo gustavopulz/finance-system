@@ -1,4 +1,4 @@
-const API_URL = 'https://finance-system-br-backend.netlify.app/api/shared';
+const API_URL = 'https://finance-system-api.prxlab.app/api/shared';
 
 async function json<T>(url: string, options: RequestInit = {}): Promise<T> {
   const res = await fetch(url, {

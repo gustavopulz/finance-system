@@ -1,4 +1,4 @@
-const API_URL = 'https://finance-system-br-backend.netlify.app/api';
+const API_URL = 'https://finance-system-api.prxlab.app/api';
 
 // Salva a ordem dos colaboradores
 export async function saveCollabOrder(order: string[]) {

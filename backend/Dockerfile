@@ -2,15 +2,9 @@
 FROM node:20-alpine AS builder
 
 WORKDIR /app
-
-# Copiar dependências e instalar
 COPY package*.json ./
 RUN npm install --legacy-peer-deps
-
-# Copiar o restante do código
 COPY . .
-
-# Build do Next.js
 RUN npm run build
 
 # Etapa 2: produção
@@ -20,13 +14,14 @@ WORKDIR /app
 ENV NODE_ENV=production
 ENV PORT=3000
 
-# Copiar build standalone do Next.js
+# Copiar build standalone completo (inclui node_modules e server.js)
 COPY --from=builder /app/.next/standalone ./
 COPY --from=builder /app/.next/static ./.next/static
-COPY --from=builder /app/package.json ./package.json
+# Se não tiver public, tudo bem, removemos
+# COPY --from=builder /app/public ./public
+COPY --from=builder /app/package*.json ./
 
-# Expor a porta usada pelo Next
 EXPOSE 3000
 
-# Rodar Next.js em produção
-CMD ["npm", "run", "start"]
+# Rodar pelo server.js gerado pelo Next standalone
+CMD ["node", "server.js"]

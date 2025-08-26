@@ -6,6 +6,8 @@ export function middleware(request: NextRequest) {
   const allowedOrigins = [
     'https://finance-system-br.netlify.app',
     'http://localhost:5173',
+    'capacitor://localhost',
+    'ionic://localhost',
   ];
   const allowedOrigin = allowedOrigins.includes(origin) ? origin : allowedOrigins[0];
   if (request.method === 'OPTIONS') {

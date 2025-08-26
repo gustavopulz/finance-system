@@ -89,9 +89,17 @@ export default function Header() {
       <div className="container-app flex items-center justify-between py-4">
         <NavLink
           to="/"
-          className="text-lg font-bold text-brand-700 dark:text-brand-400"
+          className="text-lg font-bold text-brand-700 dark:text-brand-400 flex items-center"
         >
-          Finanças
+          <img
+            src={
+              theme === 'dark'
+                ? '/finance-system-logo.png'
+                : '/finance-system-logo-light.png'
+            }
+            alt="Finance System Logo"
+            className="h-auto w-32 mr-2"
+          />
         </NavLink>
         {/* Desktop menu */}
         <nav className="hidden md:flex items-center gap-2">

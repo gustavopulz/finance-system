@@ -3,7 +3,7 @@ FROM node:20-alpine AS builder
 WORKDIR /app
 
 # Copia apenas a pasta backend
-COPY ./backend .
+COPY . .
 
 RUN npm install --legacy-peer-deps
 RUN npm run build

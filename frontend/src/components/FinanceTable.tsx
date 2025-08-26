@@ -219,7 +219,7 @@ export default function FinanceTable({
               <Th label="Parcela" keyName="parcelas" />
               <Th label="Status" keyName="status" />
               <th>
-                <div className="flex justify-center items-center h-full mr-2">
+                <div className="flex justify-center items-center h-full">
                   Pago
                 </div>
               </th>

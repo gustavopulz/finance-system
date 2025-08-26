@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
+import React from 'react';
 import { DndContext, closestCenter } from '@dnd-kit/core';
 import {
   arrayMove,
@@ -69,16 +70,31 @@ export default function HomePage() {
     id: string;
     children: React.ReactNode;
   }) {
-    const { attributes, listeners, setNodeRef, transform, transition } =
-      useSortable({ id });
+    const {
+      attributes,
+      listeners,
+      setNodeRef,
+      transform,
+      transition,
+      isDragging,
+    } = useSortable({ id });
+    // Espera que o filho seja um React element (FinanceTable)
     return (
       <div
         ref={setNodeRef}
         style={{ transform: CSS.Transform.toString(transform), transition }}
-        {...attributes}
-        {...listeners}
       >
-        {children}
+        {React.isValidElement(children)
+          ? React.cloneElement(children, {
+              dragHandleProps: {
+                ...attributes,
+                ...listeners,
+                style: {
+                  cursor: isDragging ? 'grabbing' : 'grab',
+                },
+              },
+            })
+          : children}
       </div>
     );
   }

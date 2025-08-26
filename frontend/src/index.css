@@ -69,3 +69,37 @@ body {
 .dark .select {
   background-image: url("data:image/svg+xml,%3Csvg width='20' height='20' viewBox='0 0 20 20' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M5.5 7.5L10 12l4.5-4.5' stroke='%23CBD5E1' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
 }
+
+.custom-checkbox {
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  width: 20px;
+  height: 20px;
+  border: 1px solid #cbd5e1; /* border-slate-300 no light */
+  border-radius: 0.375rem; /* rounded-md */
+  background-color: #ffffff; /* bg-white no light */
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease-in-out;
+}
+
+.custom-checkbox:checked {
+  background-color: #2563eb; /* blue-600 */
+  border-color: #2563eb;
+}
+
+.custom-checkbox:checked::after {
+  content: '✓';
+  color: white;
+  font-size: 0.9rem;
+  line-height: 1;
+}
+
+/* ===== Dark mode override ===== */
+.dark .custom-checkbox {
+  border-color: #334155; /* border-slate-700 */
+  background-color: #1e293b; /* bg-slate-800 */
+}

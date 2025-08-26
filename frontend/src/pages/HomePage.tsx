@@ -308,13 +308,14 @@ export default function HomePage() {
               onChange={(e) => setYear(Number(e.target.value))}
               disabled={showAll}
             />
-            <label className="flex items-center gap-1">
+            <label className="flex items-center gap-2 cursor-pointer">
               <input
                 type="checkbox"
                 checked={showCancelled}
                 onChange={(e) => setShowCancelled(e.target.checked)}
+                className="custom-checkbox"
               />
-              Ver cancelados
+              <span className="text-slate-300">Ver cancelados</span>
             </label>
           </div>
 

@@ -130,7 +130,9 @@ export default function FinanceTable({
         </div>
 
         <div className="flex items-center gap-2">
-          <div className="badge">Total: {brl(Number(total))}</div>
+          <div className="badge bg-slate-100 dark:bg-slate-900/60 text-slate-700 dark:text-slate-100">
+            Total: {brl(Number(total))}
+          </div>
           <button
             onClick={() => setShowConfirm(true)}
             className="text-red-500 hover:text-red-700 text-sm font-medium flex items-center gap-1"
@@ -149,7 +151,9 @@ export default function FinanceTable({
           style={{ ...(dragHandleProps?.style || {}), userSelect: 'none' }}
         >
           <h3 className="text-lg font-semibold">{title}</h3>
-          <div className="badge">Total: {brl(Number(total))}</div>
+          <div className="badge bg-slate-100 dark:bg-slate-900/60 text-slate-700 dark:text-slate-100">
+            Total: {brl(Number(total))}
+          </div>
         </div>
 
         {/* Linha 2: Botão excluir colaborador */}

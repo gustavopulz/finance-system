@@ -28,7 +28,7 @@ export default function Header() {
   const auth = useAuth();
 
   return (
-    <header className="border-b bg-white dark:bg-slate-900 dark:border-slate-800">
+    <header className="px-10 2xl:px-60 lg:px-20 border-b bg-white dark:bg-slate-900 dark:border-slate-800">
       <div className="container-app flex items-center justify-between py-4">
         <NavLink
           to="/"
@@ -38,10 +38,7 @@ export default function Header() {
         </NavLink>
         <nav className="flex items-center gap-2">
           <NavLink to="/info" className="btn btn-ghost">
-            <span className="mr-1">
-              <LayoutDashboard size={18} />
-            </span>
-            Informações
+            Dashboard
           </NavLink>
           <button
             className="btn btn-ghost"

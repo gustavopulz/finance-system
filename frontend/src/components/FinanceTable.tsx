@@ -35,6 +35,10 @@ export default function FinanceTable({
   const [showConfirm, setShowConfirm] = useState(false);
   const [toast, setToast] = useState<string | null>(null);
   const [financaToDelete, setFinancaToDelete] = useState<Account | null>(null);
+  const [actionModal, setActionModal] = useState<{
+    open: boolean;
+    financa: Account | null;
+  }>({ open: false, financa: null });
 
   function toggleSort(key: SortKey) {
     if (key === sortKey) setSortDir((d) => (d === 'asc' ? 'desc' : 'asc'));
@@ -188,24 +192,10 @@ export default function FinanceTable({
                 <td className="px-3 py-3 flex gap-1">
                   <button
                     className="btn btn-ghost"
-                    onClick={() => onEdit(f)}
-                    title="Editar"
+                    onClick={() => setActionModal({ open: true, financa: f })}
+                    title="Ações"
                   >
-                    ✏️
-                  </button>
-                  <button
-                    className="btn btn-ghost"
-                    onClick={() => onCancelToggle(f.id)}
-                    title="Cancelar / Ativar"
-                  >
-                    🚫
-                  </button>
-                  <button
-                    className="btn btn-ghost"
-                    onClick={() => setFinancaToDelete(f)}
-                    title="Excluir lançamento"
-                  >
-                    🗑️
+                    ⋮
                   </button>
                 </td>
               </tr>

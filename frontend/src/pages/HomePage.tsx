@@ -122,16 +122,18 @@ export default function HomePage() {
       const normalizedAccounts = (data.accounts as any[]).map(normalizeAccount);
       setAccounts(normalizedAccounts);
       // Normaliza colaboradores
-        let collabList = (data.collabs as Collaborator[]) || [];
-        // Se existir orderId, ordena pelo campo
-        if (collabList.length && 'orderId' in collabList[0]) {
-          collabList = [...collabList].sort((a, b) => {
-            const va = typeof a.orderId === 'number' ? a.orderId : Number(a.orderId ?? 0);
-            const vb = typeof b.orderId === 'number' ? b.orderId : Number(b.orderId ?? 0);
-            return va - vb;
-          });
-        }
-        setCollabs(collabList);
+      let collabList = (data.collabs as Collaborator[]) || [];
+      // Se existir orderId, ordena pelo campo
+      if (collabList.length && 'orderId' in collabList[0]) {
+        collabList = [...collabList].sort((a, b) => {
+          const va =
+            typeof a.orderId === 'number' ? a.orderId : Number(a.orderId ?? 0);
+          const vb =
+            typeof b.orderId === 'number' ? b.orderId : Number(b.orderId ?? 0);
+          return va - vb;
+        });
+      }
+      setCollabs(collabList);
       // Usa a ordem dos colaboradores já ordenada pelo campo orderId
       setCollabOrder(collabList.map((c) => c.id));
     } finally {
@@ -267,7 +269,7 @@ export default function HomePage() {
   }
 
   return (
-    <div className="grid gap-6">
+    <div className="px-10 2xl:px-60 lg:px-20 grid gap-6">
       <div className="card p-4">
         <div className="flex flex-row items-center justify-between flex-wrap gap-2">
           <h1 className="text-xl font-bold">Resumo</h1>

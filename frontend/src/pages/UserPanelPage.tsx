@@ -73,7 +73,7 @@ export default function UserPanelPage() {
   const handleSaveName = async () => {
     setNameStatus(null);
     try {
-  await updateUserName(newName);
+      await updateUserName(newName);
       setNameStatus('Nome alterado com sucesso!');
       if (auth?.user) {
         auth.user.username = newName;
@@ -96,7 +96,7 @@ export default function UserPanelPage() {
   };
 
   return (
-    <div className="max-w-5xl mx-auto grid gap-8 py-10 px-4">
+    <div className="px-10 2xl:px-60 lg:px-20 grid gap-8 py-10">
       {/* Card principal */}
       <div className="bg-white dark:bg-slate-900 rounded-xl shadow-md p-8 flex flex-col gap-6 border border-slate-200 dark:border-slate-800">
         <div className="flex items-center justify-between mb-2">

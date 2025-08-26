@@ -85,7 +85,7 @@ export default function Header() {
   ].filter((item): item is Exclude<typeof item, null> => !!item);
 
   return (
-    <header className="px-4 2xl:px-60 lg:px-20 border-b bg-white dark:bg-slate-900 dark:border-slate-800">
+    <header className="mx-auto px-4 2xl:px-40 lg:px-20 border-b bg-white dark:bg-slate-900 dark:border-slate-800">
       <div className="container-app flex items-center justify-between py-4">
         <NavLink
           to="/"

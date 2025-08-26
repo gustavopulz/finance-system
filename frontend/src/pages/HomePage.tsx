@@ -276,7 +276,7 @@ export default function HomePage() {
   }
 
   return (
-    <div className="flex px-4 sm:px-6 lg:px-20 2xl:px-60 gap-6">
+    <div className="flex px-4 sm:px-6 lg:px-20 2xl:px-40 gap-6 mx-auto">
       <div id="sidebar-total-colabs" className="hidden md:block">
         <SidebarTotalColabs
           total={total}
@@ -355,10 +355,11 @@ export default function HomePage() {
                 <UserPlus size={18} /> Adicionar colaborador
               </button>
               <button
-                className="btn btn-primary justify-center"
+                className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded transition"
                 onClick={() => setDlg({ mode: 'addAccount' })}
               >
-                <Plus size={18} /> Adicionar finança
+                <Plus size={18} />
+                <span>Adicionar finança</span>
               </button>
             </div>
           </div>

@@ -271,7 +271,6 @@ export default function HomePage() {
 
   return (
     <div className="px-4 sm:px-6 lg:px-20 2xl:px-60 grid gap-6">
-      {loading && <SkeletonCard className="mb-4" />}
       <div className="card p-4">
         {/* Header */}
         <h1 className="text-xl font-bold mb-4">Resumo</h1>
@@ -337,6 +336,7 @@ export default function HomePage() {
         </div>
       </div>
 
+      {loading && <SkeletonCard className="mb-4" />}
       {/* Cards dinâmicos por colaborador com drag-and-drop */}
       <DndContext
         collisionDetection={closestCenter}

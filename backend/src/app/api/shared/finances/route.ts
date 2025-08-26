@@ -12,9 +12,12 @@ export async function GET(req: NextRequest) {
     const sharedSnap = await firestore.collection('shared_accounts').where('sharedWithUserId', '==', user.id).get();
     const ids = sharedSnap.docs.map(doc => doc.data().userId);
     const allUserIds = Array.from(new Set([...ids, user.id]));
-    const accountsSnap = await firestore.collection('accounts').where('userId', 'in', allUserIds).get();
+    // Executa as queries em paralelo
+    const [accountsSnap, collabsSnap] = await Promise.all([
+      firestore.collection('accounts').where('userId', 'in', allUserIds).get(),
+      firestore.collection('collaborators').where('userId', 'in', allUserIds).get()
+    ]);
     const accounts = accountsSnap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-    const collabsSnap = await firestore.collection('collaborators').where('userId', 'in', allUserIds).get();
     const collabs = collabsSnap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
     return NextResponse.json({ accounts, collabs });
   } catch (err: any) {

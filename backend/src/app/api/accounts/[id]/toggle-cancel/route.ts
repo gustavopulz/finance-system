@@ -12,25 +12,30 @@ export async function PATCH(req: NextRequest, context: { params: Promise<{ id: s
   // Await params as required by Next.js 15+
   const { id } = await context.params;
     const payload = await req.json();
-    const accountDoc = await firestore.collection('accounts').doc(id).get();
-    if (!accountDoc.exists) {
-      return NextResponse.json({ error: 'Conta não encontrada' }, { status: 404 });
-    }
-    const currentStatus = accountDoc.data()?.status;
+    // Tenta atualizar para cancelado, se já estiver cancelado volta para ativo
+    // Usa transaction para garantir consistência
     let newStatus, cancelledAt;
-    if (currentStatus === 'cancelado') {
-      newStatus = 'ativo';
-      cancelledAt = null;
-      await firestore.collection('accounts').doc(id).update({ status: newStatus, cancelledAt: null });
-    } else {
-      newStatus = 'cancelado';
-      const now = new Date();
-      const yyyy = now.getFullYear();
-      const mm = String(now.getMonth() + 1).padStart(2, '0');
-      const dd = String(now.getDate()).padStart(2, '0');
-      cancelledAt = `${yyyy}-${mm}-${dd}`;
-      await firestore.collection('accounts').doc(id).update({ status: newStatus, cancelledAt });
-    }
+    await firestore.runTransaction(async (t) => {
+      const ref = firestore.collection('accounts').doc(id);
+      const doc = await t.get(ref);
+      if (!doc.exists) {
+        throw new Error('Conta não encontrada');
+      }
+      const currentStatus = doc.data()?.status;
+      if (currentStatus === 'cancelado') {
+        newStatus = 'ativo';
+        cancelledAt = null;
+        t.update(ref, { status: newStatus, cancelledAt: null });
+      } else {
+        newStatus = 'cancelado';
+        const now = new Date();
+        const yyyy = now.getFullYear();
+        const mm = String(now.getMonth() + 1).padStart(2, '0');
+        const dd = String(now.getDate()).padStart(2, '0');
+        cancelledAt = `${yyyy}-${mm}-${dd}`;
+        t.update(ref, { status: newStatus, cancelledAt });
+      }
+    });
     return NextResponse.json({ id, status: newStatus, cancelledAt });
   } catch (err: any) {
     return NextResponse.json({ error: err.message }, { status: 500 });

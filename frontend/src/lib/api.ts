@@ -1,4 +1,5 @@
 const API_URL = 'https://finance-system-api.prxlab.app/api';
+// const API_URL = 'http://localhost:3000/api';
 
 // -------------------- GET REQUESTS --------------------
 // /users/me
@@ -46,7 +47,7 @@ export function getMergedFinances(year: number, month: number) {
     `${API_URL}/shared/finances`,
     {
       method: 'POST',
-      body: JSON.stringify({ year, month })
+      body: JSON.stringify({ year, month }),
     }
   );
 }

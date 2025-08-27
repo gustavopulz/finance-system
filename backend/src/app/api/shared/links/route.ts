@@ -12,7 +12,7 @@ export async function GET(req: NextRequest) {
     const iSeeSnap = await firestore.collection('shared_accounts').where('userId', '==', user.id).get();
     const iSee = iSeeSnap.docs.map(doc => ({ id: doc.data().sharedWithUserId, name: doc.data().sharedWithUserName }));
     const seeMeSnap = await firestore.collection('shared_accounts').where('sharedWithUserId', '==', user.id).get();
-    const seeMe = seeMeSnap.docs.map(doc => ({ id: doc.data().userId, name: doc.data().sharedWithUserName }));
+    const seeMe = seeMeSnap.docs.map(doc => ({ id: doc.data().userId, name: doc.data().sharedByUser }));
     return NextResponse.json({ iSee, seeMe });
   } catch (err: any) {
     return NextResponse.json({ error: err.message }, { status: 500 });

@@ -5,7 +5,19 @@ export async function GET(req: NextRequest) {
   }
   try {
     const user = verifyToken(authToken);
-    return NextResponse.json({ id: user.id, name: user.name, role: user.role });
+    // Buscar email do usuário no Firestore
+    await initFirestore();
+    const userDoc = await firestore
+      .collection('users')
+      .doc(String(user.id))
+      .get();
+    const userData = userDoc.exists ? userDoc.data() : {};
+    return NextResponse.json({
+      id: user.id,
+      name: user.name,
+      role: user.role,
+      email: userData.email || user.email || '',
+    });
   } catch (err: any) {
     return NextResponse.json({ error: err.message }, { status: 403 });
   }

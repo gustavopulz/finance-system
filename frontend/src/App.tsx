@@ -13,11 +13,16 @@ import { useAuth } from './context/AuthContext';
 import AdminPage from './pages/AdminPage';
 import Header from './components/Header';
 import InfoPage from './pages/InfoPage';
+import NotFoundPage from './pages/errors/404';
 
 function PrivateRoute({ children }: { children: JSX.Element }) {
   const auth = useAuth();
   if (auth?.loading) return null;
-  return auth && auth.user ? children : <Navigate to="/login" />;
+  if (!auth || !auth.user) {
+    // Redireciona para login se não estiver autenticado
+    return <Navigate to="/login" />;
+  }
+  return children;
 }
 
 // Rota privada só para admin
@@ -31,6 +36,8 @@ function AdminRoute({ children }: { children: JSX.Element }) {
 function AppWithHeader() {
   const location = useLocation();
   const hideHeader = location.pathname === '/login';
+  const auth = useAuth();
+
   return (
     <>
       {!hideHeader && <Header />}
@@ -45,6 +52,16 @@ function AppWithHeader() {
               </PrivateRoute>
             }
           />
+
+          <Route
+            path="/summary"
+            element={
+              <PrivateRoute>
+                <HomePage />
+              </PrivateRoute>
+            }
+          />
+
           <Route
             path="/info"
             element={
@@ -61,15 +78,28 @@ function AppWithHeader() {
               </AdminRoute>
             }
           />
+
           <Route
-            path="/usuario"
+            path="/user-settings"
             element={
               <PrivateRoute>
                 <UserPanelPage />
               </PrivateRoute>
             }
           />
-          <Route path="*" element={<Navigate to="/" />} />
+
+          <Route
+            path="*"
+            element={
+              auth?.loading ? (
+                <div>Carregando...</div>
+              ) : !auth?.user ? (
+                <Navigate to="/login" replace />
+              ) : (
+                <NotFoundPage />
+              )
+            }
+          />
         </Routes>
       </main>
     </>

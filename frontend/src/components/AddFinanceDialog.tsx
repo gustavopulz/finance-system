@@ -186,9 +186,7 @@ export default function AddFinanceDialog({
           <label className="grid gap-1">
             <span className="text-sm font-medium">Descrição</span>
             <input
-              {...register('description', {
-                required: 'Descrição é obrigatória'
-              })}
+              {...register('description')}
               ref={descriptionInputRef}
               className="input input-full"
               placeholder="Ex.: Uber"

@@ -44,7 +44,7 @@ finance-system/
 | Frontend     | Backend    | Banco     | Deploy    |
 | ------------ | ---------- | --------- | --------- |
 | React 19     | Next.js 15 | Firebase  | Netlify   |
-| TypeScript   | TypeScript | Firestore | Functions |
+| TypeScript   | TypeScript | Firestore | Docker    |
 | Tailwind CSS | JWT        | -         | CDN       |
 | Vite         | bcryptjs   | -         | -         |
 

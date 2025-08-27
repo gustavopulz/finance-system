@@ -6,7 +6,6 @@ import {
   useLocation,
 } from 'react-router-dom';
 import type { JSX } from 'react';
-import HomePage from './pages/HomePage';
 import LoginPage from './pages/LoginPage';
 import UserPanelPage from './pages/UserPanelPage';
 import { useAuth } from './context/AuthContext';
@@ -17,14 +16,14 @@ import InfoPage from './pages/InfoPage';
 function PrivateRoute({ children }: { children: JSX.Element }) {
   const auth = useAuth();
   if (auth?.loading) return null;
-  return auth && auth.user ? children : <Navigate to="/login" />;
+  return auth && auth.user ? children : <Navigate to="/login" replace />;
 }
 
 // Rota privada só para admin
 function AdminRoute({ children }: { children: JSX.Element }) {
   const auth = useAuth();
-  if (!auth || !auth.user) return <Navigate to="/login" />;
-  if (auth.user.role !== 'admin') return <Navigate to="/" />;
+  if (!auth || !auth.user) return <Navigate to="/login" replace />;
+  if (auth.user.role !== 'admin') return <Navigate to="/" replace />;
   return children;
 }
 
@@ -37,12 +36,11 @@ function AppWithHeader() {
       <main className="container-app py-6">
         <Routes>
           <Route path="/login" element={<LoginPage />} />
-          <Route path="/" element={<Navigate to="/login" replace />} />
           <Route
-            path="/home"
+            path="/"
             element={
               <PrivateRoute>
-                <HomePage />
+                <Navigate to="/summary" replace />
               </PrivateRoute>
             }
           />
@@ -70,7 +68,14 @@ function AppWithHeader() {
               </PrivateRoute>
             }
           />
-          <Route path="*" element={<Navigate to="/errors/404" replace />} />
+          <Route
+            path="*"
+            element={
+              <PrivateRoute>
+                <Navigate to="/errors/404" replace />
+              </PrivateRoute>
+            }
+          />
         </Routes>
       </main>
     </>

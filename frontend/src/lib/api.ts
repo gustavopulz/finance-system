@@ -233,7 +233,7 @@ export async function changeUserRole(id: number, role: string) {
 // -------------------- UNLINK USER --------------------
 export function unlinkUser(otherUserId: string) {
   return fetch(`${API_URL}/shared/unlink/${otherUserId}`, {
-    method: 'POST',
+    method: 'DELETE',
     credentials: 'include',
   }).then(async (res) => {
     if (!res.ok) {

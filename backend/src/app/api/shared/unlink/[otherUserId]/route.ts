@@ -10,14 +10,15 @@ export async function DELETE(req: NextRequest, context: { params: Promise<{ othe
     if (!authToken) throw new Error('Token ausente');
     const user = verifyToken(authToken);
     // IDs do Firebase são strings
-  const { otherUserId } = await context.params;
+    const { otherUserId } = await context.params;
     const linksSnap = await firestore.collection('shared_accounts')
-      .where('userId', 'in', [user.id, otherUserId])
-      .where('sharedWithUserId', 'in', [user.id, otherUserId])
+      .where('userId', '==', user.id)
+      .where('sharedWithUserId', '==', otherUserId)
       .get();
-    const batch = firestore.batch();
-    linksSnap.docs.forEach(doc => batch.delete(doc.ref));
-    await batch.commit();
+    if (linksSnap.empty) {
+      return NextResponse.json({ success: false, error: 'Vínculo não encontrado.' }, { status: 404 });
+    }
+    await linksSnap.docs[0].ref.delete();
     return NextResponse.json({ success: true });
   } catch (err: any) {
     return NextResponse.json({ error: err.message }, { status: 500 });

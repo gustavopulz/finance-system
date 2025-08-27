@@ -125,7 +125,7 @@ export async function login(email: string, password: string) {
 
 export function logout() {
   // Chama o endpoint de logout para limpar o cookie httpOnly
-  fetch(`${API_URL}/logout`, {
+  fetch(`${API_URL}/user/logout`, {
     method: 'POST',
     credentials: 'include',
   });

@@ -29,7 +29,7 @@ type Props = {
 // (corrigido: converte "3" -> 3 antes de validar; mantém "X" como string)
 const schema = z.object({
   collaboratorId: z.string().min(1, 'Selecione um colaborador'),
-  description: z.string(),
+  description: z.string().min(1, 'Informe uma descrição'),
   value: z.string().min(1, 'Informe um valor'),
   parcelasTotal: z.preprocess(
     (val) => {
@@ -66,14 +66,14 @@ export default function AddFinanceDialog({
     setValue,
     formState: { errors },
   } = useForm<FormData>({
-    resolver: zodResolver(schema),
+    resolver: zodResolver(schema), // Voltamos a usar o zodResolver
     defaultValues: {
       collaboratorId: initial?.collaboratorId
         ? String(initial.collaboratorId)
         : collaborators[0]?.id
           ? String(collaborators[0].id)
           : '',
-      description: initial?.description ?? '',
+      description: initial?.description || '',
       value:
         initial?.value != null ? String(initial.value).replace('.', ',') : '',
       parcelasTotal:
@@ -122,9 +122,6 @@ export default function AddFinanceDialog({
   }, []); // executa apenas uma vez ao montar o componente
 
   const submit: SubmitHandler<FormData> = (d) => {
-    if (errors && Object.keys(errors).length > 0) {
-      console.log('Erros de validação:', errors);
-    }
     const parsedValue = parseBRL(d.value);
     if (isNaN(parsedValue)) {
       alert('Valor inválido. Por favor, informe um valor numérico.');
@@ -133,7 +130,7 @@ export default function AddFinanceDialog({
 
     const payload: any = {
       collaboratorId: d.collaboratorId,
-      description: String(d.description).trim(),
+      description: String(d.description || '').trim(),
       value: parsedValue, // já em reais
       month: d.month,
       year: d.year,
@@ -187,7 +184,7 @@ export default function AddFinanceDialog({
             <span className="text-sm font-medium">Descrição</span>
             <input
               {...register('description')}
-              ref={descriptionInputRef}
+              name="description"
               className="input input-full"
               placeholder="Ex.: Uber"
               disabled={disabled}

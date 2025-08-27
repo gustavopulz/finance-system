@@ -37,8 +37,9 @@ function AppWithHeader() {
       <main className="container-app py-6">
         <Routes>
           <Route path="/login" element={<LoginPage />} />
+          <Route path="/" element={<Navigate to="/login" replace />} />
           <Route
-            path="/"
+            path="/home"
             element={
               <PrivateRoute>
                 <HomePage />
@@ -69,7 +70,7 @@ function AppWithHeader() {
               </PrivateRoute>
             }
           />
-          <Route path="*" element={<Navigate to="/" />} />
+          <Route path="*" element={<Navigate to="/errors/404" replace />} />
         </Routes>
       </main>
     </>

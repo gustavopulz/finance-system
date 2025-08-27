@@ -427,7 +427,7 @@ export default function FinanceTable({
         {sortedData.map((f) => (
           <div
             key={f.id}
-            className="border border-slate-300 dark:border-slate-700 rounded-md p-4 bg-white dark:bg-slate-800 shadow-sm"
+            className="border border-slate-300 dark:border-slate-700 rounded p-4 bg-white dark:bg-slate-800 shadow-sm"
           >
             <div className="font-semibold text-slate-800 dark:text-slate-100">
               {f.description}
@@ -487,7 +487,7 @@ export default function FinanceTable({
       {/* Modais permanecem iguais abaixo */}
       {showConfirm && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-          <div className="bg-white dark:bg-slate-800 rounded-lg p-6 shadow-lg max-w-sm w-full">
+          <div className="bg-white dark:bg-slate-800 rounded p-6 shadow-lg max-w-sm w-full">
             <h2 className="text-lg font-semibold mb-4">Excluir colaborador</h2>
             <p className="mb-6">
               Tem certeza que deseja excluir <b>{title}</b>? Essa ação não pode
@@ -513,7 +513,7 @@ export default function FinanceTable({
 
       {actionModal.open && actionModal.financa && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-          <div className="bg-white dark:bg-slate-800 rounded-lg p-6 shadow-lg max-w-sm w-full">
+          <div className="bg-white dark:bg-slate-800 rounded p-6 shadow-lg max-w-sm w-full">
             <h2 className="text-lg font-semibold mb-4">Ações</h2>
             <p className="mb-6">
               Selecione uma ação para o lançamento{' '}
@@ -574,7 +574,7 @@ export default function FinanceTable({
 
       {financaToDelete && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-          <div className="bg-white dark:bg-slate-800 rounded-lg p-6 shadow-lg max-w-sm w-full">
+          <div className="bg-white dark:bg-slate-800 rounded p-6 shadow-lg max-w-sm w-full">
             <h2 className="text-lg font-semibold mb-4">Excluir finança</h2>
             <p className="mb-6">
               Tem certeza que deseja excluir o lançamento{' '}

@@ -109,10 +109,10 @@ export default function UserPanelPage() {
 
   return (
     <div className="px-4 sm:px-6 lg:px-20 2xl:px-60 grid gap-8 py-10">
-      <div className="bg-white dark:bg-slate-900 rounded-xl shadow-md p-6 sm:p-8 flex flex-col gap-6 border border-slate-200 dark:border-slate-800">
+      <div className="bg-white dark:bg-slate-900 rounded shadow-md p-6 sm:p-8 flex flex-col gap-6 border border-slate-200 dark:border-slate-800">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-2 gap-3">
           <div className="flex items-center gap-2">
-            <span className="w-8 h-8 rounded-full flex items-center justify-center">
+            <span className="w-8 h-8 rounded flex items-center justify-center">
               <User className="text-slate-500 w-6 h-6" />
             </span>
             <span className="text-2xl font-bold">Painel do Usuário</span>
@@ -183,13 +183,31 @@ export default function UserPanelPage() {
               value={sharedToken}
               onChange={(e) => setSharedToken(e.target.value)}
             />
-            <button
-              className="btn btn-primary w-full sm:w-auto flex items-center gap-2"
-              onClick={handleUseToken}
-            >
-              <LinkIcon size={18} className="text-white" />
-              Mesclar
-            </button>
+            <div className="relative w-full sm:w-auto">
+              <button
+                className={`btn w-full sm:w-auto flex items-center gap-2 ${!sharedToken.trim() ? 'bg-gray-400 cursor-not-allowed text-white' : 'btn-primary'}`}
+                onClick={handleUseToken}
+                disabled={!sharedToken.trim()}
+                onMouseEnter={(e) => {
+                  if (!sharedToken.trim()) {
+                    const icon = document.createElement('span');
+                    icon.className =
+                      'absolute right-2 top-1/2 -translate-y-1/2 pointer-events-none';
+                    icon.innerHTML = `<svg width=18 height=18 fill='none' stroke='currentColor' stroke-width='2' viewBox='0 0 24 24'><path d='M17 17L7 7M7 17L17 7'></path></svg>`;
+                    icon.id = 'ban-icon';
+                    e.currentTarget.parentElement?.appendChild(icon);
+                  }
+                }}
+                onMouseLeave={(e) => {
+                  const icon =
+                    e.currentTarget.parentElement?.querySelector('#ban-icon');
+                  if (icon) icon.remove();
+                }}
+              >
+                <LinkIcon size={18} className="text-white" />
+                Mesclar
+              </button>
+            </div>
           </div>
         </div>
 
@@ -276,7 +294,7 @@ export default function UserPanelPage() {
         </div>
       </div>
 
-      <div className="bg-white dark:bg-slate-900 rounded-xl shadow-md p-6 sm:p-8 border border-slate-200 dark:border-slate-800">
+      <div className="bg-white dark:bg-slate-900 rounded shadow-md p-6 sm:p-8 border border-slate-200 dark:border-slate-800">
         <h3 className="text-xl font-bold mb-4 flex items-center gap-2">
           <LinkIcon size={20} className="text-slate-500" />
           Vínculos de Compartilhamento

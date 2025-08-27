@@ -8,7 +8,7 @@ export default function PoliticasPage() {
       </h1>
       <section className="py-6">
         <h2 className="flex items-center gap-2 text-xl font-semibold mb-2">
-          <span className="inline-flex items-center justify-center w-7 h-7 rounded-lg bg-brand-500/20 text-brand-400">
+          <span className="inline-flex items-center justify-center w-7 h-7 rounded bg-brand-500/20 text-brand-400">
             <Shield size={20} />
           </span>
           Privacidade
@@ -26,7 +26,7 @@ export default function PoliticasPage() {
       </section>
       <section className="py-6">
         <h2 className="flex items-center gap-2 text-xl font-semibold mb-2">
-          <span className="inline-flex items-center justify-center w-7 h-7 rounded-lg bg-brand-500/20 text-brand-400">
+          <span className="inline-flex items-center justify-center w-7 h-7 rounded bg-brand-500/20 text-brand-400">
             <Cookie size={20} />
           </span>
           Cookies
@@ -43,7 +43,7 @@ export default function PoliticasPage() {
       </section>
       <section className="py-6">
         <h2 className="flex items-center gap-2 text-xl font-semibold mb-2">
-          <span className="inline-flex items-center justify-center w-7 h-7 rounded-lg bg-brand-500/20 text-brand-400">
+          <span className="inline-flex items-center justify-center w-7 h-7 rounded bg-brand-500/20 text-brand-400">
             <HelpCircle size={20} />
           </span>
           Dúvidas?

@@ -5,7 +5,7 @@ export default function SkeletonCard({
 }) {
   return (
     <div
-      className={`animate-pulse bg-slate-200 dark:bg-slate-800 rounded-xl shadow-md p-6 sm:p-8 border border-slate-200 dark:border-slate-800 ${className}`}
+      className={`animate-pulse bg-slate-200 dark:bg-slate-800 rounded shadow-md p-6 sm:p-8 border border-slate-200 dark:border-slate-800 ${className}`}
     >
       <div className="h-6 w-1/3 bg-slate-300 dark:bg-slate-700 rounded mb-4" />
       <div className="h-4 w-2/3 bg-slate-300 dark:bg-slate-700 rounded mb-2" />

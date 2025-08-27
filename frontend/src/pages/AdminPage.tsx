@@ -236,7 +236,7 @@ export default function AdminPage() {
       {/* MODAL DELETE */}
       {showDeleteModal && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-          <div className="bg-white dark:bg-slate-800 rounded-lg p-6 shadow-lg max-w-sm w-full">
+          <div className="bg-white dark:bg-slate-800 rounded p-6 shadow-lg max-w-sm w-full">
             <h2 className="text-xl font-bold mb-4">Confirmar Exclusão</h2>
             <p>Tem certeza que deseja excluir este usuário?</p>
             <div className="flex justify-end gap-2 mt-4">
@@ -257,7 +257,7 @@ export default function AdminPage() {
       {/* MODAL EDITAR */}
       {showEditModal && userToEdit && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-          <div className="bg-white dark:bg-slate-800 rounded-lg p-6 shadow-lg max-w-sm w-full">
+          <div className="bg-white dark:bg-slate-800 rounded p-6 shadow-lg max-w-sm w-full">
             <h2 className="text-xl font-bold mb-4">Editar Usuário</h2>
             <form onSubmit={handleEdit} className="flex flex-col gap-4">
               <div className="relative">
@@ -268,7 +268,7 @@ export default function AdminPage() {
                   onChange={(e) =>
                     setUserToEdit({ ...userToEdit, name: e.target.value })
                   }
-                  className="peer w-full rounded-md border border-slate-300 bg-transparent px-3 pt-5 pb-2 text-sm 
+                  className="peer w-full rounded border border-slate-300 bg-transparent px-3 pt-5 pb-2 text-sm 
                        text-slate-900 placeholder-transparent focus:border-blue-500 focus:ring-1 focus:ring-blue-500
                        dark:border-slate-600 dark:text-white"
                   placeholder="Usuário"
@@ -291,7 +291,7 @@ export default function AdminPage() {
                   onChange={(e) =>
                     setUserToEdit({ ...userToEdit, role: e.target.value })
                   }
-                  className="select w-full rounded-md border border-slate-300 px-3 py-2 
+                  className="select w-full rounded border border-slate-300 px-3 py-2 
                        focus:border-blue-500 focus:ring-1 focus:ring-blue-500
                        dark:border-slate-600 dark:bg-slate-700 dark:text-white"
                 >

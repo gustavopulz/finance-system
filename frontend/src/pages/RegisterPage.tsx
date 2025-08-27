@@ -64,7 +64,7 @@ export default function RegisterPage() {
       className="min-h-screen flex items-center justify-center bg-slate-900 px-4"
       style={{ marginTop: '-1.5rem', marginBottom: '-1.5rem' }}
     >
-      <div className="w-full max-w-sm bg-slate-800 rounded-xl shadow-xl p-6">
+      <div className="w-full max-w-sm bg-slate-800 rounded shadow-xl p-6">
         <h2 className="text-2xl font-medium text-center text-gray-200 mb-6">
           Inscreva-se
         </h2>
@@ -72,7 +72,7 @@ export default function RegisterPage() {
         {/* Botão Google */}
         <button
           type="button"
-          className="flex items-center justify-center w-full px-4 py-2 bg-transparent text-white border border-slate-600 rounded-md shadow-sm hover:bg-slate-600 focus:outline-none focus:ring-2 focus:ring-brand-500 transition"
+          className="flex items-center justify-center w-full px-4 py-2 bg-transparent text-white border border-slate-600 rounded shadow-sm hover:bg-slate-600 focus:outline-none focus:ring-2 focus:ring-brand-500 transition"
         >
           <img src="/Google.png" alt="Google" className="w-5 h-5 mr-2" />
           Continue com Google
@@ -107,7 +107,7 @@ export default function RegisterPage() {
               onChange={handleInputChange}
               onFocus={() => setNameFocused(true)}
               onBlur={() => setNameFocused(false)}
-              className="w-full mb-3 px-3 py-3 border rounded-md bg-transparent text-white border-slate-600 focus:outline-none focus:ring-2 focus:ring-brand-500"
+              className="w-full mb-3 px-3 py-3 border rounded bg-transparent text-white border-slate-600 focus:outline-none focus:ring-2 focus:ring-brand-500"
               placeholder=""
               required
             />
@@ -133,7 +133,7 @@ export default function RegisterPage() {
               onChange={handleInputChange}
               onFocus={() => setEmailFocused(true)}
               onBlur={() => setEmailFocused(false)}
-              className="w-full mb-3 px-3 py-3 border rounded-md bg-transparent text-white border-slate-600 focus:outline-none focus:ring-2 focus:ring-brand-500"
+              className="w-full mb-3 px-3 py-3 border rounded bg-transparent text-white border-slate-600 focus:outline-none focus:ring-2 focus:ring-brand-500"
               placeholder=""
             />
           </div>
@@ -158,7 +158,7 @@ export default function RegisterPage() {
               onChange={handleInputChange}
               onFocus={() => setPasswordFocused(true)}
               onBlur={() => setPasswordFocused(false)}
-              className="w-full px-3 py-3 border rounded-md bg-transparent text-white border-slate-600 focus:outline-none focus:ring-2 focus:ring-brand-500"
+              className="w-full px-3 py-3 border rounded bg-transparent text-white border-slate-600 focus:outline-none focus:ring-2 focus:ring-brand-500"
               placeholder=""
             />
             <button
@@ -195,7 +195,7 @@ export default function RegisterPage() {
               onChange={handleInputChange}
               onFocus={() => setConfirmFocused(true)}
               onBlur={() => setConfirmFocused(false)}
-              className="w-full px-3 py-3 border rounded-md bg-transparent text-white border-slate-600 focus:outline-none focus:ring-2 focus:ring-brand-500"
+              className="w-full px-3 py-3 border rounded bg-transparent text-white border-slate-600 focus:outline-none focus:ring-2 focus:ring-brand-500"
               placeholder=""
             />
             <button
@@ -246,7 +246,7 @@ export default function RegisterPage() {
           <div className="pt-2">
             <button
               type="submit"
-              className="w-full px-4 py-2 text-white rounded-md bg-gradient-to-r from-brand-500 to-brand-600 hover:from-brand-600 hover:to-brand-700 focus:outline-none focus:ring focus:ring-brand-400"
+              className="w-full px-4 py-2 text-white rounded bg-gradient-to-r from-brand-500 to-brand-600 hover:from-brand-600 hover:to-brand-700 focus:outline-none focus:ring focus:ring-brand-400"
             >
               Registrar
             </button>

@@ -311,7 +311,7 @@ export default function HomePage() {
                 <Filter size={16} /> Filtros:
               </span>
               <select
-                className="select w-full sm:w-44"
+                className="select w-full rounded sm:w-44"
                 value={showAll ? 'all' : month}
                 onChange={(e) => {
                   if (e.target.value === 'all') {
@@ -435,8 +435,8 @@ export default function HomePage() {
                     }}
                     className={
                       selectedCollab === c.id
-                        ? 'border-2 border-blue-500 rounded-xl transition-all'
-                        : 'rounded-xl'
+                        ? 'border-2 border-blue-500 rounded transition-all'
+                        : 'rounded'
                     }
                   >
                     <SortableCollab id={c.id}>

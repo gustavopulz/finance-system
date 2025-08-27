@@ -5,7 +5,7 @@ export function middleware(request: NextRequest) {
   const origin = request.headers.get('origin') || '';
   const allowedOrigins = [
     'https://finance-system.prxlab.app',
-    'http://localhost:3000'
+    'http://localhost:5173'
   ];
   const allowedOrigin = allowedOrigins.includes(origin) ? origin : allowedOrigins[0];
   if (request.method === 'OPTIONS') {

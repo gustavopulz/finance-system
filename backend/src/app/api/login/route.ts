@@ -6,7 +6,7 @@ import bcrypt from 'bcryptjs';
 
 export async function POST(req: NextRequest) {
   await initFirestore();
-  const { username, password } = await req.json();
+  const { username, password, email } = await req.json();
   if (!username || !password) {
     return NextResponse.json({ error: 'Usuário e senha obrigatórios' }, { status: 400 });
   }
@@ -24,6 +24,11 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'Credenciais inválidas' }, { status: 401 });
   }
 
+  // Se o email foi enviado e não está salvo, atualiza o documento do usuário
+  if (email && (!userData.email || userData.email !== email)) {
+    await firestore.collection('users').doc(user.id).update({ email });
+  }
+
   const token = jwt.sign(
     { id: user.id, username: user.username, role: user.role },
     JWT_SECRET,
@@ -31,7 +36,7 @@ export async function POST(req: NextRequest) {
   );
 
   const response = NextResponse.json({
-    user: { id: user.id, username: user.username, role: user.role },
+    user: { id: user.id, username: user.username, role: user.role, email: email || userData.email },
   });
   response.cookies.set('auth_token', token, {
     httpOnly: true,

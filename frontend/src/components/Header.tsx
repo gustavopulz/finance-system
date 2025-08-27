@@ -103,16 +103,16 @@ export default function Header() {
         </NavLink>
         {/* Dashboard and Summary buttons */}
         <div className="hidden md:flex items-center gap-4">
-          <NavLink to="/dashboard" className="btn btn-primary">
-            Dashboard
-          </NavLink>
           <NavLink to="/summary" className="btn btn-secondary">
             Resumo
+          </NavLink>
+          <NavLink to="/dashboard" className="btn btn-primary">
+            Dashboard
           </NavLink>
         </div>
         {/* User and Settings */}
         <div className="hidden md:flex items-center gap-4">
-          <NavLink to="/settings" className="btn btn-ghost">
+          <NavLink to="/user-settings" className="btn btn-ghost">
             <svg
               width="24"
               height="24"

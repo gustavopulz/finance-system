@@ -1,9 +1,8 @@
 import { parcelaLabel, brl } from '../lib/format';
-import { updateAccount } from '../lib/api';
+import { updateAccount, deleteCollab } from '../lib/api';
 import type { Account } from '../lib/types';
 import { Trash2, Pencil, Ban, CheckCircle, GripVertical } from 'lucide-react';
 import { useMemo, useState, useEffect } from 'react';
-import { deleteCollab } from '../lib/api';
 
 export interface FinanceTableProps {
   collaboratorId: string;
@@ -43,18 +42,31 @@ export default function FinanceTable({
     financa: Account | null;
   }>({ open: false, financa: null });
 
+  // 🚀 Corrige zoom absurdo no drag preview
+  function handleDragStart(e: React.DragEvent) {
+    const ghost = document.createElement('div');
+    ghost.style.width = '1px';
+    ghost.style.height = '1px';
+    ghost.style.background = 'transparent';
+
+    document.body.appendChild(ghost);
+    e.dataTransfer?.setDragImage(ghost, 0, 0);
+
+    setTimeout(() => {
+      document.body.removeChild(ghost);
+    }, 0);
+  }
+
   // Atualiza localItems quando items mudar
   useEffect(() => {
-    // Atualiza localItems sem alterar a ordem atual
     setLocalItems((prev) => {
-      if (prev.length === 0 || prev.length !== items.length) return items; // Inicializa ou sincroniza tamanho
-      return prev.map((item) => items.find((i) => i.id === item.id) || item); // Atualiza mantendo a ordem
+      if (prev.length === 0 || prev.length !== items.length) return items;
+      return prev.map((item) => items.find((i) => i.id === item.id) || item);
     });
   }, [items]);
 
-  // Reaplica a ordenação após qualquer atualização nos itens ou nas chaves de ordenação
+  // Reaplica a ordenação após atualizações
   useEffect(() => {
-    // Reaplica a ordenação após qualquer atualização nos itens ou nas chaves de ordenação
     setLocalItems(() => {
       const updatedItems = [...items];
       updatedItems.sort((a, b) => {
@@ -93,10 +105,10 @@ export default function FinanceTable({
     });
   }, [items, sortKey, sortOrder, currentComp]);
 
-  // Totais considerando o campo paid
+  // Totais
   const total = localItems.reduce((acc, f) => acc + Number(f.value), 0);
   const totalPendente = localItems
-    .filter((f) => !f.paid && f.status !== 'Cancelado') // Exclui itens cancelados
+    .filter((f) => !f.paid && f.status !== 'Cancelado')
     .reduce((acc, f) => acc + Number(f.value), 0);
   const totalPago = localItems
     .filter((f) => f.paid)
@@ -104,17 +116,13 @@ export default function FinanceTable({
 
   async function handlePaidToggle(account: Account) {
     try {
-      // Atualiza apenas o campo paid
       const newPaid = !account.paid;
-      await updateAccount(account.id, {
-        paid: newPaid,
-      });
+      await updateAccount(account.id, { paid: newPaid });
       setLocalItems((prev) =>
         prev.map((item) =>
           item.id === account.id ? { ...item, paid: newPaid } : item
         )
       );
-      // Notifica o componente pai sobre a mudança
       onPaidUpdate?.(account.id, newPaid);
       setToast(`Finança marcada como ${newPaid ? 'paga' : 'não paga'} ✅`);
       setTimeout(() => setToast(null), 2000);
@@ -206,7 +214,6 @@ export default function FinanceTable({
     });
     return copy;
   }, [localItems, sortKey, sortOrder, currentComp]);
-
   return (
     <section className="relative">
       {/* Cabeçalho DESKTOP minimalista */}

@@ -35,7 +35,8 @@ function AdminRoute({ children }: { children: JSX.Element }) {
 
 function AppWithHeader() {
   const location = useLocation();
-  const hideHeader = location.pathname === '/login';
+  const hideHeader =
+    location.pathname === '/login' || location.pathname === '/404'; // Corrigido para '/404'
   const auth = useAuth();
 
   return (
@@ -88,6 +89,8 @@ function AppWithHeader() {
             }
           />
 
+          <Route path="/404" element={<NotFoundPage />} />
+
           <Route
             path="*"
             element={
@@ -96,7 +99,7 @@ function AppWithHeader() {
               ) : !auth?.user ? (
                 <Navigate to="/login" replace />
               ) : (
-                <NotFoundPage />
+                <Navigate to="/404" replace />
               )
             }
           />

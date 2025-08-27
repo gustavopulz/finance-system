@@ -1,5 +1,12 @@
 import { NavLink } from 'react-router-dom';
-import { Moon, Sun, LogOut, LayoutDashboard } from 'lucide-react';
+import {
+  Moon,
+  Sun,
+  LogOut,
+  LayoutDashboard,
+  User,
+  Settings,
+} from 'lucide-react'; // Added User and Settings icons
 import { useAuth } from '../context/AuthContext';
 import { useEffect, useState } from 'react';
 
@@ -103,73 +110,82 @@ export default function Header() {
         </NavLink>
         {/* Dashboard and Summary buttons */}
         <div className="hidden md:flex items-center gap-4">
-          <NavLink to="/summary" className="btn btn-secondary">
+          <NavLink
+            to="/summary"
+            className={({ isActive }) => {
+              const isRoot = window.location.pathname === '/';
+              return `${isActive || isRoot ? 'text-blue-500' : 'text-white'}`;
+            }}
+          >
             Resumo
           </NavLink>
-          <NavLink to="/dashboard" className="btn btn-primary">
+          <NavLink
+            to="/dashboard"
+            className={({ isActive }) =>
+              `${isActive ? 'text-blue-500' : 'text-white'}`
+            }
+          >
             Dashboard
           </NavLink>
         </div>
         {/* User and Settings */}
         <div className="hidden md:flex items-center gap-4">
           <NavLink to="/user-settings" className="btn btn-ghost">
-            <svg
-              width="24"
-              height="24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-              viewBox="0 0 24 24"
-            >
-              <circle cx="12" cy="12" r="3" />
-              <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2h-1a2 2 0 0 1-2-2v-.09a1.65 1.65 0 0 0-1-1.51 1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 3 15.4a1.65 1.65 0 0 0-1.51-1H1a2 2 0 0 1-2-2v-1a2 2 0 0 1 2-2h.09c.5 0 .96-.2 1.31-.55A1.65 1.65 0 0 0 3 8.6a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06c.36.36.86.55 1.36.55h.09a1.65 1.65 0 0 0 1.51-1V3a2 2 0 0 1 2-2h1a2 2 0 0 1 2 2v.09c0 .5.2.96.55 1.31A1.65 1.65 0 0 0 15.4 3a1.65 1.65 0 0 0 1.82.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06c-.36.36-.55.86-.55 1.36v.09c0 .5.2.96.55 1.31A1.65 1.65 0 0 0 21 8.6a1.65 1.65 0 0 0 1.51 1H23a2 2 0 0 1 2 2v1a2 2 0 0 1-2 2h-.09c-.5 0-.96.2-1.31.55A1.65 1.65 0 0 0 19.4 15z" />
-            </svg>
+            <Settings size={24} className="text-white" />
           </NavLink>
-          <div className="relative">
-            <button
-              className="btn btn-ghost flex items-center"
-              onClick={() => setMobileMenuOpen((v) => !v)}
-            >
-              <svg
-                width="24"
-                height="24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-                viewBox="0 0 24 24"
-              >
-                <circle cx="12" cy="12" r="4" />
-                <path d="M4 20c0-4 4-6 8-6s8 2 8 6" />
-              </svg>
+          <div
+            className="relative group"
+            onMouseEnter={() => setMobileMenuOpen(true)}
+            onMouseLeave={() => setMobileMenuOpen(false)}
+          >
+            <button className="btn btn-ghost flex items-center">
+              <User size={24} className="text-white" />
             </button>
             {mobileMenuOpen && (
-              <div className="absolute right-0 mt-2 w-48 bg-white dark:bg-slate-800 shadow-lg rounded-md">
-                <div className="p-4">
-                  <p className="text-sm font-medium">{auth?.user?.username}</p>
-                  <p className="text-xs text-gray-500">
-                    Cargo: {auth?.user?.role}
+              <div className="absolute right-0 mt-0 w-48 bg-white dark:bg-slate-800 shadow-lg rounded-md z-50">
+                <div className="pt-4 px-4">
+                  <p className="text-sm font-medium text-gray-900 dark:text-gray-100">
+                    {auth?.user?.username || 'Usuário'}
+                  </p>
+                  <p
+                    className={`text-xs ${
+                      auth?.user?.role === 'admin'
+                        ? 'text-red-500'
+                        : 'text-blue-500'
+                    }`}
+                  >
+                    {auth?.user?.role === 'admin' ? 'Admin' : 'Usuário'}
                   </p>
                 </div>
+                <hr className="my-2 border-gray-200 dark:border-gray-700" />
+                <NavLink
+                  to="/user-settings"
+                  className="flex px-4 py-2 text-sm hover:bg-gray-100 dark:hover:bg-slate-700 items-center gap-2"
+                >
+                  <Settings size={16} /> Configurações
+                </NavLink>
                 {auth?.user?.role === 'admin' && (
                   <NavLink
                     to="/admin"
-                    className="block px-4 py-2 text-sm hover:bg-gray-100 dark:hover:bg-slate-700"
+                    className="flex px-4 py-2 text-sm hover:bg-gray-100 dark:hover:bg-slate-700 items-center gap-2"
                   >
-                    Painel Admin
+                    <LayoutDashboard size={16} /> Admin
                   </NavLink>
                 )}
                 <button
-                  className="block w-full text-left px-4 py-2 text-sm hover:bg-gray-100 dark:hover:bg-slate-700"
+                  className="flex w-full text-left px-4 py-2 text-sm hover:bg-gray-100 dark:hover:bg-slate-700 items-center gap-2"
                   onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
                 >
-                  Modo: {theme === 'dark' ? 'Claro' : 'Escuro'}
+                  {theme === 'dark' ? <Sun size={16} /> : <Moon size={16} />}{' '}
+                  {theme === 'dark' ? 'Claro' : 'Escuro'}
                 </button>
+                <hr className="my-2 border-gray-200 dark:border-gray-700" />
                 {auth && (
                   <button
-                    className="block w-full text-left px-4 py-2 text-sm text-red-500 hover:bg-gray-100 dark:hover:bg-slate-700"
+                    className="flex w-full text-left px-4 py-2 text-sm text-red-500 hover:bg-gray-100 dark:hover:bg-slate-700 items-center gap-2"
                     onClick={() => auth.logout()}
                   >
-                    Desconectar
+                    <LogOut size={16} /> Desconectar
                   </button>
                 )}
               </div>

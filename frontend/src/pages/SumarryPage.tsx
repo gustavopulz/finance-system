@@ -302,7 +302,7 @@ export default function HomePage() {
         />
       </div>
       <div id="main-content" className="flex-1 grid gap-6">
-        <div className="card p-4">
+        <div className="border border-slate-300 dark:border-slate-700 shadow-sm rounded p-4">
           <h1 className="text-xl font-bold mb-4">Resumo</h1>
 
           <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">

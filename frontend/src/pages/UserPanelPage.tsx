@@ -65,9 +65,9 @@ export default function UserPanelPage() {
     setSharedToken('');
   };
 
-  const handleUnlink = async (otherUserId: string) => {
+  const handleUnlink = async (otherUserId: string, direction: 'i-see' | 'see-me') => {
     try {
-      await unlinkUser(otherUserId);
+      await unlinkUser(otherUserId, direction);
       await fetchLinks();
     } catch (err: any) {
       alert(err.message || 'Erro ao desvincular usuário');
@@ -323,7 +323,7 @@ export default function UserPanelPage() {
                       </span>
                       <button
                         className="btn btn-xs btn-error bg-red-600 text-white flex items-center gap-1"
-                        onClick={() => handleUnlink(u.id)}
+                        onClick={() => handleUnlink(u.id, 'i-see')}
                       >
                         <X size={14} /> Desvincular
                       </button>
@@ -352,7 +352,7 @@ export default function UserPanelPage() {
                       </span>
                       <button
                         className="btn btn-xs btn-error bg-red-600 text-white flex items-center gap-1"
-                        onClick={() => handleUnlink(u.id)}
+                        onClick={() => handleUnlink(u.id, 'see-me')}
                       >
                         <X size={14} /> Desvincular
                       </button>

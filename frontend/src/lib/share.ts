@@ -29,9 +29,3 @@ export async function getLinks() {
     seeMe: { id: number; name: string }[];
   }>(`${API_URL}/links`);
 }
-
-export async function unlinkUser(otherUserId: number) {
-  return json<{ success: boolean }>(`${API_URL}/unlink/${otherUserId}`, {
-    method: 'DELETE',
-  });
-}

@@ -15,6 +15,7 @@ import Header from './components/Header';
 import InfoPage from './pages/InfoPage';
 import NotFoundPage from './pages/errors/404';
 import RegisterPage from './pages/RegisterPage';
+import PoliticasPage from './pages/PrivacyPage';
 
 function PrivateRoute({ children }: { children: JSX.Element }) {
   const auth = useAuth();
@@ -74,14 +75,6 @@ function AppWithHeader() {
               </PrivateRoute>
             }
           />
-          <Route
-            path="/admin"
-            element={
-              <AdminRoute>
-                <AdminPage />
-              </AdminRoute>
-            }
-          />
 
           <Route
             path="/user-settings"
@@ -92,6 +85,16 @@ function AppWithHeader() {
             }
           />
 
+          <Route
+            path="/admin"
+            element={
+              <AdminRoute>
+                <AdminPage />
+              </AdminRoute>
+            }
+          />
+
+          <Route path="/politicas-e-termos" element={<PoliticasPage />} />
           <Route path="/404" element={<NotFoundPage />} />
 
           <Route

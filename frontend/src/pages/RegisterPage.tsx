@@ -208,11 +208,17 @@ export default function RegisterPage() {
             />
             <label htmlFor="terms">
               Eu concordo com os{' '}
-              <a href="/termos" className="text-brand-400 hover:underline">
+              <a
+                href="/politicas-e-termos"
+                className="text-brand-400 hover:underline"
+              >
                 termos
               </a>{' '}
               e{' '}
-              <a href="/politicas" className="text-brand-400 hover:underline">
+              <a
+                href="/politicas-e-termos"
+                className="text-brand-400 hover:underline"
+              >
                 políticas
               </a>
               .

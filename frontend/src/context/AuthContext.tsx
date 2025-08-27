@@ -25,12 +25,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     async function fetchUser() {
-      console.log('[AuthContext] Iniciando fetchUser');
       try {
         const { user } = await import('../lib/api').then((mod) =>
           mod.getCurrentUser()
         );
-        console.log('[AuthContext] Resposta getCurrentUser:', user);
         if (user && user.id && user.email && user.role && user.name) {
           setUser({
             id: user.id,
@@ -38,17 +36,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             role: String(user.role),
             name: String(user.name),
           });
-          console.log('[AuthContext] Usuário restaurado:', user);
         } else {
           setUser(null);
-          console.log('[AuthContext] Usuário inválido ou não encontrado');
         }
       } catch (err) {
         setUser(null);
-        console.log('[AuthContext] Erro ao restaurar usuário:', err);
       }
       setLoading(false);
-      console.log('[AuthContext] loading = false');
     }
     fetchUser();
   }, []);

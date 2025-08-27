@@ -101,31 +101,81 @@ export default function Header() {
             className="h-auto w-32 mr-2"
           />
         </NavLink>
-        {/* Desktop menu */}
-        <nav className="hidden md:flex items-center gap-2">
-          {menuLinks.map((item, idx) => {
-            if (item.type === 'link' && item.to) {
-              return (
-                <NavLink key={idx} to={item.to} className="btn btn-ghost">
-                  {item.icon}
-                  {item.label}
-                </NavLink>
-              );
-            } else if (item.type === 'button' && item.onClick) {
-              return (
+        {/* Dashboard and Summary buttons */}
+        <div className="hidden md:flex items-center gap-4">
+          <NavLink to="/dashboard" className="btn btn-primary">
+            Dashboard
+          </NavLink>
+          <NavLink to="/summary" className="btn btn-secondary">
+            Resumo
+          </NavLink>
+        </div>
+        {/* User and Settings */}
+        <div className="hidden md:flex items-center gap-4">
+          <NavLink to="/settings" className="btn btn-ghost">
+            <svg
+              width="24"
+              height="24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              viewBox="0 0 24 24"
+            >
+              <circle cx="12" cy="12" r="3" />
+              <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2h-1a2 2 0 0 1-2-2v-.09a1.65 1.65 0 0 0-1-1.51 1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 3 15.4a1.65 1.65 0 0 0-1.51-1H1a2 2 0 0 1-2-2v-1a2 2 0 0 1 2-2h.09c.5 0 .96-.2 1.31-.55A1.65 1.65 0 0 0 3 8.6a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06c.36.36.86.55 1.36.55h.09a1.65 1.65 0 0 0 1.51-1V3a2 2 0 0 1 2-2h1a2 2 0 0 1 2 2v.09c0 .5.2.96.55 1.31A1.65 1.65 0 0 0 15.4 3a1.65 1.65 0 0 0 1.82.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06c-.36.36-.55.86-.55 1.36v.09c0 .5.2.96.55 1.31A1.65 1.65 0 0 0 21 8.6a1.65 1.65 0 0 0 1.51 1H23a2 2 0 0 1 2 2v1a2 2 0 0 1-2 2h-.09c-.5 0-.96.2-1.31.55A1.65 1.65 0 0 0 19.4 15z" />
+            </svg>
+          </NavLink>
+          <div className="relative">
+            <button
+              className="btn btn-ghost flex items-center"
+              onClick={() => setMobileMenuOpen((v) => !v)}
+            >
+              <svg
+                width="24"
+                height="24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                viewBox="0 0 24 24"
+              >
+                <circle cx="12" cy="12" r="4" />
+                <path d="M4 20c0-4 4-6 8-6s8 2 8 6" />
+              </svg>
+            </button>
+            {mobileMenuOpen && (
+              <div className="absolute right-0 mt-2 w-48 bg-white dark:bg-slate-800 shadow-lg rounded-md">
+                <div className="p-4">
+                  <p className="text-sm font-medium">{auth?.user?.username}</p>
+                  <p className="text-xs text-gray-500">
+                    Cargo: {auth?.user?.role}
+                  </p>
+                </div>
+                {auth?.user?.role === 'admin' && (
+                  <NavLink
+                    to="/admin"
+                    className="block px-4 py-2 text-sm hover:bg-gray-100 dark:hover:bg-slate-700"
+                  >
+                    Painel Admin
+                  </NavLink>
+                )}
                 <button
-                  key={idx}
-                  className={`btn btn-ghost ${item.className || ''}`}
-                  onClick={item.onClick}
+                  className="block w-full text-left px-4 py-2 text-sm hover:bg-gray-100 dark:hover:bg-slate-700"
+                  onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
                 >
-                  {item.icon}
-                  {item.label}
+                  Modo: {theme === 'dark' ? 'Claro' : 'Escuro'}
                 </button>
-              );
-            }
-            return null;
-          })}
-        </nav>
+                {auth && (
+                  <button
+                    className="block w-full text-left px-4 py-2 text-sm text-red-500 hover:bg-gray-100 dark:hover:bg-slate-700"
+                    onClick={() => auth.logout()}
+                  >
+                    Desconectar
+                  </button>
+                )}
+              </div>
+            )}
+          </div>
+        </div>
         {/* Mobile menu button */}
         <button
           className="md:hidden btn btn-ghost"

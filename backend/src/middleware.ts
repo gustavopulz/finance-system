@@ -30,8 +30,9 @@ export function middleware(request: NextRequest) {
 
   // ✅ Rotas sem autenticação
   const unprotectedRoutes: string[] = [
+    '/api/hello',
     '/api/user/login',
-    '/api/hello'
+    '/api/user/register'
   ];
 
   if (isApiRoute && !unprotectedRoutes.includes(pathname)) {

@@ -90,6 +90,10 @@ export default function AddFinanceDialog({
           : 'Pendente',
     },
   });
+
+  // Registrar o campo description com ref
+  const { ref: descriptionRef, ...descriptionRegister } =
+    register('description');
   // Formata o valor como moeda brasileira ao digitar
   function handleValueChange(e: React.ChangeEvent<HTMLInputElement>) {
     let value = e.target.value.replace(/\D/g, ''); // remove não dígitos
@@ -183,8 +187,11 @@ export default function AddFinanceDialog({
           <label className="grid gap-1">
             <span className="text-sm font-medium">Descrição</span>
             <input
-              {...register('description')}
-              name="description"
+              {...descriptionRegister}
+              ref={(e) => {
+                descriptionRef(e);
+                descriptionInputRef.current = e;
+              }}
               className="input input-full"
               placeholder="Ex.: Uber"
               disabled={disabled}

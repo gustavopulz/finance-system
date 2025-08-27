@@ -1,3 +1,10 @@
+// -------------------- REGISTER --------------------
+export function registerUser(email: string, password: string, name: string) {
+  return json<{ success?: boolean; message?: string }>(`${API_URL}/register`, {
+    method: 'POST',
+    body: JSON.stringify({ email, password, name }),
+  });
+}
 const API_URL = 'https://finance-system-api.prxlab.app/api';
 
 // Salva a ordem dos colaboradores

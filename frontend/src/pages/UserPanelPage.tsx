@@ -4,6 +4,7 @@ import { useAuth } from '../context/AuthContext';
 import { generateShareToken, useShareToken } from '../lib/api';
 import { updatename, updateUserPassword } from '../lib/api';
 import { getLinks } from '../lib/share';
+import { unlinkUser } from '../lib/api';
 import {
   Plus,
   Pencil,
@@ -62,6 +63,15 @@ export default function UserPanelPage() {
       alert(res.error || 'Erro ao mesclar contas');
     }
     setSharedToken('');
+  };
+
+  const handleUnlink = async (otherUserId: string) => {
+    try {
+      await unlinkUser(otherUserId);
+      await fetchLinks();
+    } catch (err: any) {
+      alert(err.message || 'Erro ao desvincular usuário');
+    }
   };
 
   const handleChangeName = () => {
@@ -291,9 +301,12 @@ export default function UserPanelPage() {
                     >
                       <span className="flex items-center gap-2">
                         <User size={18} className="text-slate-500" />
-                        <span className="font-medium">{u.name}</span>
+                        <span className="font-medium">{u.name || u.id}</span>
                       </span>
-                      <button className="btn btn-xs btn-error bg-red-600 text-white flex items-center gap-1">
+                      <button
+                        className="btn btn-xs btn-error bg-red-600 text-white flex items-center gap-1"
+                        onClick={() => handleUnlink(u.id)}
+                      >
                         <X size={14} /> Desvincular
                       </button>
                     </li>
@@ -317,9 +330,12 @@ export default function UserPanelPage() {
                     >
                       <span className="flex items-center gap-2">
                         <User size={18} className="text-slate-500" />
-                        <span className="font-medium">{u.name}</span>
+                        <span className="font-medium">{u.name || u.id}</span>
                       </span>
-                      <button className="btn btn-xs btn-error bg-red-600 text-white flex items-center gap-1">
+                      <button
+                        className="btn btn-xs btn-error bg-red-600 text-white flex items-center gap-1"
+                        onClick={() => handleUnlink(u.id)}
+                      >
                         <X size={14} /> Desvincular
                       </button>
                     </li>

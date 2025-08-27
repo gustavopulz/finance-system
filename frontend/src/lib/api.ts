@@ -229,3 +229,17 @@ export async function changeUserRole(id: number, role: string) {
     credentials: 'include', // Ensure cookies are sent for authentication
   });
 }
+
+// -------------------- UNLINK USER --------------------
+export function unlinkUser(otherUserId: string) {
+  return fetch(`${API_URL}/shared/unlink/${otherUserId}`, {
+    method: 'POST',
+    credentials: 'include',
+  }).then(async (res) => {
+    if (!res.ok) {
+      const data = await res.json().catch(() => ({}));
+      throw new Error(data?.error || 'Erro ao desvincular usuário');
+    }
+    return res.json();
+  });
+}

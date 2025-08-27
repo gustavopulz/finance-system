@@ -463,17 +463,34 @@ export default function FinanceTable({
           vb = b.paid ? 1 : 0;
           break;
         case 'parcelas': {
-          const la = parcelaLabel(a, currentComp);
-          const lb = parcelaLabel(b, currentComp);
-          va =
-            la === 'Indeterminada'
-              ? Number.MAX_SAFE_INTEGER
-              : Number(la.split('/')[0]) || 0;
-          vb =
-            lb === 'Indeterminada'
-              ? Number.MAX_SAFE_INTEGER
-              : Number(lb.split('/')[0]) || 0;
-          break;
+          // Fixas primeiro, depois avulsas, depois parceladas
+          const getTypeOrder = (acc: Account) => {
+            if (acc.parcelasTotal === null || acc.parcelasTotal === undefined)
+              return 0; // fixa
+            if (acc.parcelasTotal === 0 || acc.parcelasTotal === 1) return 1; // avulsa
+            return 2; // parcelada
+          };
+          const typeA = getTypeOrder(a);
+          const typeB = getTypeOrder(b);
+          if (typeA !== typeB)
+            return sortOrder === 'asc' ? typeA - typeB : typeB - typeA;
+          // Se mesmo tipo, ordena pelo número da parcela (se parcelada)
+          if (typeA === 2) {
+            // Parcelada: ordena pelo número da parcela atual
+            const la = parcelaLabel(a, currentComp);
+            const lb = parcelaLabel(b, currentComp);
+            va = Number(la.split('/')[0]) || 0;
+            vb = Number(lb.split('/')[0]) || 0;
+            if (va < vb) return sortOrder === 'asc' ? -1 : 1;
+            if (va > vb) return sortOrder === 'asc' ? 1 : -1;
+            return 0;
+          }
+          // Se fixa ou avulsa, ordena por descrição
+          va = a.description.toLowerCase();
+          vb = b.description.toLowerCase();
+          if (va < vb) return sortOrder === 'asc' ? -1 : 1;
+          if (va > vb) return sortOrder === 'asc' ? 1 : -1;
+          return 0;
         }
         default:
           va = a.description.toLowerCase();

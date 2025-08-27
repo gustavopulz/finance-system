@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
-import { login as apiLogin } from '../lib/api';
 
 export default function LoginPage() {
   const auth = useAuth();
@@ -17,11 +16,7 @@ export default function LoginPage() {
         setError('Erro de autenticação');
         return;
       }
-
-      await apiLogin(username, password);
-
-      await auth.login();
-
+      await auth.login(username, password);
       navigate('/');
     } catch (err: any) {
       console.error(err);

@@ -1,5 +1,4 @@
-
-name: Deploy Finance System API
+name: Build & Deploy Finance System API
 
 on:
   push:
@@ -9,18 +8,40 @@ on:
       - 'backend/**'
 
 jobs:
-  deploy:
+  build:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
 
+      - name: Log in to Docker Hub
+        uses: docker/login-action@v2
+        with:
+          username: ${{ secrets.DOCKERHUB_USER }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v4
+        with:
+          context: ./backend
+          push: true
+          tags: ${{ secrets.DOCKERHUB_USER }}/finance-system-api:latest
+          # cache para acelerar builds
+          cache-from: type=registry,ref=${{ secrets.DOCKERHUB_USER }}/finance-system-api:cache
+          cache-to: type=registry,ref=${{ secrets.DOCKERHUB_USER }}/finance-system-api:cache,mode=max
+
+  deploy:
+    runs-on: ubuntu-latest
+    needs: build
+    steps:
       - name: Deploy via SSH
         uses: appleboy/ssh-action@v0.1.10
         with:
-          host: 72.60.56.200
+          host: ${{ secrets.SSH_HOST }}
           username: ${{ secrets.SSH_USER }}
           key: ${{ secrets.SSH_KEY }}
           port: 22
           script: |
-            /usr/local/bin/deploy-finance.sh
+            cd /opt/apps/finance-system/backend
+            git pull
+            docker-compose pull && up -d

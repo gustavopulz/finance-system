@@ -244,11 +244,14 @@ export default function AdminPage() {
             <div className="flex justify-end gap-2 mt-4">
               <button
                 onClick={() => setShowDeleteModal(false)}
-                className="btn btn-secondary"
+                className="border border-slate-300 dark:border-slate-700 flex items-center gap-2 bg-transparent hover:bg-slate-700 text-white px-4 py-2 rounded-md transition"
               >
                 Cancelar
               </button>
-              <button onClick={handleConfirmDelete} className="btn btn-error">
+              <button
+                onClick={handleConfirmDelete}
+                className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md transition"
+              >
                 Excluir
               </button>
             </div>

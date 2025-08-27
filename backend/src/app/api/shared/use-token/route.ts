@@ -24,7 +24,13 @@ export async function POST(req: NextRequest) {
       .where('sharedWithUserId', '==', user.id)
       .get();
     if (!linkSnap.empty) return NextResponse.json({ error: 'Já vinculado' }, { status: 400 });
-    await firestore.collection('shared_accounts').add({ userId, sharedWithUserId: user.id, sharedWithUserName: user.name });
+
+    // Get token owner username
+    const userDoc = await firestore.collection('users').doc(userId).get();
+    if (!userDoc.exists) return NextResponse.json({ error: 'Usuário do token não encontrado' }, { status: 400 });
+    const sharedByUserName = userDoc.data()?.name;
+
+    await firestore.collection('shared_accounts').add({ userId, sharedByUser: sharedByUserName, sharedWithUserId: user.id, sharedWithUserName: user.name });
     return NextResponse.json({ success: true });
   } catch (err: any) {
     return NextResponse.json({ error: err.message }, { status: 500 });

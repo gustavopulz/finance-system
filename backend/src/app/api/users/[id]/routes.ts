@@ -12,14 +12,9 @@ export async function PATCH(req: NextRequest, context: { params: Promise<{ id: s
   }
   let user;
   try {
-    user = verifyToken(authToken);
+    user = verifyToken(authToken, "admin");
   } catch (err: any) {
     return NextResponse.json({ error: err.message }, { status: 403 });
-  }
-
-  // Apenas admin pode alterar role de outro usuário
-  if (!user?.admin) {
-    return NextResponse.json({ error: 'Apenas administradores podem alterar o role de usuários.' }, { status: 403 });
   }
 
   const { id } = await context.params;
@@ -56,14 +51,9 @@ export async function DELETE(req: NextRequest, context: { params: Promise<{ id: 
   }
   let user;
   try {
-    user = verifyToken(authToken);
+    user = verifyToken(authToken, "admin");
   } catch (err: any) {
     return NextResponse.json({ error: err.message }, { status: 403 });
-  }
-
-  // Verifica se o usuário é admin
-  if (!user?.admin) {
-    return NextResponse.json({ error: 'Apenas administradores podem deletar usuários.' }, { status: 403 });
   }
 
   const { id } = await context.params;

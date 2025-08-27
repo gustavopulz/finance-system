@@ -29,18 +29,3 @@ export async function PUT(req: NextRequest, context: { params: Promise<{ id: str
     return NextResponse.json({ error: err.message }, { status: 500 });
   }
 }
-
-export async function DELETE(req: NextRequest, context: { params: Promise<{ id: string }> }) {
-  await initFirestore();
-  const cookie = req.cookies.get('auth_token');
-  const authToken = typeof cookie === 'string' ? cookie : cookie?.value;
-  if (!authToken) throw new Error('Token ausente');
-  try {
-    verifyToken(authToken);
-    const { id } = await context.params;
-    await firestore.collection('accounts').doc(id).delete();
-    return NextResponse.json({ success: true });
-  } catch (err: any) {
-    return NextResponse.json({ error: err.message }, { status: 500 });
-  }
-}

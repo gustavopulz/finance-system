@@ -1,8 +1,9 @@
 import { parcelaLabel, brl } from '../lib/format';
-import { updateAccount, deleteCollab } from '../lib/api';
+import { updateAccount } from '../lib/api';
 import type { Account } from '../lib/types';
 import { Trash2, Pencil, Ban, CheckCircle, GripVertical } from 'lucide-react';
 import { useMemo, useState, useEffect } from 'react';
+import { deleteCollab } from '../lib/api';
 
 export interface FinanceTableProps {
   collaboratorId: string;
@@ -32,8 +33,8 @@ export default function FinanceTable({
   dragHandleProps,
 }: FinanceTableProps) {
   const [localItems, setLocalItems] = useState<Account[]>(items);
-  const [sortKey] = useState<SortKey>('description');
-  const [sortOrder] = useState<'asc' | 'desc'>('asc');
+  const [sortKey, setSortKey] = useState<SortKey>('description');
+  const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc');
   const [showConfirm, setShowConfirm] = useState(false);
   const [toast, setToast] = useState<string | null>(null);
   const [financaToDelete, setFinancaToDelete] = useState<Account | null>(null);
@@ -42,31 +43,18 @@ export default function FinanceTable({
     financa: Account | null;
   }>({ open: false, financa: null });
 
-  // 🚀 Corrige zoom absurdo no drag preview
-  function handleDragStart(e: React.DragEvent) {
-    const ghost = document.createElement('div');
-    ghost.style.width = '1px';
-    ghost.style.height = '1px';
-    ghost.style.background = 'transparent';
-
-    document.body.appendChild(ghost);
-    e.dataTransfer?.setDragImage(ghost, 0, 0);
-
-    setTimeout(() => {
-      document.body.removeChild(ghost);
-    }, 0);
-  }
-
   // Atualiza localItems quando items mudar
   useEffect(() => {
+    // Atualiza localItems sem alterar a ordem atual
     setLocalItems((prev) => {
-      if (prev.length === 0 || prev.length !== items.length) return items;
-      return prev.map((item) => items.find((i) => i.id === item.id) || item);
+      if (prev.length === 0 || prev.length !== items.length) return items; // Inicializa ou sincroniza tamanho
+      return prev.map((item) => items.find((i) => i.id === item.id) || item); // Atualiza mantendo a ordem
     });
   }, [items]);
 
-  // Reaplica a ordenação após atualizações
+  // Reaplica a ordenação após qualquer atualização nos itens ou nas chaves de ordenação
   useEffect(() => {
+    // Reaplica a ordenação após qualquer atualização nos itens ou nas chaves de ordenação
     setLocalItems(() => {
       const updatedItems = [...items];
       updatedItems.sort((a, b) => {
@@ -105,10 +93,10 @@ export default function FinanceTable({
     });
   }, [items, sortKey, sortOrder, currentComp]);
 
-  // Totais
+  // Totais considerando o campo paid
   const total = localItems.reduce((acc, f) => acc + Number(f.value), 0);
   const totalPendente = localItems
-    .filter((f) => !f.paid && f.status !== 'Cancelado')
+    .filter((f) => !f.paid && f.status !== 'Cancelado') // Exclui itens cancelados
     .reduce((acc, f) => acc + Number(f.value), 0);
   const totalPago = localItems
     .filter((f) => f.paid)
@@ -116,13 +104,17 @@ export default function FinanceTable({
 
   async function handlePaidToggle(account: Account) {
     try {
+      // Atualiza apenas o campo paid
       const newPaid = !account.paid;
-      await updateAccount(account.id, { paid: newPaid });
+      await updateAccount(account.id, {
+        paid: newPaid,
+      });
       setLocalItems((prev) =>
         prev.map((item) =>
           item.id === account.id ? { ...item, paid: newPaid } : item
         )
       );
+      // Notifica o componente pai sobre a mudança
       onPaidUpdate?.(account.id, newPaid);
       setToast(`Finança marcada como ${newPaid ? 'paga' : 'não paga'} ✅`);
       setTimeout(() => setToast(null), 2000);
@@ -214,6 +206,7 @@ export default function FinanceTable({
     });
     return copy;
   }, [localItems, sortKey, sortOrder, currentComp]);
+
   return (
     <section className="relative">
       {/* Cabeçalho DESKTOP minimalista */}
@@ -288,15 +281,44 @@ export default function FinanceTable({
         <table className="w-full text-sm text-left border-collapse">
           <thead className="bg-slate-100 dark:bg-slate-700/60 text-slate-700 dark:text-slate-300">
             <tr>
-              <th className="px-6 py-3 font-medium text-left w-[30%]">
-                Descrição
+              <th
+                className="px-6 py-3 font-medium text-left w-[30%] cursor-pointer"
+                onClick={() => {
+                  setSortKey('description');
+                  setSortOrder((prev) => (prev === 'asc' ? 'desc' : 'asc'));
+                }}
+              >
+                Descrição{' '}
+                {sortKey === 'description' && (sortOrder === 'asc' ? '↑' : '↓')}
               </th>
-              <th className="px-4 py-3 font-medium text-left w-[10%]">Valor</th>
-              <th className="px-4 py-3 font-medium text-center w-[10%]">
-                Parcela
+              <th
+                className="px-4 py-3 font-medium text-left w-[10%] cursor-pointer"
+                onClick={() => {
+                  setSortKey('value');
+                  setSortOrder((prev) => (prev === 'asc' ? 'desc' : 'asc'));
+                }}
+              >
+                Valor {sortKey === 'value' && (sortOrder === 'asc' ? '↑' : '↓')}
               </th>
-              <th className="px-4 py-3 font-medium text-center w-[12%]">
-                Status
+              <th
+                className="px-4 py-3 font-medium text-center w-[10%] cursor-pointer"
+                onClick={() => {
+                  setSortKey('parcelas');
+                  setSortOrder((prev) => (prev === 'asc' ? 'desc' : 'asc'));
+                }}
+              >
+                Parcela{' '}
+                {sortKey === 'parcelas' && (sortOrder === 'asc' ? '↑' : '↓')}
+              </th>
+              <th
+                className="px-4 py-3 font-medium text-center w-[12%] cursor-pointer"
+                onClick={() => {
+                  setSortKey('status');
+                  setSortOrder((prev) => (prev === 'asc' ? 'desc' : 'asc'));
+                }}
+              >
+                Status{' '}
+                {sortKey === 'status' && (sortOrder === 'asc' ? '↑' : '↓')}
               </th>
               <th className="px-4 py-3 font-medium text-center w-[8%]">Pago</th>
               <th className="px-4 py-3 font-medium text-center w-[12%]">

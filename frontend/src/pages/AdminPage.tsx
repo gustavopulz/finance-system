@@ -1,24 +1,18 @@
 import { useEffect, useState } from 'react';
-import { listUsers, addUser, deleteUser } from '../lib/api';
+import { listUsers, addUser, deleteUser, changeUserRole } from '../lib/api';
 import { FaTrash } from 'react-icons/fa';
 
 export default function AdminPage() {
   async function handleToggleAdmin(user: { id: number; role: string }) {
     const newRole = user.role === 'admin' ? 'user' : 'admin';
     try {
-      await fetch(
-        `https://finance-system-api.prxlab.app/api/users/${user.id}/role`,
-        {
-          method: 'PATCH',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ role: newRole }),
-        }
-      );
+      await changeUserRole(user.id, newRole);
       await refresh();
     } catch (err: any) {
       alert('Erro ao atualizar papel do usuário');
     }
   }
+
   const [users, setUsers] = useState<
     { id: number; username: string; role: string; email: string }[]
   >([]);

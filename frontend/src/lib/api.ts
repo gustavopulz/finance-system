@@ -230,3 +230,10 @@ export async function markAccountPaid(id: string, paid: boolean) {
     body: JSON.stringify({ paid }),
   });
 }
+
+export async function changeUserRole(id: number, role: string) {
+  return fetch(`${API_URL}/users/${id}/role`, {
+    method: 'PATCH',
+    body: JSON.stringify({ role }),
+  });
+}

@@ -41,9 +41,13 @@ export function listAccounts(month: number, year: number) {
 }
 
 // /shared/finances
-export function getMergedFinances() {
+export function getMergedFinances(year: number, month: number) {
   return json<{ accounts: any[]; collabs: any[] }>(
-    `${API_URL}/shared/finances`
+    `${API_URL}/shared/finances`,
+    {
+      method: 'POST',
+      body: JSON.stringify({ year, month })
+    }
   );
 }
 

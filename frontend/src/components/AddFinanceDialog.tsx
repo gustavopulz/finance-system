@@ -29,7 +29,7 @@ type Props = {
 // (corrigido: converte "3" -> 3 antes de validar; mantém "X" como string)
 const schema = z.object({
   collaboratorId: z.string().min(1, 'Selecione um colaborador'),
-  description: z.string().min(2, 'Descrição muito curta'),
+  description: z.string(),
   value: z.string().min(1, 'Informe um valor'),
   parcelasTotal: z.preprocess(
     (val) => {
@@ -133,7 +133,7 @@ export default function AddFinanceDialog({
 
     const payload: any = {
       collaboratorId: d.collaboratorId,
-      description: d.description.trim(),
+      description: String(d.description).trim(),
       value: parsedValue, // já em reais
       month: d.month,
       year: d.year,

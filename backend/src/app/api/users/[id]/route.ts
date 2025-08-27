@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { initFirestore, firestore } from '@/lib/firestore';
 import { verifyToken } from '@/lib/jwt';
+import { validarRole } from '@/lib/validarRole';
 
 export async function GET(req: NextRequest, context: { params: Promise<{ id: string }> }) {
   await initFirestore();
@@ -9,12 +10,19 @@ export async function GET(req: NextRequest, context: { params: Promise<{ id: str
   if (!authToken) {
     return NextResponse.json({ error: 'Token ausente' }, { status: 401 });
   }
+  let user;
   try {
-    verifyToken(authToken);
+    user = verifyToken(authToken, "admin");
     const { id } = await context.params;
     if (!id) {
       return NextResponse.json({ error: 'ID do usuário ausente.' }, { status: 400 });
     }
+
+    const hasRole = await validarRole(user.id, "admin");
+    if (!hasRole) {
+      return NextResponse.json({ error: 'Acesso negado.' }, { status: 403 });
+    }
+
     const userDoc = await firestore.collection('users').doc(id).get();
     if (!userDoc.exists) {
       return NextResponse.json({ error: 'Usuário não encontrado.' }, { status: 404 });
@@ -38,6 +46,11 @@ export async function PATCH(req: NextRequest, context: { params: Promise<{ id: s
     user = verifyToken(authToken, "admin");
   } catch (err: any) {
     return NextResponse.json({ error: err.message }, { status: 403 });
+  }
+
+  const hasRole = await validarRole(user.id, "admin");
+  if (!hasRole) {
+    return NextResponse.json({ error: 'Acesso negado.' }, { status: 403 });
   }
 
   const { id } = await context.params;
@@ -76,6 +89,11 @@ export async function DELETE(req: NextRequest, context: { params: Promise<{ id: 
     user = verifyToken(authToken, "admin");
   } catch (err: any) {
     return NextResponse.json({ error: err.message }, { status: 403 });
+  }
+
+  const hasRole = await validarRole(user.id, "admin");
+  if (!hasRole) {
+    return NextResponse.json({ error: 'Acesso negado.' }, { status: 403 });
   }
 
   const { id } = await context.params;

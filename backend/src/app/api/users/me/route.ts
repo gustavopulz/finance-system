@@ -12,7 +12,7 @@ export async function GET(req: NextRequest) {
     await initFirestore();
     const userDoc = await firestore
       .collection('users')
-      .doc(String(user.id))
+      .doc(user.id)
       .get();
     if (!userDoc.exists) {
       return NextResponse.json({ error: 'Usuário não encontrado' }, { status: 404 });

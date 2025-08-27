@@ -110,10 +110,13 @@ export async function DELETE(req: NextRequest, context: { params: Promise<{ id: 
     const collabDeletes = collabsSnap.docs.map(doc => doc.ref.delete());
     await Promise.all(collabDeletes);
 
-    // Remove contas dos colaboradores
-    const accountsSnap = await firestore.collection('accounts').where('collaboratorId', 'in', collabsSnap.docs.map(doc => doc.id)).get();
-    const accountDeletes = accountsSnap.docs.map(doc => doc.ref.delete());
-    await Promise.all(accountDeletes);
+    // Remove contas dos colaboradores (only if there are collaborators)
+    let accountDeletes: Promise<any>[] = [];
+    if (collabsSnap.docs.length > 0) {
+      const accountsSnap = await firestore.collection('accounts').where('collaboratorId', 'in', collabsSnap.docs.map(doc => doc.id)).get();
+      accountDeletes = accountsSnap.docs.map(doc => doc.ref.delete());
+      await Promise.all(accountDeletes);
+    }
 
     // Remove shared_accounts_tokens do usuário
     const tokensSnap = await firestore.collection('shared_accounts_tokens').where('userId', '==', id).get();
@@ -127,6 +130,6 @@ export async function DELETE(req: NextRequest, context: { params: Promise<{ id: 
 
     return NextResponse.json({ success: true });
   } catch (err: any) {
-    return NextResponse.json({ error: err.message }, { status: 500 });
+    return NextResponse.json({ error: err.message, stack: err.stack }, { status: 500 });
   }
 }

@@ -156,9 +156,7 @@ export default function HomePage() {
   // Atalho de teclado para adicionar finança (Alt+N)
   useEffect(() => {
     function handleKeyDown(e: KeyboardEvent) {
-      console.log('Tecla pressionada:', e.key, 'Alt:', e.altKey); // Debug
       if (e.altKey && e.key === 'n') {
-        console.log('Atalho Alt+N detectado!'); // Debug
         e.preventDefault();
         setDlg({ mode: 'addAccount' });
       }
@@ -317,7 +315,7 @@ export default function HomePage() {
         />
       </div>
       <div id="main-content" className="flex-1 grid gap-6">
-        <div className="border border-slate-300 dark:border-slate-700 shadow-sm rounded p-4">
+        <div className="border border-slate-300 dark:border-slate-700 shadow-sm rounded px-4 pt-4 pb-4">
           <h1 className="text-xl font-bold mb-4">Resumo</h1>
 
           <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">

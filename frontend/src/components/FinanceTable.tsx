@@ -1,7 +1,15 @@
 import { parcelaLabel, brl } from '../lib/format';
 import { updateAccount } from '../lib/api';
 import type { Account } from '../lib/types';
-import { Trash2, Pencil, Ban, CheckCircle, GripVertical } from 'lucide-react';
+import {
+  Trash2,
+  Pencil,
+  Ban,
+  CheckCircle,
+  GripVertical,
+  ChevronDown,
+  ChevronUp,
+} from 'lucide-react';
 import { useMemo, useState, useEffect } from 'react';
 import { deleteCollab } from '../lib/api';
 
@@ -42,6 +50,7 @@ export default function FinanceTable({
     open: boolean;
     financa: Account | null;
   }>({ open: false, financa: null });
+  const [isCollapsed, setIsCollapsed] = useState(false);
 
   // Atualiza localItems quando items mudar
   useEffect(() => {
@@ -207,6 +216,11 @@ export default function FinanceTable({
     return copy;
   }, [localItems, sortKey, sortOrder, currentComp]);
 
+  // Dados a serem exibidos (considerando colapso)
+  const displayData = useMemo(() => {
+    return isCollapsed ? sortedData.slice(0, 1) : sortedData;
+  }, [sortedData, isCollapsed]);
+
   return (
     <section className="relative">
       {/* Cabeçalho DESKTOP minimalista */}
@@ -215,13 +229,44 @@ export default function FinanceTable({
         {...(dragHandleProps || {})}
         style={{ ...(dragHandleProps?.style || {}), userSelect: 'none' }}
       >
-        {/* Esquerda: drag + título */}
+        {/* Área esquerda: grip + título + seta */}
         <div className="flex items-center gap-2 flex-1">
           <GripVertical
             size={16}
             className="text-slate-400 dark:text-slate-500"
           />
           <h3 className="text-base font-semibold">{title}</h3>
+          {/* Botão colapsar - impede propagação do drag */}
+          <button
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              setIsCollapsed(!isCollapsed);
+            }}
+            onMouseDown={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+            }}
+            onPointerDown={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+            }}
+            className="p-1 hover:bg-slate-200 dark:hover:bg-slate-600 rounded transition-colors relative z-10"
+            style={{ pointerEvents: 'auto', cursor: 'pointer' }}
+            title={isCollapsed ? 'Expandir tabela' : 'Colapsar tabela'}
+          >
+            {isCollapsed ? (
+              <ChevronDown
+                size={18}
+                className="text-slate-600 dark:text-slate-300"
+              />
+            ) : (
+              <ChevronUp
+                size={18}
+                className="text-slate-600 dark:text-slate-300"
+              />
+            )}
+          </button>
         </div>
 
         {/* Direita: totais + excluir */}
@@ -238,6 +283,7 @@ export default function FinanceTable({
           <button
             onClick={() => setShowConfirm(true)}
             onPointerDown={(e) => e.stopPropagation()}
+            onMouseDown={(e) => e.stopPropagation()}
             className="ml-2 text-red-500 hover:text-red-700"
           >
             <Trash2 size={18} />
@@ -248,12 +294,43 @@ export default function FinanceTable({
       {/* Cabeçalho MOBILE */}
       <div className="md:hidden p-4 pb-2">
         <div
-          className="flex items-center justify-between"
+          className="flex items-center justify-between cursor-grab"
           {...(dragHandleProps || {})}
           style={{ ...(dragHandleProps?.style || {}), userSelect: 'none' }}
         >
           <div className="flex items-center gap-2">
             <h3 className="text-lg font-semibold">{title}</h3>
+            {/* Botão colapsar - impede propagação do drag */}
+            <button
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                setIsCollapsed(!isCollapsed);
+              }}
+              onMouseDown={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+              }}
+              onPointerDown={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+              }}
+              className="p-1 hover:bg-slate-200 dark:hover:bg-slate-600 rounded transition-colors relative z-10"
+              style={{ pointerEvents: 'auto', cursor: 'pointer' }}
+              title={isCollapsed ? 'Expandir tabela' : 'Colapsar tabela'}
+            >
+              {isCollapsed ? (
+                <ChevronDown
+                  size={18}
+                  className="text-slate-600 dark:text-slate-300"
+                />
+              ) : (
+                <ChevronUp
+                  size={18}
+                  className="text-slate-600 dark:text-slate-300"
+                />
+              )}
+            </button>
           </div>
           <div className="flex items-center gap-2">
             <div className="badge bg-slate-100 dark:bg-slate-900/60 text-slate-700 dark:text-slate-100">
@@ -268,6 +345,7 @@ export default function FinanceTable({
             <button
               onClick={() => setShowConfirm(true)}
               onPointerDown={(e) => e.stopPropagation()}
+              onMouseDown={(e) => e.stopPropagation()}
               className="text-red-500 hover:text-red-700 text-sm font-medium flex items-center gap-1 ml-2"
             >
               <Trash2 size={16} />
@@ -330,7 +408,7 @@ export default function FinanceTable({
             </tr>
           </thead>
           <tbody className="divide-y divide-slate-200 dark:divide-slate-700">
-            {sortedData.map((f: Account, idx: number) => (
+            {displayData.map((f: Account, idx: number) => (
               <tr
                 key={f.id}
                 className={`hover:bg-slate-50 dark:hover:bg-slate-700/30 transition ${
@@ -408,7 +486,7 @@ export default function FinanceTable({
                 </td>
               </tr>
             ))}
-            {sortedData.length === 0 && (
+            {displayData.length === 0 && (
               <tr>
                 <td
                   colSpan={7}
@@ -418,13 +496,24 @@ export default function FinanceTable({
                 </td>
               </tr>
             )}
+            {isCollapsed && sortedData.length > 1 && (
+              <tr>
+                <td
+                  colSpan={7}
+                  className="py-2 text-center text-slate-500 dark:text-slate-400 text-sm italic"
+                >
+                  ... e mais {sortedData.length - 1} item(ns) (clique na seta
+                  para expandir)
+                </td>
+              </tr>
+            )}
           </tbody>
         </table>
       </div>
 
       {/* MOBILE - Cards */}
       <div className="block md:hidden space-y-3">
-        {sortedData.map((f) => (
+        {displayData.map((f) => (
           <div
             key={f.id}
             className="border border-slate-300 dark:border-slate-700 rounded p-4 bg-white dark:bg-slate-800 shadow-sm"
@@ -482,6 +571,12 @@ export default function FinanceTable({
             </div>
           </div>
         ))}
+        {isCollapsed && sortedData.length > 1 && (
+          <div className="text-center text-slate-500 dark:text-slate-400 text-sm italic py-2">
+            ... e mais {sortedData.length - 1} item(ns) (clique na seta para
+            expandir)
+          </div>
+        )}
       </div>
 
       {/* Modais permanecem iguais abaixo */}

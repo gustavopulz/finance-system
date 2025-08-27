@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import SkeletonCard from '../components/SkeletonCard';
 import { useAuth } from '../context/AuthContext';
+import { useNotification } from '../context/NotificationContext';
 import { generateShareToken, useShareToken } from '../lib/api';
 import { updatename, updateUserPassword } from '../lib/api';
 import { getLinks, unlinkUser } from '../lib/api';
@@ -15,6 +16,7 @@ import {
 } from 'lucide-react';
 
 export default function UserPanelPage() {
+  const { notify } = useNotification();
   const auth = useAuth();
   const [token, setToken] = useState('');
   const [sharedToken, setSharedToken] = useState('');
@@ -56,20 +58,23 @@ export default function UserPanelPage() {
   const handleUseToken = async () => {
     const res = await useShareToken(sharedToken);
     if (res.success) {
-      alert('Contas mescladas com sucesso!');
+      notify('Contas mescladas com sucesso!', 'success');
       await fetchLinks();
     } else {
-      alert(res.error || 'Erro ao mesclar contas');
+      notify(res.error || 'Erro ao mesclar contas', 'error');
     }
     setSharedToken('');
   };
 
-  const handleUnlink = async (otherUserId: string, direction: 'i-see' | 'see-me') => {
+  const handleUnlink = async (
+    otherUserId: string,
+    direction: 'i-see' | 'see-me'
+  ) => {
     try {
       await unlinkUser(otherUserId, direction);
       await fetchLinks();
     } catch (err: any) {
-      alert(err.message || 'Erro ao desvincular usuário');
+      notify(err.message || 'Erro ao desvincular usuário', 'error');
     }
   };
 

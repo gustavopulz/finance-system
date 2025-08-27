@@ -12,6 +12,11 @@ import UserPanelPage from './pages/UserPanelPage';
 import { useAuth } from './context/AuthContext';
 import AdminPage from './pages/AdminPage';
 import Header from './components/Header';
+import NotificationBar from './components/NotificationBar';
+import {
+  NotificationProvider,
+  useNotification,
+} from './context/NotificationContext';
 import Footer from './components/Footer';
 import InfoPage from './pages/InfoPage';
 import NotFoundPage from './pages/errors/404';
@@ -42,8 +47,10 @@ function AppWithHeader() {
     location.pathname === '/register';
   const auth = useAuth();
 
+  const { notifications, remove } = useNotification();
   return (
     <>
+      <NotificationBar notifications={notifications} onRemove={remove} />
       {!hideHeader && <Header />}
       <div className="flex flex-col min-h-screen">
         <main className="flex-1 py-6">
@@ -114,9 +121,11 @@ function AppWithHeader() {
 
 function App() {
   return (
-    <Router>
-      <AppWithHeader />
-    </Router>
+    <NotificationProvider>
+      <Router>
+        <AppWithHeader />
+      </Router>
+    </NotificationProvider>
   );
 }
 

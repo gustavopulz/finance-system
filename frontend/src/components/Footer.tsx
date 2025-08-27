@@ -4,7 +4,7 @@ import { Github } from 'lucide-react';
 export default function Footer() {
   return (
     <footer className="border-t bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800">
-      <div className="mx-auto px-4 lg:px-20 2xl:px-80">
+      <div className="mx-auto px-4 lg:px-20 2xl:px-96">
         {/* Esquerda = descrição+devs | Direita = links */}
         <div className="flex flex-col md:flex-row justify-between gap-16 py-10">
           {/* Coluna Esquerda */}

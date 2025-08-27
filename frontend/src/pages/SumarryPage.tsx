@@ -2,6 +2,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import SidebarTotalColabs from '../components/SidebarTotalColabs';
 import SkeletonCard from '../components/SkeletonCard';
 import React from 'react';
+import { useNotification } from '../context/NotificationContext';
 import { DndContext, closestCenter } from '@dnd-kit/core';
 import {
   arrayMove,
@@ -54,6 +55,7 @@ function normalizeAccount(a: any): Account {
 }
 
 export default function HomePage() {
+  const { notify } = useNotification();
   const collabRefs = useRef<{ [id: string]: HTMLDivElement | null }>({});
   const [selectedCollab, setSelectedCollab] = useState<string | null>(null);
   useEffect(() => {
@@ -277,7 +279,19 @@ export default function HomePage() {
 
   async function removeAccount(id: string | string[]) {
     const ids = Array.isArray(id) ? id : [id];
+    // Busca descrição da(s) finança(s)
+    let desc = '';
+    if (ids.length === 1) {
+      const acc = accounts.find((a) => a.id === ids[0]);
+      if (acc) desc = acc.description;
+    }
     await api.deleteAccount(ids);
+    notify(
+      ids.length === 1 && desc
+        ? `Finança "${desc}" removida com sucesso!`
+        : `Finanças removidas com sucesso!`,
+      'success'
+    );
     await load();
   }
 
@@ -296,10 +310,11 @@ export default function HomePage() {
 
   async function createCollab(name: string) {
     if (collabs.some((c) => c.name.toLowerCase() === name.toLowerCase())) {
-      alert('Já existe um colaborador com esse nome!');
+      notify('Já existe um colaborador com esse nome!', 'error');
       return;
     }
     await api.addCollab(name);
+    notify(`Colaborador "${name}" criado com sucesso!`, 'success');
     setDlg({ mode: 'closed' });
     await load();
   }
@@ -319,9 +334,24 @@ export default function HomePage() {
     );
   }
 
+  // Notificação melhorada para colaborador removido
+  async function handleCollabDeleted(collabId: string) {
+    const collab = collabs.find((c) => c.id === collabId);
+    notify(
+      collab
+        ? `Colaborador "${collab.name}" removido com sucesso!`
+        : 'Colaborador removido com sucesso!',
+      'success'
+    );
+    await load();
+  }
+
   return (
     <div className="flex px-4 sm:px-6 lg:px-20 2xl:px-40 gap-6 mx-auto">
-      <div id="sidebar-total-colabs" className="hidden md:block">
+      <div
+        id="sidebar-total-colabs"
+        className="hidden md:block sticky top-6 h-screen"
+      >
         <SidebarTotalColabs
           total={total}
           totalPendente={totalPendente}
@@ -505,8 +535,8 @@ export default function HomePage() {
                           setDlg({ mode: 'editAccount', account })
                         }
                         onCancelToggle={(id) => toggleCancel(id)}
-                        onCollabDeleted={async () => {
-                          await load();
+                        onCollabDeleted={async (collabId) => {
+                          await handleCollabDeleted(collabId);
                         }}
                         onPaidUpdate={handlePaidUpdate}
                       />
@@ -519,15 +549,42 @@ export default function HomePage() {
         </DndContext>
       </div>
 
-      {/* Botão flutuante para adicionar finança */}
+      {/* Botões flutuantes */}
       {showFloatingButton && (
-        <button
-          onClick={() => setDlg({ mode: 'addAccount' })}
-          className="fixed bottom-6 right-6 w-14 h-14 bg-blue-600 hover:bg-blue-700 text-white rounded-full shadow-lg hover:shadow-xl transition-all duration-300 flex items-center justify-center z-50"
-          title="Adicionar finança (Alt+N)"
-        >
-          <Plus size={24} />
-        </button>
+        <div className="fixed bottom-6 right-6 flex flex-col items-end gap-2 z-50">
+          {/* Wrapper para posicionar o up na diagonal */}
+          <div className="relative">
+            {/* Botão de adicionar finança */}
+            <button
+              onClick={() => setDlg({ mode: 'addAccount' })}
+              className="w-14 h-14 bg-blue-600 hover:bg-blue-700 text-white rounded-full shadow-lg hover:shadow-xl transition-all duration-300 flex items-center justify-center"
+              title="Adicionar finança (Alt+N)"
+            >
+              <Plus size={24} />
+            </button>
+
+            {/* Botão de voltar ao topo (menor e na diagonal) */}
+            <button
+              onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
+              className="absolute -top-3 -left-3 w-8 h-8 bg-slate-200 hover:bg-slate-300 text-blue-700 rounded-full shadow-md transition-all duration-300 flex items-center justify-center border border-blue-400"
+              title="Voltar ao topo"
+              aria-label="Voltar ao topo"
+            >
+              <svg
+                width="18"
+                height="18"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              >
+                <polyline points="18 15 12 9 6 15"></polyline>
+              </svg>
+            </button>
+          </div>
+        </div>
       )}
 
       {dlg.mode === 'addCollab' && (

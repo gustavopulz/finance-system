@@ -1,11 +1,13 @@
 import { useAuth } from '../context/AuthContext';
 import { Navigate } from 'react-router-dom';
 import { useEffect, useState } from 'react';
+import { useNotification } from '../context/NotificationContext';
 import { listUsers, addUser, deleteUser, changeUserRole } from '../lib/api';
 import { FaTrash } from 'react-icons/fa';
 import { FaUserShield, FaUser } from 'react-icons/fa';
 
 export default function AdminPage() {
+  const { notify } = useNotification();
   const auth = useAuth();
   if (auth?.loading)
     return (
@@ -23,7 +25,7 @@ export default function AdminPage() {
       await changeUserRole(user.id, newRole);
       await refresh();
     } catch (err: any) {
-      alert('Erro ao atualizar papel do usuário');
+      notify('Erro ao atualizar papel do usuário', 'error');
     }
   }
 
@@ -75,7 +77,7 @@ export default function AdminPage() {
       setUserToDelete(null);
       await refresh();
     } catch (err: any) {
-      alert(err.message || 'Erro ao excluir usuário');
+      notify(err.message || 'Erro ao excluir usuário', 'error');
     }
   }
 
@@ -89,7 +91,7 @@ export default function AdminPage() {
       setUserToEdit(null);
       await refresh();
     } catch (err: any) {
-      alert(err.message || 'Erro ao editar usuário');
+      notify(err.message || 'Erro ao editar usuário', 'error');
     }
   }
 

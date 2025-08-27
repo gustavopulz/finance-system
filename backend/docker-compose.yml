@@ -4,8 +4,7 @@ services:
     container_name: finance-system-api
     restart: always
     environment:
-      - NODE_ENV=production
-      - PORT=3000
+      - .env
     labels:
       - "traefik.enable=true"
       - "traefik.http.routers.finance-system-api.rule=Host(`finance-system-api.prxlab.app`)"

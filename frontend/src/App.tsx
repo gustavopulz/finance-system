@@ -14,18 +14,17 @@ import AdminPage from './pages/AdminPage';
 import Header from './components/Header';
 import InfoPage from './pages/InfoPage';
 import NotFoundPage from './pages/errors/404';
+import RegisterPage from './pages/RegisterPage';
 
 function PrivateRoute({ children }: { children: JSX.Element }) {
   const auth = useAuth();
   if (auth?.loading) return null;
   if (!auth || !auth.user) {
-    // Redireciona para login se não estiver autenticado
     return <Navigate to="/login" />;
   }
   return children;
 }
 
-// Rota privada só para admin
 function AdminRoute({ children }: { children: JSX.Element }) {
   const auth = useAuth();
   if (!auth || !auth.user) return <Navigate to="/login" />;
@@ -36,15 +35,19 @@ function AdminRoute({ children }: { children: JSX.Element }) {
 function AppWithHeader() {
   const location = useLocation();
   const hideHeader =
-    location.pathname === '/login' || location.pathname === '/404'; // Corrigido para '/404'
+    location.pathname === '/login' ||
+    location.pathname === '/404' ||
+    location.pathname === '/register';
   const auth = useAuth();
 
   return (
     <>
       {!hideHeader && <Header />}
-      <main className="container-app py-6">
+      <main className="app py-6">
         <Routes>
           <Route path="/login" element={<LoginPage />} />
+          <Route path="/register" element={<RegisterPage />} />
+
           <Route
             path="/"
             element={

@@ -30,21 +30,19 @@ export async function PATCH(
     }
 
     const dtPaid = payload.paid ? new Date() : null;
+    const batch = firestore.batch();
     const results = [];
     for (const id of payload.accounts) {
-      try {
-        const accountDoc = await firestore.collection('accounts').doc(id).get();
-        if (!accountDoc.exists) {
-          results.push({ id, error: 'Conta não encontrada.' });
-          continue;
-        }
-        await firestore.collection('accounts').doc(id).update({ paid: payload.paid, dtPaid });
-        results.push({ id, paid: payload.paid, dtPaid });
-      } catch (err: any) {
-        results.push({ id, error: err.message });
-      }
+      const accountRef = firestore.collection('accounts').doc(id);
+      batch.update(accountRef, { paid: payload.paid, dtPaid });
+      results.push({ id, paid: payload.paid, dtPaid });
     }
-    return NextResponse.json({ results });
+    try {
+      await batch.commit();
+      return NextResponse.json({ results });
+    } catch (err: any) {
+      return NextResponse.json({ error: err.message }, { status: 500 });
+    }
 
   } catch (err: any) {
     return NextResponse.json({ error: err.message }, { status: 500 });

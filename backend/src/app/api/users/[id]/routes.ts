@@ -1,0 +1,58 @@
+import { NextRequest, NextResponse } from 'next/server';
+import { initFirestore, firestore } from '@/lib/firestore';
+import bcrypt from 'bcryptjs';
+import { verifyToken } from '@/lib/jwt';
+
+export async function DELETE(req: NextRequest, context: { params: Promise<{ id: string }> }) {
+  await initFirestore();
+  const cookie = req.cookies.get('auth_token');
+  const authToken = typeof cookie === 'string' ? cookie : cookie?.value;
+  if (!authToken) {
+    return NextResponse.json({ error: 'Token ausente' }, { status: 401 });
+  }
+  let user;
+  try {
+    user = verifyToken(authToken);
+  } catch (err: any) {
+    return NextResponse.json({ error: err.message }, { status: 403 });
+  }
+
+  // Verifica se o usuário é admin
+  if (!user?.admin) {
+    return NextResponse.json({ error: 'Apenas administradores podem deletar usuários.' }, { status: 403 });
+  }
+
+  const { id } = await context.params;
+  if (!id) {
+    return NextResponse.json({ error: 'ID do usuário ausente.' }, { status: 400 });
+  }
+
+  try {
+    // Remove usuário
+    await firestore.collection('users').doc(id).delete();
+
+    // Remove colaboradores associados ao usuário
+    const collabsSnap = await firestore.collection('collaborators').where('userId', '==', id).get();
+    const collabDeletes = collabsSnap.docs.map(doc => doc.ref.delete());
+    await Promise.all(collabDeletes);
+
+    // Remove contas dos colaboradores
+    const accountsSnap = await firestore.collection('accounts').where('collaboratorId', 'in', collabsSnap.docs.map(doc => doc.id)).get();
+    const accountDeletes = accountsSnap.docs.map(doc => doc.ref.delete());
+    await Promise.all(accountDeletes);
+
+    // Remove shared_accounts_tokens do usuário
+    const tokensSnap = await firestore.collection('shared_accounts_tokens').where('userId', '==', id).get();
+    const tokenDeletes = tokensSnap.docs.map(doc => doc.ref.delete());
+    await Promise.all(tokenDeletes);
+
+    // Remove shared_accounts do usuário
+    const sharedSnap = await firestore.collection('shared_accounts').where('userId', '==', id).get();
+    const sharedDeletes = sharedSnap.docs.map(doc => doc.ref.delete());
+    await Promise.all(sharedDeletes);
+
+    return NextResponse.json({ success: true });
+  } catch (err: any) {
+    return NextResponse.json({ error: err.message }, { status: 500 });
+  }
+}

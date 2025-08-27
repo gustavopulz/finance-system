@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { listUsers, addUser, deleteUser, changeUserRole } from '../lib/api';
 import { FaTrash } from 'react-icons/fa';
+import { FaUserShield, FaUser } from 'react-icons/fa';
 
 export default function AdminPage() {
   async function handleToggleAdmin(user: { id: number; role: string }) {
@@ -42,12 +43,7 @@ export default function AdminPage() {
       const data = await listUsers();
       setUsers(
         data.map(
-          (u: {
-            id: number;
-            name: string;
-            role: string;
-            email?: string;
-          }) => ({
+          (u: { id: number; name: string; role: string; email?: string }) => ({
             ...u,
             email: u.email ?? '',
           })
@@ -118,12 +114,6 @@ export default function AdminPage() {
     <div className="mx-auto px-4 2xl:px-40 lg:px-20">
       <div className="flex items-center justify-between mb-6">
         <h1 className="text-2xl font-bold">Administração de Usuários</h1>
-        <button
-          className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded transition"
-          onClick={() => setDlg({ mode: 'addUser' })}
-        >
-          Adicionar Usuário
-        </button>
       </div>
 
       {/* TABELA */}
@@ -136,8 +126,7 @@ export default function AdminPage() {
                 className="px-4 py-3 font-medium cursor-pointer"
                 onClick={() => handleSort('name')}
               >
-                Nome{' '}
-                {sortKey === 'name' && (sortOrder === 'asc' ? '↑' : '↓')}
+                Nome {sortKey === 'name' && (sortOrder === 'asc' ? '↑' : '↓')}
               </th>
               <th
                 className="px-4 py-3 font-medium cursor-pointer"
@@ -152,7 +141,7 @@ export default function AdminPage() {
                 E-mail{' '}
                 {sortKey === 'email' && (sortOrder === 'asc' ? '↑' : '↓')}
               </th>
-              <th className="px-4 py-3 font-medium text-right">Ações</th>
+              <th className="px-4 py-3 font-medium text-center">Ações</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-slate-200 dark:divide-slate-700">
@@ -203,21 +192,23 @@ export default function AdminPage() {
                         <span className="italic text-slate-400">N/D</span>
                       )}
                     </td>
-                    <td className="px-4 py-3 text-right">
-                      <div className="flex items-center justify-end gap-2">
+                    <td className="px-4 py-3 text-center">
+                      <div className="flex items-center justify-center gap-2">
                         <button
                           onClick={() => handleToggleAdmin(u)}
-                          className={`p-2 rounded border ${u.role === 'admin' ? 'border-blue-600 text-blue-600 hover:bg-blue-600 hover:text-white' : 'border-red-600 text-red-600 hover:bg-red-600 hover:text-white'} transition`}
+                          className={`p-2 rounded border flex items-center gap-2 ${u.role === 'admin' ? 'border-red-600 text-red-600 hover:bg-red-600 hover:text-white' : 'border-blue-600 text-blue-600 hover:bg-blue-600 hover:text-white'} transition`}
                         >
-                          {u.role === 'admin'
-                            ? 'Tornar Usuário'
-                            : 'Tornar Admin'}
+                          {u.role === 'admin' ? (
+                            <FaUser className="w-4 h-4" />
+                          ) : (
+                            <FaUserShield className="w-4 h-4" />
+                          )}
                         </button>
                         <button
                           onClick={() => {
                             setDlg({ mode: 'deleteUser', userId: u.id });
                           }}
-                          className="p-2 rounded border border-red-600 text-red-600 hover:bg-red-600 hover:text-white transition"
+                          className="p-2 rounded border border-gray-400 text-gray-600 hover:bg-gray-400 hover:text-white transition"
                         >
                           <FaTrash />
                         </button>

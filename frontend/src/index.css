@@ -2,6 +2,14 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Remove margens e padding globais */
+html,
+body {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
 /* Altura total */
 html,
 body,
@@ -103,4 +111,37 @@ body {
 .dark .custom-checkbox {
   border-color: #334155; /* border-slate-700 */
   background-color: #1e293b; /* bg-slate-800 */
+}
+
+/* Checkbox especial para registro */
+.register-checkbox {
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  width: 20px;
+  height: 20px;
+  border: 1px solid #cbd5e1;
+  border-radius: 0.375rem;
+  background-color: #ffffff;
+  cursor: pointer;
+  transition: all 0.2s ease-in-out;
+}
+
+.register-checkbox:checked {
+  background: #2563eb;
+  border-color: #2563eb;
+}
+
+.register-checkbox:checked::after {
+  content: '✓';
+  color: white;
+  font-size: 0.9rem;
+  display: block;
+  text-align: center;
+  line-height: 18px;
+}
+
+.dark .register-checkbox {
+  border-color: #64748b;
+  background: transparent;
 }

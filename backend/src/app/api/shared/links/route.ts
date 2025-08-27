@@ -9,9 +9,9 @@ export async function GET(req: NextRequest) {
   if (!authToken) throw new Error('Token ausente');
   try {
     const user = verifyToken(authToken);
-    const iSeeSnap = await firestore.collection('shared_accounts').where('userId', '==', user.id).get();
+    const iSeeSnap = await firestore.collection('shared_accounts').where('sharedWithUserId', '==', user.id).get();
     const iSee = iSeeSnap.docs.map(doc => ({ id: doc.data().sharedWithUserId, name: doc.data().sharedWithUserName }));
-    const seeMeSnap = await firestore.collection('shared_accounts').where('sharedWithUserId', '==', user.id).get();
+    const seeMeSnap = await firestore.collection('shared_accounts').where('userId', '==', user.id).get();
     const seeMe = seeMeSnap.docs.map(doc => ({ id: doc.data().userId, name: doc.data().sharedByUser }));
     return NextResponse.json({ iSee, seeMe });
   } catch (err: any) {

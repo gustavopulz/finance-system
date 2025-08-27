@@ -114,6 +114,7 @@ export function deleteUser(id: number) {
     method: 'DELETE',
   });
 }
+
 export async function login(email: string, password: string) {
   const data = await json<{
     user: {

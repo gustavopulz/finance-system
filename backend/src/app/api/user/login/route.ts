@@ -18,20 +18,20 @@ export async function POST(req: NextRequest) {
 
   const userDoc = userSnap.docs[0];
   const userData = userDoc.data();
-  const user = { id: userDoc.id, username: userData.username, password: userData.password, role: userData.role, email: userData.email };
+  const user = { id: userDoc.id, name: userData.name, password: userData.password, role: userData.role, email: userData.email };
   const ok = await bcrypt.compare(password, user.password);
   if (!ok) {
     return NextResponse.json({ error: 'Credenciais inválidas' }, { status: 401 });
   }
 
   const token = jwt.sign(
-    { id: user.id, username: user.username, role: user.role, email: user.email },
+    { id: user.id, name: user.name, role: user.role, email: user.email },
     JWT_SECRET,
     { expiresIn: '1h' }
   );
 
   const response = NextResponse.json({
-    user: { id: user.id, username: user.username, role: user.role, email: user.email },
+    user: { id: user.id, name: user.name, role: user.role, email: user.email },
   });
   response.cookies.set('auth_token', token, {
     httpOnly: true,

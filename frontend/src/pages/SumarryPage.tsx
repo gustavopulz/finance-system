@@ -279,7 +279,19 @@ export default function HomePage() {
 
   async function removeAccount(id: string | string[]) {
     const ids = Array.isArray(id) ? id : [id];
+    // Busca descrição da(s) finança(s)
+    let desc = '';
+    if (ids.length === 1) {
+      const acc = accounts.find((a) => a.id === ids[0]);
+      if (acc) desc = acc.description;
+    }
     await api.deleteAccount(ids);
+    notify(
+      ids.length === 1 && desc
+        ? `Finança "${desc}" removida com sucesso!`
+        : `Finanças removidas com sucesso!`,
+      'success'
+    );
     await load();
   }
 
@@ -302,7 +314,7 @@ export default function HomePage() {
       return;
     }
     await api.addCollab(name);
-    notify('Colaborador criado com sucesso!', 'success');
+    notify(`Colaborador "${name}" criado com sucesso!`, 'success');
     setDlg({ mode: 'closed' });
     await load();
   }
@@ -320,6 +332,18 @@ export default function HomePage() {
         return account;
       })
     );
+  }
+
+  // Notificação melhorada para colaborador removido
+  async function handleCollabDeleted(collabId: string) {
+    const collab = collabs.find((c) => c.id === collabId);
+    notify(
+      collab
+        ? `Colaborador "${collab.name}" removido com sucesso!`
+        : 'Colaborador removido com sucesso!',
+      'success'
+    );
+    await load();
   }
 
   return (
@@ -508,12 +532,8 @@ export default function HomePage() {
                           setDlg({ mode: 'editAccount', account })
                         }
                         onCancelToggle={(id) => toggleCancel(id)}
-                        onCollabDeleted={async () => {
-                          notify(
-                            'Colaborador removido com sucesso!',
-                            'success'
-                          );
-                          await load();
+                        onCollabDeleted={async (collabId) => {
+                          await handleCollabDeleted(collabId);
                         }}
                         onPaidUpdate={handlePaidUpdate}
                       />

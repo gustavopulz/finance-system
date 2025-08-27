@@ -4,8 +4,6 @@ services:
     container_name: finance-system-api
     restart: always
     environment:
-      - NODE_ENV=production
-      - PORT=3000
       - .env
     labels:
       - "traefik.enable=true"

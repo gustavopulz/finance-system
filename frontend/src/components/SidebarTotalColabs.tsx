@@ -30,7 +30,7 @@ export default function SidebarTotalColabs({
 
   return (
     <aside
-      className="w-64 bg-slate-50 dark:bg-slate-900 pr-4 flex flex-col gap-3 border-r border-slate-200 dark:border-slate-800 sticky top-6 pt-3 pb-3 self-start"
+      className="w-64 bg-slate-50 dark:bg-slate-900 pr-4 flex flex-col gap-3 border-r border-slate-200 dark:border-slate-800 sticky top-6 pt-3 pb-3 self-stretch h-full"
       onClick={handleSidebarClick}
     >
       <div>

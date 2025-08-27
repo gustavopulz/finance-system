@@ -48,6 +48,14 @@ export function getMergedFinances() {
   );
 }
 
+// /shared/links
+export async function getLinks() {
+  return json<{
+    iSee: { id: number; name: string }[];
+    seeMe: { id: number; name: string }[];
+  }>(`${API_URL}/links`);
+}
+
 // -------------------- POST REQUESTS --------------------
 // /user/register
 export function registerUser(email: string, password: string, name: string) {
@@ -230,10 +238,6 @@ export function unlinkUser(otherUserId: string, direction: 'i-see' | 'see-me') {
 }
 
 // -------------------- UTILS --------------------
-export function getToken(): string | null {
-  return null;
-}
-
 async function json<T>(url: string, options: RequestInit = {}): Promise<T> {
   const res = await fetch(url, {
     ...options,

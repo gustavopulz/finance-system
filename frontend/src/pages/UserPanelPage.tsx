@@ -3,8 +3,7 @@ import SkeletonCard from '../components/SkeletonCard';
 import { useAuth } from '../context/AuthContext';
 import { generateShareToken, useShareToken } from '../lib/api';
 import { updatename, updateUserPassword } from '../lib/api';
-import { getLinks } from '../lib/share';
-import { unlinkUser } from '../lib/api';
+import { getLinks, unlinkUser } from '../lib/api';
 import {
   Plus,
   Pencil,

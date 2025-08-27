@@ -44,7 +44,11 @@ export default function AddCollaboratorDialog({
           </label>
 
           <div className="mt-2 flex justify-end gap-2">
-            <button type="button" className="btn btn-ghost" onClick={onClose}>
+            <button
+              type="button"
+              className="border border-slate-300 dark:border-slate-700 flex items-center gap-2 bg-transparent hover:bg-slate-700 text-white px-4 py-2 rounded-md transition"
+              onClick={onClose}
+            >
               Cancelar
             </button>
             <button type="submit" className="btn btn-primary">

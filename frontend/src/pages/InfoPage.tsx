@@ -90,7 +90,7 @@ export default function InfoPage() {
                 Salvar
               </button>
               <button
-                className="btn btn-ghost"
+                className="border border-slate-300 dark:border-slate-700 flex items-center gap-2 bg-transparent hover:bg-slate-700 text-white px-4 py-2 rounded-md transition"
                 onClick={() => setEditSalary(false)}
               >
                 Cancelar

@@ -143,75 +143,23 @@ export default function FinanceTable({
       selectedItems.has(item.id)
     );
 
-    console.log(
-      'Contas selecionadas:',
-      selectedAccounts.map((a) => ({ id: a.id, description: a.description }))
-    );
+    const accountIds = selectedAccounts.map((a) => a.id);
+    try {
+      await markAccountPaid(accountIds, markAsPaid);
 
-    let successCount = 0;
-
-    for (const account of selectedAccounts) {
-      try {
-        console.log(`Processando conta: ${account.description}`);
-
-        const isRecurrentAccount =
-          account.parcelasTotal === null || account.parcelasTotal === undefined;
-
-        if (isRecurrentAccount) {
-          console.log('Conta recorrente - enviando com mês/ano:', {
-            month: currentComp.month,
-            year: currentComp.year,
-          });
-
-          await markAccountPaid(
-            account.id,
-            markAsPaid,
-            currentComp.month,
-            currentComp.year
-          );
-
-          setLocalItems((prev) =>
-            prev.map((item) => {
-              if (item.id === account.id) {
-                const monthKey = `${currentComp.year}-${String(currentComp.month).padStart(2, '0')}`;
-                const updatedPaidByMonth = { ...item.paidByMonth };
-
-                if (markAsPaid) {
-                  updatedPaidByMonth[monthKey] = true;
-                } else {
-                  delete updatedPaidByMonth[monthKey];
-                }
-
-                return { ...item, paidByMonth: updatedPaidByMonth };
+      setLocalItems((prev) =>
+        prev.map((item) =>
+          accountIds.includes(item.id)
+            ? {
+                ...item,
+                paid: markAsPaid,
+                dtPaid: markAsPaid ? new Date().toISOString() : undefined,
               }
-              return item;
-            })
-          );
-        } else {
-          console.log('Conta não recorrente');
+            : item
+        )
+      );
 
-          const response = (await markAccountPaid(
-            account.id,
-            markAsPaid
-          )) as any;
-
-          setLocalItems((prev) =>
-            prev.map((item) =>
-              item.id === account.id
-                ? {
-                    ...item,
-                    paid: markAsPaid,
-                    dtPaid:
-                      response?.dtPaid ||
-                      (markAsPaid ? new Date().toISOString() : undefined),
-                  }
-                : item
-            )
-          );
-        }
-
-        onPaidUpdate?.(account.id, markAsPaid);
-      });
+      accountIds.forEach((id) => onPaidUpdate?.(id, markAsPaid));
       setToast(
         `${accountIds.length} finança(s) marcada(s) como ${markAsPaid ? 'paga(s)' : 'não paga(s)'} ✅`
       );
@@ -331,56 +279,20 @@ export default function FinanceTable({
       const currentPaid = isAccountPaidInMonth(account, currentComp);
       const newPaid = !currentPaid;
 
-      // Para contas recorrentes, envia month/year
-      if (isRecurrentAccount) {
-        await markAccountPaid(
-          account.id,
-          newPaid,
-          currentComp.month,
-          currentComp.year
-        );
+      await markAccountPaid([account.id], newPaid);
 
-        // Atualiza o estado local para contas recorrentes
-        setLocalItems((prev) =>
-          prev.map((item) => {
-            if (item.id === account.id) {
-              const monthKey = `${currentComp.year}-${String(currentComp.month).padStart(2, '0')}`;
-              const updatedPaidByMonth = { ...item.paidByMonth };
-
-              if (newPaid) {
-                updatedPaidByMonth[monthKey] = true;
-              } else {
-                delete updatedPaidByMonth[monthKey];
-              }
-
-              return {
+      setLocalItems((prev) =>
+        prev.map((item) =>
+          item.id === account.id
+            ? {
                 ...item,
-                paidByMonth: updatedPaidByMonth,
-              };
-            }
-            return item;
-          })
-        );
-      } else {
-        // Para contas não-recorrentes, usa o endpoint mark-paid
-        const response = (await markAccountPaid(account.id, newPaid)) as any;
+                paid: newPaid,
+                dtPaid: newPaid ? new Date().toISOString() : undefined,
+              }
+            : item
+        )
+      );
 
-        setLocalItems((prev) =>
-          prev.map((item) =>
-            item.id === account.id
-              ? {
-                  ...item,
-                  paid: newPaid,
-                  dtPaid:
-                    response?.dtPaid ||
-                    (newPaid ? new Date().toISOString() : undefined),
-                }
-              : item
-          )
-        );
-      }
-
-      // Notifica o componente pai sobre a mudança
       onPaidUpdate?.(account.id, newPaid);
       setToast(`Finança marcada como ${newPaid ? 'paga' : 'não paga'} ✅`);
       setTimeout(() => setToast(null), 2000);

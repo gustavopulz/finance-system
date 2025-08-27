@@ -201,10 +201,10 @@ export function toggleCancel(id: string, month?: number, year?: number) {
 
 // /accounts/{id}/mark-paid
 export async function markAccountPaid(
-  accountIds: string[],
+  accounts: string[],
   paid: boolean
 ) {
-  const body = { accounts: accountIds, paid };
+  const body = { accounts, paid };
   return json(`${API_URL}/accounts/mark-paid`, {
     method: 'PATCH',
     body: JSON.stringify(body),

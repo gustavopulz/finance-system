@@ -45,7 +45,7 @@ function AppWithHeader() {
   return (
     <>
       {!hideHeader && <Header />}
-      <main className="app py-6">
+      <main className="flex-1 py-6">
         <Routes>
           <Route path="/login" element={<LoginPage />} />
           <Route path="/register" element={<RegisterPage />} />

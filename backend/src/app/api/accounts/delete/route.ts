@@ -2,9 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { initFirestore, firestore } from '@/lib/firestore';
 import { verifyToken } from '@/lib/jwt';
 
-export async function PATCH(
-  req: NextRequest
-) {
+export async function DELETE(req: NextRequest) {
   await initFirestore();
   const cookie = req.cookies.get('auth_token');
   const authToken = typeof cookie === 'string' ? cookie : cookie?.value;
@@ -22,20 +20,19 @@ export async function PATCH(
       );
     }
 
-    if (!payload || !Array.isArray(payload.accounts) || typeof payload.paid !== 'boolean') {
+    if (!payload || !Array.isArray(payload.accounts)) {
       return NextResponse.json(
-        { error: 'Campos "accounts" (array) e "paid" (boolean) são obrigatórios.' },
+        { error: 'Campo "accounts" (array) é obrigatório.' },
         { status: 400 }
       );
     }
 
-    const dtPaid = payload.paid ? new Date() : null;
     const batch = firestore.batch();
     const results = [];
     for (const id of payload.accounts) {
       const accountRef = firestore.collection('accounts').doc(id);
-      batch.update(accountRef, { paid: payload.paid, dtPaid });
-      results.push({ id, paid: payload.paid, dtPaid });
+      batch.delete(accountRef);
+      results.push({ id, deleted: true });
     }
     try {
       await batch.commit();
@@ -43,7 +40,6 @@ export async function PATCH(
     } catch (err: any) {
       return NextResponse.json({ error: err.message }, { status: 500 });
     }
-
   } catch (err: any) {
     return NextResponse.json({ error: err.message }, { status: 500 });
   }

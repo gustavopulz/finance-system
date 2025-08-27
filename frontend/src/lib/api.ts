@@ -2,7 +2,7 @@ const API_URL = 'https://finance-system-api.prxlab.app/api';
 
 // -------------------- REGISTER --------------------
 export function registerUser(email: string, password: string, name: string) {
-  return json<{ success?: boolean; message?: string }>(`${API_URL}/register`, {
+  return json<{ success?: boolean; message?: string }>(`${API_URL}/user/register`, {
     method: 'POST',
     body: JSON.stringify({ email, password, name }),
   });
@@ -110,7 +110,7 @@ export function deleteUser(id: number) {
 export async function login(username: string, password: string) {
   const data = await json<{
     user: { id: number; username: string; role: 'admin' | 'user' };
-  }>(`${API_URL}/login`, {
+  }>(`${API_URL}/user/login`, {
     method: 'POST',
     body: JSON.stringify({ username, password }),
     credentials: 'include',

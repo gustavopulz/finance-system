@@ -1,16 +1,16 @@
 import React, { useState } from 'react';
+import { registerUser } from '../lib/api';
 import { FaEye, FaEyeSlash } from 'react-icons/fa';
 
 export default function RegisterPage() {
   const [formData, setFormData] = useState({
-    username: '',
+    name: '',
     email: '',
     password: '',
     confirmPassword: '',
     terms: false,
   });
-
-  const [usernameFocused, setUsernameFocused] = useState(false);
+  const [nameFocused, setNameFocused] = useState(false);
   const [emailFocused, setEmailFocused] = useState(false);
   const [passwordFocused, setPasswordFocused] = useState(false);
   const [confirmFocused, setConfirmFocused] = useState(false);
@@ -31,6 +31,10 @@ export default function RegisterPage() {
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
 
+    if (!formData.name.trim()) {
+      setError('O nome é obrigatório.');
+      return;
+    }
     if (formData.password !== formData.confirmPassword) {
       setError('As senhas não coincidem.');
       return;
@@ -39,10 +43,20 @@ export default function RegisterPage() {
       setError('Você deve aceitar os termos e políticas.');
       return;
     }
-
-    setError('');
-    console.log('Registro enviado:', formData);
-    // aqui você chama sua API de cadastro
+    try {
+      const result = await registerUser(
+        formData.email,
+        formData.password,
+        formData.name
+      );
+      if (!result.success) {
+        setError(result.message || 'Erro ao registrar.');
+        return;
+      }
+      window.location.href = '/login';
+    } catch (err) {
+      setError('Erro ao registrar.');
+    }
   }
 
   return (
@@ -73,12 +87,12 @@ export default function RegisterPage() {
 
         {/* Form */}
         <form onSubmit={handleSubmit} className="space-y-4" noValidate>
-          {/* Usuário */}
+          {/* Nome */}
           <div className="relative">
             <label
-              htmlFor="username"
+              htmlFor="name"
               className={`cursor-text absolute left-3 top-[15px] text-sm transition-all ${
-                usernameFocused || formData.username
+                nameFocused || formData.name
                   ? '-translate-y-9 left-2 text-brand-400 text-xs'
                   : 'text-gray-400'
               }`}
@@ -87,14 +101,15 @@ export default function RegisterPage() {
             </label>
             <input
               type="text"
-              id="username"
-              name="username"
-              value={formData.username}
+              id="name"
+              name="name"
+              value={formData.name}
               onChange={handleInputChange}
-              onFocus={() => setUsernameFocused(true)}
-              onBlur={() => setUsernameFocused(false)}
+              onFocus={() => setNameFocused(true)}
+              onBlur={() => setNameFocused(false)}
               className="w-full mb-3 px-3 py-3 border rounded-md bg-transparent text-white border-slate-600 focus:outline-none focus:ring-2 focus:ring-brand-500"
               placeholder=""
+              required
             />
           </div>
 

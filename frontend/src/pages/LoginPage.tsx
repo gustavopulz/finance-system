@@ -10,10 +10,9 @@ export default function LoginPage() {
   const [formData, setFormData] = useState({
     email: '',
     password: '',
-    username: '',
   });
   const [passwordFocused, setPasswordFocused] = useState(false);
-  const [usernameFocused, setUsernameFocused] = useState(false);
+  const [emailFocused, setEmailFocused] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
 
@@ -24,7 +23,7 @@ export default function LoginPage() {
         setError('Erro de autenticação');
         return;
       }
-      await auth.login(formData.username, formData.password);
+      await auth.login(formData.email, formData.password);
       navigate('/');
     } catch (err: any) {
       console.error(err);
@@ -63,26 +62,26 @@ export default function LoginPage() {
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-4" noValidate>
-          {/* Input Usuário */}
+          {/* Input Email */}
           <div className="relative">
             <label
-              htmlFor="username"
+              htmlFor="email"
               className={`cursor-text absolute left-3 top-[15px] text-sm transition-all ${
-                usernameFocused || formData.username
+                emailFocused || formData.email
                   ? '-translate-y-9 left-2 text-brand-400 text-xs'
                   : 'text-gray-400'
               }`}
             >
-              Usuário
+              Email
             </label>
             <input
-              type="text"
-              id="username"
-              name="username"
-              value={formData.username}
+              type="email"
+              id="email"
+              name="email"
+              value={formData.email}
               onChange={handleInputChange}
-              onFocus={() => setUsernameFocused(true)}
-              onBlur={() => setUsernameFocused(false)}
+              onFocus={() => setEmailFocused(true)}
+              onBlur={() => setEmailFocused(false)}
               className="w-full mb-3 px-3 py-3 border rounded-md bg-transparent text-white border-slate-600 focus:outline-none focus:ring-2 focus:ring-brand-500"
               placeholder=""
             />

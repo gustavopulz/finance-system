@@ -12,6 +12,7 @@ import UserPanelPage from './pages/UserPanelPage';
 import { useAuth } from './context/AuthContext';
 import AdminPage from './pages/AdminPage';
 import Header from './components/Header';
+import Footer from './components/Footer';
 import InfoPage from './pages/InfoPage';
 import NotFoundPage from './pages/errors/404';
 import RegisterPage from './pages/RegisterPage';
@@ -111,6 +112,7 @@ function AppWithHeader() {
           />
         </Routes>
       </main>
+      {!hideHeader && <Footer />}
     </>
   );
 }

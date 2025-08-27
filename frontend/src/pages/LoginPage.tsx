@@ -1,9 +1,11 @@
 import React, { useState } from 'react';
+import { useNotification } from '../context/NotificationContext';
 import { useAuth } from '../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import { FaEyeSlash, FaEye } from 'react-icons/fa';
 
 export default function LoginPage() {
+  const { notify } = useNotification();
   const auth = useAuth();
   const navigate = useNavigate();
 
@@ -14,20 +16,21 @@ export default function LoginPage() {
   const [passwordFocused, setPasswordFocused] = useState(false);
   const [emailFocused, setEmailFocused] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
-  const [error, setError] = useState('');
+  const [error] = useState('');
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     try {
       if (!auth || !auth.login) {
-        setError('Erro de autenticação');
+        notify('Erro de autenticação', 'error');
         return;
       }
       await auth.login(formData.email, formData.password);
+      notify('Login realizado com sucesso!', 'success');
       navigate('/');
     } catch (err: any) {
       console.error(err);
-      setError('Credenciais inválidas');
+      notify('Credenciais inválidas', 'error');
     }
   }
 

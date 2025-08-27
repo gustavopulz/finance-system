@@ -2,6 +2,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import SidebarTotalColabs from '../components/SidebarTotalColabs';
 import SkeletonCard from '../components/SkeletonCard';
 import React from 'react';
+import { useNotification } from '../context/NotificationContext';
 import { DndContext, closestCenter } from '@dnd-kit/core';
 import {
   arrayMove,
@@ -54,6 +55,7 @@ function normalizeAccount(a: any): Account {
 }
 
 export default function HomePage() {
+  const { notify } = useNotification();
   const collabRefs = useRef<{ [id: string]: HTMLDivElement | null }>({});
   const [selectedCollab, setSelectedCollab] = useState<string | null>(null);
   useEffect(() => {
@@ -295,10 +297,11 @@ export default function HomePage() {
 
   async function createCollab(name: string) {
     if (collabs.some((c) => c.name.toLowerCase() === name.toLowerCase())) {
-      alert('Já existe um colaborador com esse nome!');
+      notify('Já existe um colaborador com esse nome!', 'error');
       return;
     }
     await api.addCollab(name);
+    notify('Colaborador criado com sucesso!', 'success');
     setDlg({ mode: 'closed' });
     await load();
   }
@@ -505,6 +508,10 @@ export default function HomePage() {
                         }
                         onCancelToggle={(id) => toggleCancel(id)}
                         onCollabDeleted={async () => {
+                          notify(
+                            'Colaborador removido com sucesso!',
+                            'success'
+                          );
                           await load();
                         }}
                         onPaidUpdate={handlePaidUpdate}

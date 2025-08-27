@@ -1,6 +1,6 @@
 services:
   finance-system-api:
-    image: your-dockerhub-user/finance-system-api:latest
+    image: roxoo/finance-system-api:latest
     container_name: finance-system-api
     restart: always
     environment:

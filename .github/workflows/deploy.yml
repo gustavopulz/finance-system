@@ -20,13 +20,19 @@ jobs:
           username: ${{ secrets.DOCKERHUB_USER }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+        with:
+          install: true
+          driver-opts: |
+            image=moby/buildkit:latest
+
       - name: Build and push Docker image
         uses: docker/build-push-action@v4
         with:
           context: ./backend
           push: true
           tags: ${{ secrets.DOCKERHUB_USER }}/finance-system-api:latest
-          # cache para acelerar builds
           cache-from: type=registry,ref=${{ secrets.DOCKERHUB_USER }}/finance-system-api:cache
           cache-to: type=registry,ref=${{ secrets.DOCKERHUB_USER }}/finance-system-api:cache,mode=max
 
@@ -43,5 +49,5 @@ jobs:
           port: 22
           script: |
             cd /opt/apps/finance-system/backend
-            git pull
-            docker-compose pull && up -d
+            git pull origin master
+            docker-compose pull && docker-compose up -d

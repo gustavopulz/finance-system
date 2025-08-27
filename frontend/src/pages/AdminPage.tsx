@@ -1,15 +1,28 @@
 import { useEffect, useState } from 'react';
 import { listUsers, addUser, deleteUser } from '../lib/api';
-import { FaTrash, FaEdit } from 'react-icons/fa';
+import { FaTrash } from 'react-icons/fa';
 
 export default function AdminPage() {
+  async function handleToggleAdmin(user: { id: number; role: string }) {
+    const newRole = user.role === 'admin' ? 'user' : 'admin';
+    try {
+      await fetch(
+        `https://finance-system-api.prxlab.app/api/users/${user.id}/role`,
+        {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ role: newRole }),
+        }
+      );
+      await refresh();
+    } catch (err: any) {
+      alert('Erro ao atualizar papel do usuário');
+    }
+  }
   const [users, setUsers] = useState<
     { id: number; username: string; role: string; email: string }[]
   >([]);
-  const [showModal, setShowModal] = useState(false);
-  const [newUsername, setNewUsername] = useState('');
-  const [newPassword, setNewPassword] = useState('');
-  const [newRole, setNewRole] = useState('user');
+  const [, setShowModal] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [userToDelete, setUserToDelete] = useState<number | null>(null);
   const [showEditModal, setShowEditModal] = useState(false);
@@ -51,21 +64,6 @@ export default function AdminPage() {
     }
   }
 
-  async function handleAdd(e: React.FormEvent) {
-    e.preventDefault();
-    if (!newUsername.trim() || !newPassword.trim()) return;
-    try {
-      await addUser(newUsername, newPassword, newRole);
-      setNewUsername('');
-      setNewPassword('');
-      setNewRole('user');
-      setShowModal(false);
-      await refresh();
-    } catch (err: any) {
-      alert(err.message || 'Erro ao adicionar usuário');
-    }
-  }
-
   async function handleConfirmDelete() {
     if (userToDelete === null) return;
     try {
@@ -76,16 +74,6 @@ export default function AdminPage() {
     } catch (err: any) {
       alert(err.message || 'Erro ao excluir usuário');
     }
-  }
-
-  function openEditModal(user: {
-    id: number;
-    username: string;
-    role: string;
-    email: string;
-  }) {
-    setUserToEdit(user);
-    setShowEditModal(true);
   }
 
   async function handleEdit(e: React.FormEvent) {
@@ -224,10 +212,12 @@ export default function AdminPage() {
                     <td className="px-4 py-3 text-right">
                       <div className="flex items-center justify-end gap-2">
                         <button
-                          onClick={() => openEditModal(u)}
-                          className="p-2 rounded border border-yellow-500 text-yellow-600 hover:bg-yellow-500 hover:text-white transition"
+                          onClick={() => handleToggleAdmin(u)}
+                          className={`p-2 rounded border ${u.role === 'admin' ? 'border-blue-600 text-blue-600 hover:bg-blue-600 hover:text-white' : 'border-red-600 text-red-600 hover:bg-red-600 hover:text-white'} transition`}
                         >
-                          <FaEdit />
+                          {u.role === 'admin'
+                            ? 'Tornar Usuário'
+                            : 'Tornar Admin'}
                         </button>
                         <button
                           onClick={() => {
@@ -244,84 +234,6 @@ export default function AdminPage() {
           </tbody>
         </table>
       </div>
-
-      {/* MODAL ADICIONAR */}
-      {showModal && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-          <div className="bg-white dark:bg-slate-800 rounded-lg p-6 shadow-lg max-w-sm w-full">
-            <h2 className="text-xl font-bold mb-4">Adicionar Usuário</h2>
-            <form onSubmit={handleAdd} className="flex flex-col gap-4">
-              <div className="relative">
-                <input
-                  type="text"
-                  id="username"
-                  value={newUsername}
-                  onChange={(e) => setNewUsername(e.target.value)}
-                  className="peer w-full rounded-md border border-slate-300 bg-transparent px-3 pt-5 pb-2 text-sm 
-                       text-slate-900 placeholder-transparent focus:border-blue-500 focus:ring-1 focus:ring-blue-500
-                       dark:border-slate-600 dark:text-white"
-                  placeholder="Usuário"
-                />
-                <label
-                  htmlFor="username"
-                  className="absolute left-3 top-2 text-slate-500 text-sm transition-all 
-                       peer-placeholder-shown:top-4 peer-placeholder-shown:text-slate-400 peer-placeholder-shown:text-base 
-                       peer-focus:top-2 peer-focus:text-sm peer-focus:text-blue-500"
-                >
-                  Usuário
-                </label>
-              </div>
-              <div className="relative">
-                <input
-                  type="password"
-                  id="password"
-                  value={newPassword}
-                  onChange={(e) => setNewPassword(e.target.value)}
-                  className="peer w-full rounded-md border border-slate-300 bg-transparent px-3 pt-5 pb-2 text-sm 
-                       text-slate-900 placeholder-transparent focus:border-blue-500 focus:ring-1 focus:ring-blue-500
-                       dark:border-slate-600 dark:text-white"
-                  placeholder="Senha"
-                />
-                <label
-                  htmlFor="password"
-                  className="absolute left-3 top-2 text-slate-500 text-sm transition-all 
-                       peer-placeholder-shown:top-4 peer-placeholder-shown:text-slate-400 peer-placeholder-shown:text-base 
-                       peer-focus:top-2 peer-focus:text-sm peer-focus:text-blue-500"
-                >
-                  Senha
-                </label>
-              </div>
-              <div>
-                <label className="block text-sm text-slate-500 mb-1">
-                  Função
-                </label>
-                <select
-                  value={newRole}
-                  onChange={(e) => setNewRole(e.target.value)}
-                  className="select w-full rounded-md border border-slate-300 px-3 py-2 
-                       focus:border-blue-500 focus:ring-1 focus:ring-blue-500
-                       dark:border-slate-600 dark:bg-slate-700 dark:text-white"
-                >
-                  <option value="user">Usuário</option>
-                  <option value="admin">Administrador</option>
-                </select>
-              </div>
-              <div className="flex justify-end gap-2 mt-4">
-                <button
-                  type="button"
-                  onClick={() => setShowModal(false)}
-                  className="btn btn-secondary"
-                >
-                  Cancelar
-                </button>
-                <button type="submit" className="btn btn-primary">
-                  Adicionar
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
 
       {/* MODAL DELETE */}
       {showDeleteModal && (

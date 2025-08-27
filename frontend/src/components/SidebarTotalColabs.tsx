@@ -30,7 +30,7 @@ export default function SidebarTotalColabs({
 
   return (
     <aside
-      className="w-64 bg-slate-50 dark:bg-slate-900 pr-4 flex flex-col gap-6 border-r border-slate-200 dark:border-slate-800 sticky top-0 h-screen overflow-y-auto pl-4 pt-6"
+      className="w-64 bg-slate-50 dark:bg-slate-900 pr-4 flex flex-col gap-3 border-r border-slate-200 dark:border-slate-800 sticky top-6 pl-4 pt-3 pb-3 self-start"
       onClick={handleSidebarClick}
     >
       <div>
@@ -40,13 +40,13 @@ export default function SidebarTotalColabs({
         <div className="text-2xl font-bold text-slate-800 dark:text-white">
           {brl(total)}
         </div>
-        <div className="text-slate-500 dark:text-slate-400 text-sm font-bold mt-4">
+        <div className="text-slate-500 dark:text-slate-400 text-sm font-bold mt-3 mb-1">
           Total Pendente
         </div>
         <div className="text-lg font-bold text-yellow-700 dark:text-yellow-300">
           {brl(totalPendente)}
         </div>
-        <div className="text-slate-500 dark:text-slate-400 text-sm font-bold mt-4">
+        <div className="text-slate-500 dark:text-slate-400 text-sm font-bold mt-3 mb-1">
           Total Pago
         </div>
         <div className="text-lg font-bold text-green-700 dark:text-green-300">
@@ -57,11 +57,11 @@ export default function SidebarTotalColabs({
         <div className="text-slate-500 text-sm font-bold mb-2">
           Colaboradores
         </div>
-        <ul className="flex flex-col gap-2">
+        <ul className="flex flex-col gap-1">
           {collaborators.map((c) => (
             <li key={c.id}>
               <button
-                className={`w-full text-left px-3 py-2 rounded border transition-all
+                className={`w-full text-left px-2 py-1.5 rounded border transition-all text-sm
                   ${
                     selectedId === c.id
                       ? 'border-blue-500 bg-blue-50 dark:bg-blue-950 font-bold'

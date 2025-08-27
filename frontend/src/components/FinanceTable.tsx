@@ -173,18 +173,10 @@ export default function FinanceTable({
           setLocalItems((prev) =>
             prev.map((item) => {
               if (item.id === account.id) {
-                const monthKey = `${currentComp.year}-${String(currentComp.month).padStart(2, '0')}`;
-                const updatedPaidByMonth = { ...(item.paidByMonth || {}) };
-
-                if (markAsPaid) {
-                  updatedPaidByMonth[monthKey] = true;
-                } else {
-                  delete updatedPaidByMonth[monthKey];
-                }
-
                 return {
                   ...item,
-                  paidByMonth: updatedPaidByMonth,
+                  dtPaid: markAsPaid ? new Date().toISOString() : undefined,
+                  paid: markAsPaid,
                 };
               }
               return item;
@@ -321,7 +313,6 @@ export default function FinanceTable({
           description: item.description,
           dtPaid: item.dtPaid,
           parcelasTotal: item.parcelasTotal,
-          paidByMonth: item.paidByMonth,
         });
       });
     }
@@ -359,7 +350,6 @@ export default function FinanceTable({
         setLocalItems((prev) =>
           prev.map((item) => {
             if (item.id === account.id) {
-              // Para contas não-recorrentes, apenas atualiza dtPaid diretamente
               return {
                 ...item,
                 dtPaid: newPaid ? new Date().toISOString() : undefined,

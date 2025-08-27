@@ -128,6 +128,18 @@ export function addAccount(payload: any) {
   });
 }
 
+// /accounts/mark-paid
+export async function markAccountPaid(
+  accounts: string[],
+  paid: boolean
+) {
+  const body = { accounts, paid };
+  return json(`${API_URL}/accounts/mark-paid`, {
+    method: 'PATCH',
+    body: JSON.stringify(body),
+  });
+}
+
 // /user/login
 export async function login(email: string, password: string) {
   const data = await json<{
@@ -199,18 +211,6 @@ export function toggleCancel(id: string, month?: number, year?: number) {
   });
 }
 
-// /accounts/{id}/mark-paid
-export async function markAccountPaid(
-  accounts: string[],
-  paid: boolean
-) {
-  const body = { accounts, paid };
-  return json(`${API_URL}/accounts/mark-paid`, {
-    method: 'PATCH',
-    body: JSON.stringify(body),
-  });
-}
-
 // -------------------- DELETE REQUESTS --------------------
 // /users/{id}
 export function deleteUser(id: number) {
@@ -227,8 +227,11 @@ export function deleteCollab(id: string) {
 }
 
 // /accounts/{id}
-export function deleteAccount(id: string) {
-  return json(`${API_URL}/accounts/${id}`, { method: 'DELETE' });
+export function deleteAccount(id: string[] | string) {
+  return json(`${API_URL}/accounts/delete`, {
+    method: 'DELETE',
+    body: JSON.stringify({ accounts: Array.isArray(id) ? id : [id] }),
+  });
 }
 
 // /shared/unlink/{otherUserId}/{direction}

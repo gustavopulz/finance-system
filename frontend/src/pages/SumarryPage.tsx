@@ -275,8 +275,9 @@ export default function HomePage() {
     }
   }
 
-  async function removeAccount(id: string) {
-    await api.deleteAccount(id);
+  async function removeAccount(id: string | string[]) {
+    const ids = Array.isArray(id) ? id : [id];
+    await api.deleteAccount(ids);
     await load();
   }
 

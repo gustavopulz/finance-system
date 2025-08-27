@@ -77,10 +77,7 @@ export default function Footer() {
                 </NavLink>
               </li>
               <li>
-                <NavLink
-                  to="/politicas-e-privacidade"
-                  className="hover:underline"
-                >
+                <NavLink to="/politicas-e-termos" className="hover:underline">
                   Termos, Políticas e Cookies
                 </NavLink>
               </li>

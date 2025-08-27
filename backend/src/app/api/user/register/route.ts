@@ -4,9 +4,9 @@ import bcrypt from 'bcryptjs';
 
 export async function POST(req: NextRequest) {
   await initFirestore();
-  const { username, email, password, role } = await req.json();
-  if (!username || !email || !password) {
-    return NextResponse.json({ error: 'Campos obrigatórios: username, email, password' }, { status: 400 });
+  const { name, email, password, role } = await req.json();
+  if (!name || !email || !password) {
+    return NextResponse.json({ error: 'Campos obrigatórios: name, email, password' }, { status: 400 });
   }
 
   // Verifica se já existe usuário com mesmo email
@@ -18,7 +18,7 @@ export async function POST(req: NextRequest) {
   // Cria usuário
   const hash = await bcrypt.hash(password, 10);
   const userRef = await firestore.collection('users').add({
-    username,
+    name,
     email,
     password: hash,
     role: role || 'admin',

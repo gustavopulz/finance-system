@@ -45,10 +45,11 @@ function normalizeAccount(a: any): Account {
     year: Math.max(1900, Number(a.year ?? new Date().getFullYear())),
     status: (a.status as Account['status']) ?? 'Pendente',
     paid: Boolean(a.paid),
-    paidByMonth: a.paidByMonth || {},
+    dtPaid: a.dtPaid ?? undefined,
     createdAt: a.createdAt ?? '',
     updatedAt: a.updatedAt ?? '',
     cancelledAt: a.cancelledAt ?? undefined,
+    // paidByMonth removido
   };
 }
 
@@ -305,26 +306,12 @@ export default function HomePage() {
     setAccounts((prev) =>
       prev.map((account) => {
         if (account.id === accountId) {
-          const isRecurrentAccount =
-            account.parcelasTotal === null ||
-            account.parcelasTotal === undefined;
-
-          if (isRecurrentAccount) {
-            // Para contas recorrentes, atualiza o paidByMonth
-            const monthKey = `${year}-${String(month).padStart(2, '0')}`;
-            const updatedPaidByMonth = { ...account.paidByMonth };
-
-            if (paid) {
-              updatedPaidByMonth[monthKey] = true;
-            } else {
-              delete updatedPaidByMonth[monthKey];
-            }
-
-            return { ...account, paidByMonth: updatedPaidByMonth };
-          } else {
-            // Para contas não-recorrentes, atualiza o campo paid
-            return { ...account, paid };
-          }
+          // Atualiza o campo dtPaid para contas não-recorrentes
+          return {
+            ...account,
+            dtPaid: paid ? new Date().toISOString() : undefined,
+            paid: paid,
+          };
         }
         return account;
       })

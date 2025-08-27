@@ -35,29 +35,33 @@ export function isAccountPaidInMonth(
   account: Account,
   competencia: Competencia
 ): boolean {
-  const isRecurrentAccount =
-    account.parcelasTotal === null || account.parcelasTotal === undefined;
-
-  if (isRecurrentAccount && account.paidByMonth) {
-    const monthKey = `${competencia.year}-${String(competencia.month).padStart(2, '0')}`;
-    return Boolean(account.paidByMonth[monthKey]);
-  }
-
   // Para contas não-recorrentes, verifica a data de pagamento (dtPaid)
-  if (account.dtPaid) {
+  if (typeof account.dtPaid === 'string') {
     const paidDate = new Date(account.dtPaid);
+    if (isNaN(paidDate.getTime())) {
+      // Data inválida, não considerar como pago
+      return false;
+    }
     const paidYear = paidDate.getFullYear();
     const paidMonth = paidDate.getMonth() + 1; // getMonth() retorna 0-11
 
-    // Se a data de pagamento é menor ou igual ao mês da competência, está pago
+    // LOG PARA DEPURAÇÃO
+    console.log('[isAccountPaidInMonth]', {
+      dtPaid: account.dtPaid,
+      paidYear,
+      paidMonth,
+      competenciaYear: competencia.year,
+      competenciaMonth: competencia.month,
+    });
+
+    // Só está pago se competência for menor ou igual ao mês/ano do pagamento
     if (
-      paidYear < competencia.year ||
-      (paidYear === competencia.year && paidMonth <= competencia.month)
+      competencia.year < paidYear ||
+      (competencia.year === paidYear && competencia.month <= paidMonth)
     ) {
       return true;
     }
-
-    // Se a data de pagamento é maior que o mês da competência, está pendente
+    // Se competência for depois do pagamento, está pendente
     return false;
   }
 

@@ -41,13 +41,12 @@ export async function PATCH(
     }
 
     // Para contas não-recorrentes (avulsas ou parceladas), usa o campo paid tradicional
-      const dtPaid = payload.paid ? new Date() : null;
-      await firestore
-        .collection('accounts')
-        .doc(id)
-        .update({ paid: payload.paid, dtPaid });
-      return NextResponse.json({ id, paid: payload.paid, dtPaid });
-
+    const dtPaid = payload.paid ? new Date().toISOString() : null;
+    await firestore
+      .collection('accounts')
+      .doc(id)
+      .update({ paid: payload.paid, dtPaid });
+    return NextResponse.json({ id, paid: payload.paid, dtPaid });
   } catch (err: any) {
     return NextResponse.json({ error: err.message }, { status: 500 });
   }

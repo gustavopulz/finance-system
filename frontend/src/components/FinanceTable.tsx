@@ -13,6 +13,30 @@ import {
 import { useMemo, useState, useEffect } from 'react';
 import { deleteCollab } from '../lib/api';
 
+// Funções para persistir a ordenação no localStorage
+const getSortState = (collaboratorId: string) => {
+  const saved = localStorage.getItem(`sort_${collaboratorId}`);
+  if (saved) {
+    try {
+      return JSON.parse(saved);
+    } catch {
+      return { sortKey: 'description', sortOrder: 'asc' };
+    }
+  }
+  return { sortKey: 'description', sortOrder: 'asc' };
+};
+
+const setSortState = (
+  collaboratorId: string,
+  sortKey: string,
+  sortOrder: string
+) => {
+  localStorage.setItem(
+    `sort_${collaboratorId}`,
+    JSON.stringify({ sortKey, sortOrder })
+  );
+};
+
 export interface FinanceTableProps {
   collaboratorId: string;
   title: string;
@@ -41,11 +65,31 @@ export default function FinanceTable({
   dragHandleProps,
 }: FinanceTableProps) {
   const [localItems, setLocalItems] = useState<Account[]>(items);
-  const [sortKey, setSortKey] = useState<SortKey>('description');
-  const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc');
+
+  // Inicializa a ordenação com os valores salvos para este colaborador
+  const savedSort = getSortState(collaboratorId);
+  const [sortKey, setSortKey] = useState<SortKey>(savedSort.sortKey as SortKey);
+  const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>(
+    savedSort.sortOrder
+  );
+
   const [showConfirm, setShowConfirm] = useState(false);
   const [toast, setToast] = useState<string | null>(null);
   const [financaToDelete, setFinancaToDelete] = useState<Account | null>(null);
+
+  // Função helper para atualizar ordenação e salvar no localStorage
+  const handleSortChange = (newSortKey: SortKey) => {
+    let newSortOrder: 'asc' | 'desc' = 'asc';
+
+    if (sortKey === newSortKey) {
+      // Se clicou na mesma coluna, inverte a ordem
+      newSortOrder = sortOrder === 'asc' ? 'desc' : 'asc';
+    }
+
+    setSortKey(newSortKey);
+    setSortOrder(newSortOrder);
+    setSortState(collaboratorId, newSortKey, newSortOrder);
+  };
   const [actionModal, setActionModal] = useState<{
     open: boolean;
     financa: Account | null;
@@ -99,25 +143,73 @@ export default function FinanceTable({
       selectedItems.has(item.id)
     );
 
-    const accountIds = selectedAccounts.map((a) => a.id);
-    try {
-      const response = (await markAccountPaid(accountIds, markAsPaid)) as { results?: any[] };
-      const results = Array.isArray(response?.results) ? response.results : [];
-      setLocalItems((prev) =>
-        prev.map((item) => {
-          if (accountIds.includes(item.id)) {
-            const result = results.find((r: any) => r.id === item.id);
-            return {
-              ...item,
-              paid: markAsPaid,
-              dtPaid:
-                result?.dtPaid || (markAsPaid ? new Date().toISOString() : undefined),
-            };
-          }
-          return item;
-        })
-      );
-      selectedAccounts.forEach((account) => {
+    console.log(
+      'Contas selecionadas:',
+      selectedAccounts.map((a) => ({ id: a.id, description: a.description }))
+    );
+
+    let successCount = 0;
+
+    for (const account of selectedAccounts) {
+      try {
+        console.log(`Processando conta: ${account.description}`);
+
+        const isRecurrentAccount =
+          account.parcelasTotal === null || account.parcelasTotal === undefined;
+
+        if (isRecurrentAccount) {
+          console.log('Conta recorrente - enviando com mês/ano:', {
+            month: currentComp.month,
+            year: currentComp.year,
+          });
+
+          await markAccountPaid(
+            account.id,
+            markAsPaid,
+            currentComp.month,
+            currentComp.year
+          );
+
+          setLocalItems((prev) =>
+            prev.map((item) => {
+              if (item.id === account.id) {
+                const monthKey = `${currentComp.year}-${String(currentComp.month).padStart(2, '0')}`;
+                const updatedPaidByMonth = { ...item.paidByMonth };
+
+                if (markAsPaid) {
+                  updatedPaidByMonth[monthKey] = true;
+                } else {
+                  delete updatedPaidByMonth[monthKey];
+                }
+
+                return { ...item, paidByMonth: updatedPaidByMonth };
+              }
+              return item;
+            })
+          );
+        } else {
+          console.log('Conta não recorrente');
+
+          const response = (await markAccountPaid(
+            account.id,
+            markAsPaid
+          )) as any;
+
+          setLocalItems((prev) =>
+            prev.map((item) =>
+              item.id === account.id
+                ? {
+                    ...item,
+                    paid: markAsPaid,
+                    dtPaid:
+                      response?.dtPaid ||
+                      (markAsPaid ? new Date().toISOString() : undefined),
+                  }
+                : item
+            )
+          );
+        }
+
         onPaidUpdate?.(account.id, markAsPaid);
       });
       setToast(
@@ -167,10 +259,33 @@ export default function FinanceTable({
 
   // Atualiza localItems quando items mudar
   useEffect(() => {
-    // Atualiza localItems sem alterar a ordem atual
     setLocalItems((prev) => {
-      if (prev.length === 0 || prev.length !== items.length) return items; // Inicializa ou sincroniza tamanho
-      return prev.map((item) => items.find((i) => i.id === item.id) || item); // Atualiza mantendo a ordem
+      // Se é a primeira vez ou o número de itens mudou significativamente, usa items diretamente
+      if (prev.length === 0 || Math.abs(prev.length - items.length) > 1) {
+        return items;
+      }
+
+      // Caso contrário, atualiza item por item preservando mudanças locais importantes
+      const updatedItems = items.map((newItem) => {
+        const existingItem = prev.find(
+          (prevItem) => prevItem && prevItem.id === newItem.id
+        );
+        if (
+          existingItem &&
+          typeof existingItem === 'object' &&
+          typeof newItem === 'object'
+        ) {
+          // Preserva campos que podem ter sido modificados localmente
+          return {
+            ...newItem,
+            paid: existingItem.paid,
+            dtPaid: existingItem.dtPaid,
+          };
+        }
+        return newItem;
+      });
+
+      return updatedItems;
     });
 
     // Limpa seleções que não existem mais
@@ -186,46 +301,19 @@ export default function FinanceTable({
     });
   }, [items]);
 
-  // Reaplica a ordenação após qualquer atualização nos itens ou nas chaves de ordenação
+  // Adicionado para inspecionar os dados das contas renderizadas
   useEffect(() => {
-    // Reaplica a ordenação após qualquer atualização nos itens ou nas chaves de ordenação
-    setLocalItems(() => {
-      const updatedItems = [...items];
-      updatedItems.sort((a, b) => {
-        let va: any, vb: any;
-        switch (sortKey) {
-          case 'value':
-            va = a.value;
-            vb = b.value;
-            break;
-          case 'status':
-            va = a.paid ? 1 : 0;
-            vb = b.paid ? 1 : 0;
-            break;
-          case 'parcelas': {
-            const la = parcelaLabel(a, currentComp);
-            const lb = parcelaLabel(b, currentComp);
-            va =
-              la === 'Indeterminada'
-                ? Number.MAX_SAFE_INTEGER
-                : Number(la.split('/')[0]) || 0;
-            vb =
-              lb === 'Indeterminada'
-                ? Number.MAX_SAFE_INTEGER
-                : Number(lb.split('/')[0]) || 0;
-            break;
-          }
-          default:
-            va = a.description.toLowerCase();
-            vb = b.description.toLowerCase();
-        }
-        if (va < vb) return sortOrder === 'asc' ? -1 : 1;
-        if (va > vb) return sortOrder === 'asc' ? 1 : -1;
-        return 0;
+    if (items && items.length > 0) {
+      items.forEach((item) => {
+        console.log('[FinanceTable] Conta:', {
+          id: item.id,
+          description: item.description,
+          dtPaid: item.dtPaid,
+          parcelasTotal: item.parcelasTotal,
+        });
       });
-      return updatedItems;
-    });
-  }, [items, sortKey, sortOrder, currentComp]);
+    }
+  }, [items]);
 
   // Totais considerando o campo paid por competência
   const total = localItems.reduce((acc, f) => acc + Number(f.value), 0);
@@ -242,22 +330,57 @@ export default function FinanceTable({
     try {
       const currentPaid = isAccountPaidInMonth(account, currentComp);
       const newPaid = !currentPaid;
-      const response = (await markAccountPaid([account.id], newPaid)) as { results?: any[] };
-      const results = Array.isArray(response?.results) ? response.results : [];
-      setLocalItems((prev) =>
-        prev.map((item) => {
-          if (item.id === account.id) {
-            const result = results.find((r: any) => r.id === item.id);
-            return {
-              ...item,
-              paid: newPaid,
-              dtPaid:
-                result?.dtPaid || (newPaid ? new Date().toISOString() : undefined),
-            };
-          }
-          return item;
-        })
-      );
+
+      // Para contas recorrentes, envia month/year
+      if (isRecurrentAccount) {
+        await markAccountPaid(
+          account.id,
+          newPaid,
+          currentComp.month,
+          currentComp.year
+        );
+
+        // Atualiza o estado local para contas recorrentes
+        setLocalItems((prev) =>
+          prev.map((item) => {
+            if (item.id === account.id) {
+              const monthKey = `${currentComp.year}-${String(currentComp.month).padStart(2, '0')}`;
+              const updatedPaidByMonth = { ...item.paidByMonth };
+
+              if (newPaid) {
+                updatedPaidByMonth[monthKey] = true;
+              } else {
+                delete updatedPaidByMonth[monthKey];
+              }
+
+              return {
+                ...item,
+                paidByMonth: updatedPaidByMonth,
+              };
+            }
+            return item;
+          })
+        );
+      } else {
+        // Para contas não-recorrentes, usa o endpoint mark-paid
+        const response = (await markAccountPaid(account.id, newPaid)) as any;
+
+        setLocalItems((prev) =>
+          prev.map((item) =>
+            item.id === account.id
+              ? {
+                  ...item,
+                  paid: newPaid,
+                  dtPaid:
+                    response?.dtPaid ||
+                    (newPaid ? new Date().toISOString() : undefined),
+                }
+              : item
+          )
+        );
+      }
+
+      // Notifica o componente pai sobre a mudança
       onPaidUpdate?.(account.id, newPaid);
       setToast(`Finança marcada como ${newPaid ? 'paga' : 'não paga'} ✅`);
       setTimeout(() => setToast(null), 2000);
@@ -341,17 +464,34 @@ export default function FinanceTable({
           vb = b.paid ? 1 : 0;
           break;
         case 'parcelas': {
-          const la = parcelaLabel(a, currentComp);
-          const lb = parcelaLabel(b, currentComp);
-          va =
-            la === 'Indeterminada'
-              ? Number.MAX_SAFE_INTEGER
-              : Number(la.split('/')[0]) || 0;
-          vb =
-            lb === 'Indeterminada'
-              ? Number.MAX_SAFE_INTEGER
-              : Number(lb.split('/')[0]) || 0;
-          break;
+          // Fixas primeiro, depois avulsas, depois parceladas
+          const getTypeOrder = (acc: Account) => {
+            if (acc.parcelasTotal === null || acc.parcelasTotal === undefined)
+              return 0; // fixa
+            if (acc.parcelasTotal === 0 || acc.parcelasTotal === 1) return 1; // avulsa
+            return 2; // parcelada
+          };
+          const typeA = getTypeOrder(a);
+          const typeB = getTypeOrder(b);
+          if (typeA !== typeB)
+            return sortOrder === 'asc' ? typeA - typeB : typeB - typeA;
+          // Se mesmo tipo, ordena pelo número da parcela (se parcelada)
+          if (typeA === 2) {
+            // Parcelada: ordena pelo número da parcela atual
+            const la = parcelaLabel(a, currentComp);
+            const lb = parcelaLabel(b, currentComp);
+            va = Number(la.split('/')[0]) || 0;
+            vb = Number(lb.split('/')[0]) || 0;
+            if (va < vb) return sortOrder === 'asc' ? -1 : 1;
+            if (va > vb) return sortOrder === 'asc' ? 1 : -1;
+            return 0;
+          }
+          // Se fixa ou avulsa, ordena por descrição
+          va = a.description.toLowerCase();
+          vb = b.description.toLowerCase();
+          if (va < vb) return sortOrder === 'asc' ? -1 : 1;
+          if (va > vb) return sortOrder === 'asc' ? 1 : -1;
+          return 0;
         }
         default:
           va = a.description.toLowerCase();
@@ -716,39 +856,27 @@ export default function FinanceTable({
               </th>
               <th
                 className="px-6 py-3 font-medium text-left w-[28%] cursor-pointer"
-                onClick={() => {
-                  setSortKey('description');
-                  setSortOrder((prev) => (prev === 'asc' ? 'desc' : 'asc'));
-                }}
+                onClick={() => handleSortChange('description')}
               >
                 Descrição{' '}
                 {sortKey === 'description' && (sortOrder === 'asc' ? '↑' : '↓')}
               </th>
               <th
                 className="px-4 py-3 font-medium text-left w-[10%] cursor-pointer"
-                onClick={() => {
-                  setSortKey('value');
-                  setSortOrder((prev) => (prev === 'asc' ? 'desc' : 'asc'));
-                }}
+                onClick={() => handleSortChange('value')}
               >
                 Valor {sortKey === 'value' && (sortOrder === 'asc' ? '↑' : '↓')}
               </th>
               <th
                 className="px-4 py-3 font-medium text-center w-[10%] cursor-pointer"
-                onClick={() => {
-                  setSortKey('parcelas');
-                  setSortOrder((prev) => (prev === 'asc' ? 'desc' : 'asc'));
-                }}
+                onClick={() => handleSortChange('parcelas')}
               >
                 Parcela{' '}
                 {sortKey === 'parcelas' && (sortOrder === 'asc' ? '↑' : '↓')}
               </th>
               <th
                 className="px-4 py-3 font-medium text-center w-[12%] cursor-pointer"
-                onClick={() => {
-                  setSortKey('status');
-                  setSortOrder((prev) => (prev === 'asc' ? 'desc' : 'asc'));
-                }}
+                onClick={() => handleSortChange('status')}
               >
                 Status{' '}
                 {sortKey === 'status' && (sortOrder === 'asc' ? '↑' : '↓')}

@@ -21,7 +21,7 @@ export async function POST(req: NextRequest) {
     name,
     email,
     password: hash,
-    role: role || 'admin',
+    role: role || 'user',
   });
 
   return NextResponse.json({ success: true, id: userRef.id });

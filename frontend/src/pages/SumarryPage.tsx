@@ -411,7 +411,7 @@ export default function HomePage() {
             {/* Botões (desktop: lado direito) */}
             <div className="flex flex-col sm:flex-row gap-2 md:ml-auto">
               <button
-                className="btn btn-ghost justify-start"
+                className="border border-slate-300 dark:border-slate-700 flex items-center gap-2 bg-transparent hover:bg-slate-700 text-white px-4 py-2 rounded-md transition"
                 onClick={() => setDlg({ mode: 'addCollab' })}
               >
                 <UserPlus size={18} /> Adicionar colaborador

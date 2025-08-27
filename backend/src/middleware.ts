@@ -20,9 +20,9 @@ export function middleware(request: NextRequest) {
     });
   }
 
-  // Verificação de autenticação para rotas /api/*, exceto /api/login e /api/hello
+  // Verificação de autenticação para rotas /api/*, exceto /api/user/login e /api/hello
   const isApiRoute = request.nextUrl.pathname.startsWith('/api');
-  const isLoginRoute = request.nextUrl.pathname === '/api/login';
+  const isLoginRoute = request.nextUrl.pathname === '/api/user/login';
   const isHelloRoute = request.nextUrl.pathname === '/api/hello';
   if (isApiRoute && !isLoginRoute && !isHelloRoute) {
     const cookie = request.cookies.get('auth_token');

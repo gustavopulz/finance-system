@@ -123,7 +123,7 @@ export async function login(email: string, password: string) {
       email: string;
       role: 'admin' | 'user';
     };
-  }>(`${API_URL}/login`, {
+  }>(`${API_URL}/user/login`, {
     method: 'POST',
     body: JSON.stringify({ email, password }),
     credentials: 'include',

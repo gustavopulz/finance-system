@@ -450,13 +450,8 @@ export default function HomePage() {
                           setDlg({ mode: 'editAccount', account })
                         }
                         onCancelToggle={(id) => toggleCancel(id)}
-                        onCollabDeleted={(id) => {
-                          setCollabs((prev) =>
-                            prev.filter((cc) => cc.id !== id)
-                          );
-                          setCollabOrder((prev) =>
-                            prev.filter((cid) => cid !== id)
-                          );
+                        onCollabDeleted={async () => {
+                          await load();
                         }}
                         onPaidUpdate={handlePaidUpdate}
                       />

@@ -1,10 +1,10 @@
 import { createContext, useContext, useState } from 'react';
 
-type User = { id: number; username: string; role: string };
+type User = { id: number; email: string; role: string };
 type AuthContextType = {
   user: User | null;
   token: string | null;
-  login: (username: string, password: string) => Promise<void>;
+  login: (email: string, password: string) => Promise<void>;
   logout: () => void;
 };
 
@@ -14,11 +14,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [token, setToken] = useState<string | null>(null);
 
-  async function login(username: string, password: string) {
+  async function login(email: string, password: string) {
     const res = await fetch('https://finance-system-api.prxlab.app/api/login', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ username, password }),
+      body: JSON.stringify({ email, password }),
     });
     if (!res.ok) throw new Error('Falha no login');
     const data = await res.json();

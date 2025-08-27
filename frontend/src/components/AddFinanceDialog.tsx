@@ -1,5 +1,5 @@
 // src/components/AddFinanceDialog.tsx
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import { useForm } from 'react-hook-form';
 import type { SubmitHandler } from 'react-hook-form';
 import { z } from 'zod';
@@ -57,6 +57,9 @@ export default function AddFinanceDialog({
   const defaultMonth = now.getMonth() + 1;
   const defaultYear = now.getFullYear();
 
+  // Ref para focar no input de descrição
+  const descriptionInputRef = useRef<HTMLInputElement>(null);
+
   const {
     register,
     handleSubmit,
@@ -110,6 +113,13 @@ export default function AddFinanceDialog({
       setValue('collaboratorId', String(collaborators[0].id));
     }
   }, [collaborators, initial, setValue]);
+
+  // Foca no input de descrição ao abrir o dialog
+  useEffect(() => {
+    if (descriptionInputRef.current) {
+      descriptionInputRef.current.focus();
+    }
+  }, []); // executa apenas uma vez ao montar o componente
 
   const submit: SubmitHandler<FormData> = (d) => {
     if (errors && Object.keys(errors).length > 0) {
@@ -176,8 +186,11 @@ export default function AddFinanceDialog({
           <label className="grid gap-1">
             <span className="text-sm font-medium">Descrição</span>
             <input
+              {...register('description', {
+                required: 'Descrição é obrigatória'
+              })}
+              ref={descriptionInputRef}
               className="input input-full"
-              {...register('description')}
               placeholder="Ex.: Uber"
               disabled={disabled}
             />

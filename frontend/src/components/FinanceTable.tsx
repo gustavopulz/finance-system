@@ -332,23 +332,26 @@ export default function FinanceTable({
               )}
             </button>
           </div>
-          <div className="flex items-center gap-2">
-            <div className="badge bg-slate-100 dark:bg-slate-900/60 text-slate-700 dark:text-slate-100">
-              Total: {brl(Number(total))}
-            </div>
-            <div className="badge bg-yellow-100 dark:bg-yellow-500/30 text-yellow-700 dark:text-yellow-300">
-              Total pendente: {brl(Number(totalPendente))}
-            </div>
-            <div className="badge bg-green-100 dark:bg-green-500/30 text-green-700 dark:text-green-300">
-              Total pago: {brl(Number(totalPago))}
+          <div className="flex flex-col gap-2 items-start w-full">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 w-full">
+              <div className="badge bg-slate-100 dark:bg-slate-900/60 text-slate-700 dark:text-slate-100 w-full text-center">
+                Total: {brl(Number(total))}
+              </div>
+              <div className="badge bg-yellow-100 dark:bg-yellow-500/30 text-yellow-700 dark:text-yellow-300 w-full text-center">
+                Total pendente: {brl(Number(totalPendente))}
+              </div>
+              <div className="badge bg-green-100 dark:bg-green-500/30 text-green-700 dark:text-green-300 w-full text-center">
+                Total pago: {brl(Number(totalPago))}
+              </div>
             </div>
             <button
               onClick={() => setShowConfirm(true)}
               onPointerDown={(e) => e.stopPropagation()}
               onMouseDown={(e) => e.stopPropagation()}
-              className="text-red-500 hover:text-red-700 text-sm font-medium flex items-center gap-1 ml-2"
+              className="text-red-500 hover:text-red-700 text-sm font-medium flex items-center gap-1"
             >
               <Trash2 size={16} />
+              Excluir
             </button>
           </div>
         </div>

@@ -117,6 +117,7 @@ export default function HomePage() {
   }
   const [showAll, setShowAll] = useState(false);
   const [showCancelled, setShowCancelled] = useState(true);
+  const [showFloatingButton, setShowFloatingButton] = useState(false);
 
   const [dlg, setDlg] = useState<DialogState>({ mode: 'closed' });
   const [collabs, setCollabs] = useState<Collaborator[]>([]);
@@ -125,6 +126,7 @@ export default function HomePage() {
   const [loading, setLoading] = useState(false);
 
   const visibleSnapshotRef = useRef<Account[]>([]);
+  const resumoRef = useRef<HTMLDivElement>(null);
 
   async function load() {
     setLoading(true);
@@ -164,6 +166,21 @@ export default function HomePage() {
 
     document.addEventListener('keydown', handleKeyDown);
     return () => document.removeEventListener('keydown', handleKeyDown);
+  }, []);
+
+  // Detecta quando o resumo sair da tela para mostrar botão flutuante
+  useEffect(() => {
+    const handleScroll = () => {
+      if (resumoRef.current) {
+        const rect = resumoRef.current.getBoundingClientRect();
+        // Se o resumo saiu completamente da tela (top + height < 0)
+        const isResumoVisible = rect.bottom > 0;
+        setShowFloatingButton(!isResumoVisible);
+      }
+    };
+
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
   const visibleAccounts = useMemo(() => {
@@ -315,96 +332,102 @@ export default function HomePage() {
         />
       </div>
       <div id="main-content" className="flex-1 grid gap-6">
-        <div className="border border-slate-300 dark:border-slate-700 shadow-sm rounded px-4 pt-4 pb-4">
-          <h1 className="text-xl font-bold mb-4">Resumo</h1>
+        <div
+          ref={resumoRef}
+          className="border border-slate-300 dark:border-slate-700 shadow-sm rounded-lg bg-white dark:bg-slate-900 p-4"
+        >
+          <h1 className="text-xl font-bold mb-4 flex items-center gap-2">
+            <Filter size={18} className="text-slate-500" /> Resumo
+          </h1>
 
-          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-            <div className="flex flex-col sm:flex-row sm:items-center sm:flex-wrap gap-2">
-              <span className="inline-flex items-center gap-2 text-slate-600">
-                <Filter size={16} /> Filtros:
-              </span>
-              <select
-                className="select w-full rounded sm:w-44"
-                value={showAll ? 'all' : month}
-                onChange={(e) => {
-                  if (e.target.value === 'all') {
-                    setShowAll(true);
-                  } else {
-                    setShowAll(false);
-                    setMonth(Number(e.target.value));
-                  }
-                }}
-              >
-                <option value="all">Ver todos os meses</option>
-                {MONTHS_PT.map((m, i) => (
-                  <option key={i + 1} value={i + 1}>
-                    {m}
-                  </option>
-                ))}
-              </select>
+          {/* Filtros */}
+          <div className="flex flex-col sm:flex-row sm:items-center sm:flex-wrap gap-3 mb-4">
+            <select
+              className="select w-full rounded sm:w-44"
+              value={showAll ? 'all' : month}
+              onChange={(e) => {
+                if (e.target.value === 'all') {
+                  setShowAll(true);
+                } else {
+                  setShowAll(false);
+                  setMonth(Number(e.target.value));
+                }
+              }}
+            >
+              <option value="all">Ver todos os meses</option>
+              {MONTHS_PT.map((m, i) => (
+                <option key={i + 1} value={i + 1}>
+                  {m}
+                </option>
+              ))}
+            </select>
+
+            <input
+              className="input w-full sm:w-28"
+              type="number"
+              value={year}
+              onChange={(e) => setYear(Number(e.target.value))}
+              disabled={showAll}
+            />
+
+            <label className="flex items-center gap-2 cursor-pointer text-slate-600 dark:text-slate-300">
               <input
-                className="input w-full sm:w-28"
-                type="number"
-                value={year}
-                onChange={(e) => setYear(Number(e.target.value))}
-                disabled={showAll}
+                type="checkbox"
+                checked={showCancelled}
+                onChange={(e) => setShowCancelled(e.target.checked)}
+                className="register-checkbox"
               />
-              <label className="flex items-center gap-2 cursor-pointer">
-                <input
-                  type="checkbox"
-                  checked={showCancelled}
-                  onChange={(e) => setShowCancelled(e.target.checked)}
-                  className="custom-checkbox"
-                />
-                <span className="text-slate-300">Ver Cancelados</span>
-              </label>
-            </div>
-
-            <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
-              <button
-                className="btn btn-ghost justify-center"
-                onClick={() => setDlg({ mode: 'addCollab' })}
-              >
-                <UserPlus size={18} /> Adicionar colaborador
-              </button>
-              <button
-                className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded transition"
-                onClick={() => setDlg({ mode: 'addAccount' })}
-                title="Adicionar finança (Alt+N)"
-              >
-                <Plus size={18} />
-                <span>Adicionar finança</span>
-              </button>
-            </div>
+              Ver Cancelados
+            </label>
           </div>
-        </div>
 
-        {loading && <SkeletonCard className="mb-4" />}
+          {/* Botões */}
+          <div className="flex flex-col sm:flex-row gap-2 mb-6">
+            <button
+              className="btn btn-ghost justify-center w-full sm:w-auto"
+              onClick={() => setDlg({ mode: 'addCollab' })}
+            >
+              <UserPlus size={18} /> Adicionar colaborador
+            </button>
+            <button
+              className="flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md transition w-full sm:w-auto"
+              onClick={() => setDlg({ mode: 'addAccount' })}
+              title="Adicionar finança (Alt+N)"
+            >
+              <Plus size={18} />
+              <span>Adicionar finança</span>
+            </button>
+          </div>
 
-        <div className="md:hidden card p-4">
-          <h2 className="text-lg font-bold mb-3">Totais</h2>
-          <div className="grid grid-cols-1 gap-2">
-            <div className="flex justify-between items-center">
-              <span className="text-slate-600">Total:</span>
-              <span className="font-semibold text-slate-800 dark:text-slate-200">
+          {/* Totais */}
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+            <div className="p-3 rounded bg-slate-100 dark:bg-slate-800 text-center">
+              <span className="block text-xs uppercase text-slate-500">
+                Total
+              </span>
+              <span className="text-lg font-bold text-slate-800 dark:text-slate-200">
                 {new Intl.NumberFormat('pt-BR', {
                   style: 'currency',
                   currency: 'BRL',
                 }).format(total)}
               </span>
             </div>
-            <div className="flex justify-between items-center">
-              <span className="text-yellow-600">Pendente:</span>
-              <span className="font-semibold text-yellow-700 dark:text-yellow-300">
+            <div className="p-3 rounded bg-yellow-100 dark:bg-yellow-500/20 text-center">
+              <span className="block text-xs uppercase text-yellow-700">
+                Pendente
+              </span>
+              <span className="text-lg font-bold text-yellow-700 dark:text-yellow-300">
                 {new Intl.NumberFormat('pt-BR', {
                   style: 'currency',
                   currency: 'BRL',
                 }).format(totalPendente)}
               </span>
             </div>
-            <div className="flex justify-between items-center">
-              <span className="text-green-600">Pago:</span>
-              <span className="font-semibold text-green-700 dark:text-green-300">
+            <div className="p-3 rounded bg-green-100 dark:bg-green-500/20 text-center">
+              <span className="block text-xs uppercase text-green-700">
+                Pago
+              </span>
+              <span className="text-lg font-bold text-green-700 dark:text-green-300">
                 {new Intl.NumberFormat('pt-BR', {
                   style: 'currency',
                   currency: 'BRL',
@@ -413,6 +436,8 @@ export default function HomePage() {
             </div>
           </div>
         </div>
+
+        {loading && <SkeletonCard className="mb-4" />}
 
         <DndContext
           collisionDetection={closestCenter}
@@ -477,6 +502,18 @@ export default function HomePage() {
           </SortableContext>
         </DndContext>
       </div>
+
+      {/* Botão flutuante para adicionar finança */}
+      {showFloatingButton && (
+        <button
+          onClick={() => setDlg({ mode: 'addAccount' })}
+          className="fixed bottom-6 right-6 w-14 h-14 bg-blue-600 hover:bg-blue-700 text-white rounded-full shadow-lg hover:shadow-xl transition-all duration-300 flex items-center justify-center z-50"
+          title="Adicionar finança (Alt+N)"
+        >
+          <Plus size={24} />
+        </button>
+      )}
+
       {dlg.mode === 'addCollab' && (
         <AddCollaboratorDialog
           onClose={() => setDlg({ mode: 'closed' })}

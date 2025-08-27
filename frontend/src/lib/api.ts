@@ -97,8 +97,13 @@ export async function login(username: string, password: string) {
 }
 
 export function logout() {
-  // To logout, clear cookie by calling backend endpoint (to be implemented)
-  // For now, do nothing here
+  // Chama o endpoint de logout para limpar o cookie httpOnly
+  fetch(`${API_URL}/logout`, {
+    method: 'POST',
+    credentials: 'include',
+  });
+  // Limpa dados locais de autenticação
+  localStorage.removeItem('auth');
 }
 
 // -------------------- COLLABORATORS --------------------

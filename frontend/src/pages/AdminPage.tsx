@@ -1,9 +1,15 @@
+import { useAuth } from '../context/AuthContext';
+import { Navigate } from 'react-router-dom';
 import { useEffect, useState } from 'react';
 import { listUsers, addUser, deleteUser, changeUserRole } from '../lib/api';
 import { FaTrash } from 'react-icons/fa';
 import { FaUserShield, FaUser } from 'react-icons/fa';
 
 export default function AdminPage() {
+  const auth = useAuth();
+  if (auth?.loading) return null;
+  if (!auth?.user) return <Navigate to="/login" replace />;
+  if (auth.user.role !== 'admin') return <Navigate to="/" replace />;
   async function handleToggleAdmin(user: { id: number; role: string }) {
     const newRole = user.role === 'admin' ? 'user' : 'admin';
     try {

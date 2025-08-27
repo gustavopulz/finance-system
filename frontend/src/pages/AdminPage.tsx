@@ -14,7 +14,7 @@ export default function AdminPage() {
   }
 
   const [users, setUsers] = useState<
-    { id: number; username: string; role: string; email: string }[]
+    { id: number; name: string; role: string; email: string }[]
   >([]);
   const [, setShowModal] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
@@ -22,12 +22,12 @@ export default function AdminPage() {
   const [showEditModal, setShowEditModal] = useState(false);
   const [userToEdit, setUserToEdit] = useState<{
     id: number;
-    username: string;
+    name: string;
     role: string;
     email: string;
   } | null>(null);
   const [loading, setLoading] = useState(true);
-  const [sortKey, setSortKey] = useState<'username' | 'role' | 'email' | null>(
+  const [sortKey, setSortKey] = useState<'name' | 'role' | 'email' | null>(
     null
   );
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc');
@@ -44,7 +44,7 @@ export default function AdminPage() {
         data.map(
           (u: {
             id: number;
-            username: string;
+            name: string;
             role: string;
             email?: string;
           }) => ({
@@ -75,7 +75,7 @@ export default function AdminPage() {
     if (!userToEdit) return;
     try {
       // aqui você pode substituir pelo endpoint correto de edição
-      await addUser(userToEdit.username, '', userToEdit.role);
+      await addUser(userToEdit.name, '', userToEdit.role);
       setShowEditModal(false);
       setUserToEdit(null);
       await refresh();
@@ -84,7 +84,7 @@ export default function AdminPage() {
     }
   }
 
-  function handleSort(key: 'username' | 'role' | 'email') {
+  function handleSort(key: 'name' | 'role' | 'email') {
     if (sortKey === key) {
       setSortOrder((prev) => (prev === 'asc' ? 'desc' : 'asc'));
     } else {
@@ -134,10 +134,10 @@ export default function AdminPage() {
               <th className="px-4 py-3 font-medium">#</th>
               <th
                 className="px-4 py-3 font-medium cursor-pointer"
-                onClick={() => handleSort('username')}
+                onClick={() => handleSort('name')}
               >
                 Nome{' '}
-                {sortKey === 'username' && (sortOrder === 'asc' ? '↑' : '↓')}
+                {sortKey === 'name' && (sortOrder === 'asc' ? '↑' : '↓')}
               </th>
               <th
                 className="px-4 py-3 font-medium cursor-pointer"
@@ -185,7 +185,7 @@ export default function AdminPage() {
                       {idx + 1}
                     </td>
                     <td className="px-4 py-3 font-medium text-slate-800 dark:text-slate-100">
-                      {u.username}
+                      {u.name}
                     </td>
                     <td className="px-4 py-3">
                       <span
@@ -259,10 +259,10 @@ export default function AdminPage() {
               <div className="relative">
                 <input
                   type="text"
-                  id="edit-username"
-                  value={userToEdit.username}
+                  id="edit-name"
+                  value={userToEdit.name}
                   onChange={(e) =>
-                    setUserToEdit({ ...userToEdit, username: e.target.value })
+                    setUserToEdit({ ...userToEdit, name: e.target.value })
                   }
                   className="peer w-full rounded-md border border-slate-300 bg-transparent px-3 pt-5 pb-2 text-sm 
                        text-slate-900 placeholder-transparent focus:border-blue-500 focus:ring-1 focus:ring-blue-500
@@ -270,7 +270,7 @@ export default function AdminPage() {
                   placeholder="Usuário"
                 />
                 <label
-                  htmlFor="edit-username"
+                  htmlFor="edit-name"
                   className="absolute left-3 top-2 text-slate-500 text-sm transition-all 
                        peer-placeholder-shown:top-4 peer-placeholder-shown:text-slate-400 peer-placeholder-shown:text-base 
                        peer-focus:top-2 peer-focus:text-sm peer-focus:text-blue-500"

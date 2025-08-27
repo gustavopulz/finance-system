@@ -145,7 +145,7 @@ export default function Header() {
               <div className="absolute right-0 mt-0 w-48 bg-white dark:bg-slate-800 shadow-lg rounded-md z-50">
                 <div className="pt-4 px-4">
                   <p className="text-sm font-medium text-gray-900 dark:text-gray-100">
-                    {auth?.user?.username || 'Usuário'}
+                    {auth?.user?.name || 'Usuário'}
                   </p>
                   <p
                     className={`text-xs ${

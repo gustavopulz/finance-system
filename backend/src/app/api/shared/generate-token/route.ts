@@ -10,11 +10,17 @@ export async function POST(req: NextRequest) {
   if (!authToken) throw new Error('Token ausente');
   try {
     const user = verifyToken(authToken);
-    const userDoc = await firestore.collection('users').doc(String(user.id)).get();
-    const username = userDoc.exists ? userDoc.data()?.username : '';
-    const raw = `${username}:${user.id}:${Date.now()}:${Math.random()}`;
+    const userDoc = await firestore
+      .collection('users')
+      .doc(String(user.id))
+      .get();
+    const name = userDoc.exists ? userDoc.data()?.name : '';
+    const raw = `${name}:${user.id}:${Date.now()}:${Math.random()}`;
     const token = crypto.createHash('sha256').update(raw).digest('hex');
-    await firestore.collection('shared_accounts_tokens').doc(String(user.id)).set({ userId: user.id, token });
+    await firestore
+      .collection('shared_accounts_tokens')
+      .doc(String(user.id))
+      .set({ userId: user.id, token });
     return NextResponse.json({ token });
   } catch (err: any) {
     return NextResponse.json({ error: err.message }, { status: 500 });

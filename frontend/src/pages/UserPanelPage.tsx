@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import SkeletonCard from '../components/SkeletonCard';
 import { useAuth } from '../context/AuthContext';
 import { generateShareToken, useShareToken } from '../lib/api';
-import { updateUserName, updateUserPassword } from '../lib/api';
+import { updatename, updateUserPassword } from '../lib/api';
 import { getLinks } from '../lib/share';
 import {
   Plus,
@@ -66,7 +66,7 @@ export default function UserPanelPage() {
 
   const handleChangeName = () => {
     setEditingName(true);
-    setNewName(auth?.user?.username || '');
+    setNewName(auth?.user?.name || '');
   };
   const handleChangePassword = () => {
     setEditingPassword(true);
@@ -75,10 +75,10 @@ export default function UserPanelPage() {
   const handleSaveName = async () => {
     setNameStatus(null);
     try {
-      await updateUserName(newName);
+      await updatename(newName);
       setNameStatus('Nome alterado com sucesso!');
       if (auth?.user) {
-        auth.user.username = newName;
+        auth.user.name = newName;
       }
       setEditingName(false);
     } catch (err: any) {
@@ -291,7 +291,7 @@ export default function UserPanelPage() {
                     >
                       <span className="flex items-center gap-2">
                         <User size={18} className="text-slate-500" />
-                        <span className="font-medium">{u.username}</span>
+                        <span className="font-medium">{u.name}</span>
                       </span>
                       <button className="btn btn-xs btn-error bg-red-600 text-white flex items-center gap-1">
                         <X size={14} /> Desvincular
@@ -317,7 +317,7 @@ export default function UserPanelPage() {
                     >
                       <span className="flex items-center gap-2">
                         <User size={18} className="text-slate-500" />
-                        <span className="font-medium">{u.username}</span>
+                        <span className="font-medium">{u.name}</span>
                       </span>
                       <button className="btn btn-xs btn-error bg-red-600 text-white flex items-center gap-1">
                         <X size={14} /> Desvincular

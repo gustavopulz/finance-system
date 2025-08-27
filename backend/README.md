@@ -157,7 +157,7 @@ backend/
 ```typescript
 {
   id: string,
-  username: string,
+  name: string,
   password: string, // hash bcrypt
   role: 'admin' | 'user',
   createdAt: string,

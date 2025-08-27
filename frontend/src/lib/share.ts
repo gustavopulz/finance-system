@@ -25,8 +25,8 @@ async function json<T>(url: string, options: RequestInit = {}): Promise<T> {
 
 export async function getLinks() {
   return json<{
-    iSee: { id: number; username: string }[];
-    seeMe: { id: number; username: string }[];
+    iSee: { id: number; name: string }[];
+    seeMe: { id: number; name: string }[];
   }>(`${API_URL}/links`);
 }
 

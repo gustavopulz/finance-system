@@ -43,10 +43,10 @@ export async function saveCollabOrder(order: string[]) {
 }
 
 // -------------------- UPDATE USER --------------------
-export function updateUserName(username: string) {
-  return json<{ success: boolean; username: string }>(`${API_URL}/users/me`, {
+export function updatename(name: string) {
+  return json<{ success: boolean; name: string }>(`${API_URL}/users/me`, {
     method: 'PATCH',
-    body: JSON.stringify({ username }),
+    body: JSON.stringify({ name }),
   });
 }
 
@@ -90,23 +90,14 @@ async function json<T>(url: string, options: RequestInit = {}): Promise<T> {
 // -------------------- AUTH --------------------
 // -------------------- USERS (Admin) --------------------
 export function listUsers() {
-  return json<{ id: number; username: string; role: string }[]>(
-    `${API_URL}/users`
-  );
+  return json<{ id: number; name: string; role: string }[]>(`${API_URL}/users`);
 }
 
-export function addUser(
-  username: string,
-  password: string,
-  role: string = 'user'
-) {
-  return json<{ id: number; username: string; role: string }>(
-    `${API_URL}/users`,
-    {
-      method: 'POST',
-      body: JSON.stringify({ username, password, role }),
-    }
-  );
+export function addUser(name: string, password: string, role: string = 'user') {
+  return json<{ id: number; name: string; role: string }>(`${API_URL}/users`, {
+    method: 'POST',
+    body: JSON.stringify({ name, password, role }),
+  });
 }
 
 export function deleteUser(id: number) {

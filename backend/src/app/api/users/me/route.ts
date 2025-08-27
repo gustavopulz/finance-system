@@ -1,3 +1,7 @@
+import { NextRequest, NextResponse } from 'next/server';
+import { initFirestore, firestore } from '@/lib/firestore';
+import { verifyToken } from '@/lib/jwt';
+
 export async function GET(req: NextRequest) {
   const authToken = req.cookies.get('auth_token')?.value;
   if (!authToken) {
@@ -5,27 +9,25 @@ export async function GET(req: NextRequest) {
   }
   try {
     const user = verifyToken(authToken);
-    // Buscar email do usuário no Firestore
     await initFirestore();
     const userDoc = await firestore
       .collection('users')
       .doc(String(user.id))
       .get();
-    const userData = userDoc.exists ? userDoc.data() : {};
+    if (!userDoc.exists) {
+      return NextResponse.json({ error: 'Usuário não encontrado' }, { status: 404 });
+    }
+    const userData = userDoc.data();
     return NextResponse.json({
-      id: user.id,
-      name: user.name,
-      role: user.role,
-      email: userData.email || user.email || '',
+      id: userDoc.id,
+      name: userData?.name,
+      role: userData?.role,
+      email: userData?.email,
     });
   } catch (err: any) {
     return NextResponse.json({ error: err.message }, { status: 403 });
   }
 }
-import { NextRequest, NextResponse } from 'next/server';
-import { initFirestore, firestore } from '@/lib/firestore';
-import bcrypt from 'bcryptjs';
-import { verifyToken } from '@/lib/jwt';
 
 export async function PATCH(req: NextRequest) {
   await initFirestore();

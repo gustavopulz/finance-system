@@ -30,7 +30,7 @@ export async function POST(req: NextRequest) {
     const accounts = accountsSnap.docs
       .map(doc => ({ id: doc.id, ...doc.data() }) as Account)
       .filter(acc => {
-        if (acc.parcelasTotal == null) return true;
+        if (acc.parcelasTotal != 0) return true;
         // Supondo que acc.year e acc.month existam
         return acc.year === year && acc.month === month;
       });

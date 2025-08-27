@@ -76,12 +76,13 @@ export default function AddFinanceDialog({
       description: initial?.description || '',
       value:
         initial?.value != null ? String(initial.value).replace('.', ',') : '',
-      parcelasTotal:
-        initial?.parcelasTotal === null || initial?.parcelasTotal === undefined
+      parcelasTotal: initial
+        ? initial.parcelasTotal === null || initial.parcelasTotal === undefined
           ? 'X' // Conta fixa/recorrente
-          : initial?.parcelasTotal === 0
+          : initial.parcelasTotal === 0
             ? '-' // Conta avulsa
-            : initial.parcelasTotal, // Número de parcelas
+            : initial.parcelasTotal // Número de parcelas
+        : '-', // NOVO: padrão é Avulsa
       month: initial?.month ?? defaultMonth,
       year: initial?.year ?? defaultYear,
       status:

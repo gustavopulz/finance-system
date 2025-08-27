@@ -1,8 +1,7 @@
 import React, { useState } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
-import { login as apiLogin } from '../lib/api';
-import { FaEye, FaEyeSlash } from 'react-icons/fa';
+import { FaEyeSlash, FaEye } from 'react-icons/fa';
 
 export default function LoginPage() {
   const auth = useAuth();
@@ -25,8 +24,7 @@ export default function LoginPage() {
         setError('Erro de autenticação');
         return;
       }
-      await apiLogin(formData.username, formData.password);
-      await auth.login();
+      await auth.login(formData.username, formData.password);
       navigate('/');
     } catch (err: any) {
       console.error(err);

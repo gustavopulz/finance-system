@@ -1,5 +1,5 @@
 import { parcelaLabel, brl, isAccountPaidInMonth } from '../lib/format';
-import { updateAccount } from '../lib/api';
+import { markAccountPaid } from '../lib/api';
 import type { Account } from '../lib/types';
 import {
   Trash2,
@@ -123,11 +123,12 @@ export default function FinanceTable({
 
       // Para contas recorrentes, envia month/year
       if (isRecurrentAccount) {
-        await updateAccount(account.id, {
-          paid: newPaid,
-          month: currentComp.month,
-          year: currentComp.year,
-        });
+        await markAccountPaid(
+          account.id,
+          newPaid,
+          currentComp.month,
+          currentComp.year
+        );
 
         // Atualiza o estado local para contas recorrentes
         setLocalItems((prev) =>
@@ -151,14 +152,20 @@ export default function FinanceTable({
           })
         );
       } else {
-        // Para contas não-recorrentes, usa o método tradicional
-        await updateAccount(account.id, {
-          paid: newPaid,
-        });
+        // Para contas não-recorrentes, usa o endpoint mark-paid
+        const response = (await markAccountPaid(account.id, newPaid)) as any;
 
         setLocalItems((prev) =>
           prev.map((item) =>
-            item.id === account.id ? { ...item, paid: newPaid } : item
+            item.id === account.id
+              ? {
+                  ...item,
+                  paid: newPaid,
+                  dtPaid:
+                    response?.dtPaid ||
+                    (newPaid ? new Date().toISOString() : undefined),
+                }
+              : item
           )
         );
       }
@@ -191,6 +198,7 @@ export default function FinanceTable({
   }
 
   function getStatusBadge(account: Account): React.JSX.Element {
+    // Verifica se está pago com base na nova lógica
     if (isAccountPaidInMonth(account, currentComp)) {
       return (
         <span className="badge bg-green-100 dark:bg-green-500/30 text-green-700 dark:text-green-300">
@@ -198,13 +206,25 @@ export default function FinanceTable({
         </span>
       );
     }
-    if (account.status === 'Pendente') {
-      return (
-        <span className="badge bg-yellow-100 dark:bg-yellow-500/30 text-yellow-700 dark:text-yellow-300">
-          Pendente
-        </span>
-      );
+
+    // Se tem dtPaid mas não está pago na competência atual, significa que foi pago em mês futuro
+    if (account.dtPaid) {
+      const paidDate = new Date(account.dtPaid);
+      const paidYear = paidDate.getFullYear();
+      const paidMonth = paidDate.getMonth() + 1;
+
+      if (
+        paidYear > currentComp.year ||
+        (paidYear === currentComp.year && paidMonth > currentComp.month)
+      ) {
+        return (
+          <span className="badge bg-blue-100 dark:bg-blue-500/30 text-blue-700 dark:text-blue-300">
+            Pago Futuramente
+          </span>
+        );
+      }
     }
+
     if (account.status === 'Cancelado') {
       return (
         <span className="badge bg-red-100 dark:bg-red-500/30 text-red-700 dark:text-red-300">
@@ -212,9 +232,11 @@ export default function FinanceTable({
         </span>
       );
     }
+
+    // Se não está pago e não está cancelado, está pendente
     return (
-      <span className="badge bg-slate-100 dark:bg-slate-900/60 text-slate-700 dark:text-slate-100">
-        {account.status}
+      <span className="badge bg-yellow-100 dark:bg-yellow-500/30 text-yellow-700 dark:text-yellow-300">
+        Pendente
       </span>
     );
   }
@@ -442,7 +464,10 @@ export default function FinanceTable({
                 {sortKey === 'status' && (sortOrder === 'asc' ? '↑' : '↓')}
               </th>
               <th className="px-4 py-3 font-medium text-center w-[8%]">Pago</th>
-              <th className="px-4 py-3 font-medium text-center w-[12%]">
+              <th className="px-4 py-3 font-medium text-center w-[10%]">
+                Data Pagamento
+              </th>
+              <th className="px-4 py-3 font-medium text-center w-[10%]">
                 Cancelado em
               </th>
               <th className="px-2 py-3 font-medium text-center w-[8%]">
@@ -478,6 +503,15 @@ export default function FinanceTable({
                     aria-label="Marcar como pago"
                     className="custom-checkbox"
                   />
+                </td>
+                <td className="px-4 py-3 text-center text-xs text-slate-500 dark:text-slate-400">
+                  {f.dtPaid
+                    ? new Date(f.dtPaid).toLocaleDateString('pt-BR', {
+                        day: '2-digit',
+                        month: '2-digit',
+                        year: 'numeric',
+                      })
+                    : ''}
                 </td>
                 <td className="px-4 py-3 text-center text-xs text-slate-500 dark:text-slate-400">
                   {f.cancelledAt
@@ -532,7 +566,7 @@ export default function FinanceTable({
             {displayData.length === 0 && (
               <tr>
                 <td
-                  colSpan={7}
+                  colSpan={8}
                   className="py-6 text-center text-slate-500 dark:text-slate-400"
                 >
                   Sem lançamentos
@@ -542,11 +576,10 @@ export default function FinanceTable({
             {isCollapsed && sortedData.length > 1 && (
               <tr>
                 <td
-                  colSpan={7}
+                  colSpan={8}
                   className="py-2 text-center text-slate-500 dark:text-slate-400 text-sm italic"
                 >
-                  ... e mais {sortedData.length - 1} item(ns) (clique na seta
-                  para expandir)
+                  ... e mais {sortedData.length - 1} item(ns)
                 </td>
               </tr>
             )}
@@ -570,6 +603,16 @@ export default function FinanceTable({
             <div className="text-slate-600 dark:text-slate-400 text-sm">
               Parcela: {parcelaLabel(f, currentComp)}
             </div>
+            {f.dtPaid && (
+              <div className="text-slate-600 dark:text-slate-400 text-sm">
+                Data de Pagamento:{' '}
+                {new Date(f.dtPaid).toLocaleDateString('pt-BR', {
+                  day: '2-digit',
+                  month: '2-digit',
+                  year: 'numeric',
+                })}
+              </div>
+            )}
             <div className="text-sm">{getStatusBadge(f)}</div>
             <div className="flex items-center justify-between mt-2">
               <label className="flex items-center gap-2 text-xs text-slate-500 dark:text-slate-400">
@@ -616,8 +659,7 @@ export default function FinanceTable({
         ))}
         {isCollapsed && sortedData.length > 1 && (
           <div className="text-center text-slate-500 dark:text-slate-400 text-sm italic py-2">
-            ... e mais {sortedData.length - 1} item(ns) (clique na seta para
-            expandir)
+            ... e mais {sortedData.length - 1} item(ns)
           </div>
         )}
       </div>

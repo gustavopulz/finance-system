@@ -25,6 +25,7 @@ export type Account = {
   updatedAt: string;
   cancelledAt?: string;
   paid?: boolean;
+  dtPaid?: string; // Data de pagamento
   paidByMonth?: { [monthKey: string]: boolean }; // Para contas recorrentes: "2024-08": true
 };
 

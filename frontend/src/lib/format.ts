@@ -43,7 +43,25 @@ export function isAccountPaidInMonth(
     return Boolean(account.paidByMonth[monthKey]);
   }
 
-  // Para contas não-recorrentes, usa o campo paid tradicional
+  // Para contas não-recorrentes, verifica a data de pagamento (dtPaid)
+  if (account.dtPaid) {
+    const paidDate = new Date(account.dtPaid);
+    const paidYear = paidDate.getFullYear();
+    const paidMonth = paidDate.getMonth() + 1; // getMonth() retorna 0-11
+
+    // Se a data de pagamento é menor ou igual ao mês da competência, está pago
+    if (
+      paidYear < competencia.year ||
+      (paidYear === competencia.year && paidMonth <= competencia.month)
+    ) {
+      return true;
+    }
+
+    // Se a data de pagamento é maior que o mês da competência, está pendente
+    return false;
+  }
+
+  // Fallback para o campo paid tradicional se não houver dtPaid
   return Boolean(account.paid);
 }
 

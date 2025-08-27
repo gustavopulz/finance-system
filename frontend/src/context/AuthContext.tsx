@@ -1,17 +1,17 @@
-// src/context/AuthContext.tsx
 import { createContext, useContext, useState, useEffect } from 'react';
 
 interface User {
   id: number;
-  username: string;
+  email: string;
   role: string;
+  username: string;
 }
 
 interface AuthContextType {
   user: User | null;
   token: string | null;
   loading: boolean;
-  login: (username: string, password: string) => Promise<void>;
+  login: (email: string, password: string) => Promise<void>;
   logout: () => Promise<void>;
   isAuthenticated: () => boolean;
 }
@@ -24,16 +24,23 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Try to get user info from backend using cookie
     async function fetchUser() {
       try {
-        const res = await fetch('https://finance-system-api.prxlab.app/api/users/me', {
-          credentials: 'include',
-        });
+        const res = await fetch(
+          'https://finance-system-api.prxlab.app/api/users/me',
+          {
+            credentials: 'include',
+          }
+        );
         if (res.ok) {
           const data = await res.json();
-          if (data?.username && data?.id && data?.role) {
-            setUser({ id: data.id, username: data.username, role: data.role });
+          if (data?.email && data?.id && data?.role && data?.username) {
+            setUser({
+              id: data.id,
+              email: data.email,
+              role: data.role,
+              username: data.username,
+            });
           } else {
             setUser(null);
           }
@@ -48,12 +55,18 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     fetchUser();
   }, []);
 
-  const login = async (username: string, password: string) => {
+  const login = async (email: string, password: string) => {
     try {
-      // Chama o login da API
-      const { user } = await import('../lib/api').then(mod => mod.login(username, password));
-      if (user && user.id && user.username && user.role) {
-        setUser({ id: user.id, username: user.username, role: user.role });
+      const { user } = await import('../lib/api').then((mod) =>
+        mod.login(email, password)
+      );
+      if (user && user.id && user.email && user.role && user.username) {
+        setUser({
+          id: user.id,
+          email: String(user.email),
+          role: String(user.role),
+          username: String(user.username),
+        });
       } else {
         setUser(null);
         throw new Error('Usuário inválido');
@@ -66,7 +79,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   };
 
   const logout = async () => {
-    await import('../lib/api').then(mod => mod.logout());
+    await import('../lib/api').then((mod) => mod.logout());
     setUser(null);
     setToken(null);
   };
@@ -74,7 +87,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const isAuthenticated = () => !!user;
 
   return (
-    <AuthContext.Provider value={{ user, token, loading, login, logout, isAuthenticated }}>
+    <AuthContext.Provider
+      value={{ user, token, loading, login, logout, isAuthenticated }}
+    >
       {children}
     </AuthContext.Provider>
   );

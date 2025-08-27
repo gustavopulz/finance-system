@@ -91,12 +91,17 @@ export function deleteUser(id: number) {
     method: 'DELETE',
   });
 }
-export async function login(username: string, password: string) {
+export async function login(email: string, password: string) {
   const data = await json<{
-    user: { id: number; username: string; role: 'admin' | 'user' };
+    user: {
+      username: string | number;
+      id: number;
+      email: string;
+      role: 'admin' | 'user';
+    };
   }>(`${API_URL}/login`, {
     method: 'POST',
-    body: JSON.stringify({ username, password }),
+    body: JSON.stringify({ email, password }),
     credentials: 'include',
   });
   // No token in response, cookie is set by backend

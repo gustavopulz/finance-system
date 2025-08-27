@@ -17,12 +17,12 @@ export async function getCurrentUser() {
   });
   if (!res.ok) return { user: null };
   const data = await res.json();
-  if (data?.username && data?.id && data?.role) {
+  if (data?.name && data?.id && data?.role) {
     return {
       user: {
         id: data.id,
         email: String(data.email),
-        username: String(data.username),
+        name: String(data.name),
         role: String(data.role),
       },
     };
@@ -118,7 +118,7 @@ export function deleteUser(id: number) {
 export async function login(email: string, password: string) {
   const data = await json<{
     user: {
-      username: string;
+      name: string;
       id: number;
       email: string;
       role: 'admin' | 'user';

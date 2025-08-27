@@ -3,7 +3,7 @@ import { createContext, useContext, useState, useEffect } from 'react';
 interface User {
   id: number;
   role: string;
-  username: string;
+  name: string;
   email: string;
 }
 
@@ -29,12 +29,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         const { user } = await import('../lib/api').then((mod) =>
           mod.getCurrentUser()
         );
-        if (user && user.id && user.email && user.role && user.username) {
+        if (user && user.id && user.email && user.role && user.name) {
           setUser({
             id: user.id,
             email: String(user.email),
             role: String(user.role),
-            username: String(user.username),
+            name: String(user.name),
           });
         } else {
           setUser(null);
@@ -52,12 +52,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       const { user } = await import('../lib/api').then((mod) =>
         mod.login(email, password)
       );
-      if (user && user.id && user.email && user.role && user.username) {
+      if (user && user.id && user.email && user.role && user.name) {
         setUser({
           id: user.id,
           email: String(user.email),
           role: String(user.role),
-          username: String(user.username),
+          name: String(user.name),
         });
       } else {
         setUser(null);

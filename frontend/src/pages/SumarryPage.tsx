@@ -348,7 +348,10 @@ export default function HomePage() {
 
   return (
     <div className="flex px-4 sm:px-6 lg:px-20 2xl:px-40 gap-6 mx-auto">
-      <div id="sidebar-total-colabs" className="hidden md:block">
+      <div
+        id="sidebar-total-colabs"
+        className="hidden md:block sticky top-6 h-screen"
+      >
         <SidebarTotalColabs
           total={total}
           totalPendente={totalPendente}
@@ -546,15 +549,36 @@ export default function HomePage() {
         </DndContext>
       </div>
 
-      {/* Botão flutuante para adicionar finança */}
+      {/* Botão flutuante para voltar ao topo */}
       {showFloatingButton && (
-        <button
-          onClick={() => setDlg({ mode: 'addAccount' })}
-          className="fixed bottom-6 right-6 w-14 h-14 bg-blue-600 hover:bg-blue-700 text-white rounded-full shadow-lg hover:shadow-xl transition-all duration-300 flex items-center justify-center z-50"
-          title="Adicionar finança (Alt+N)"
-        >
-          <Plus size={24} />
-        </button>
+        <>
+          <button
+            onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
+            className="fixed bottom-24 right-6 w-14 h-14 bg-slate-300 hover:bg-slate-400 text-blue-700 rounded-full shadow-lg hover:shadow-xl transition-all duration-300 flex items-center justify-center z-50 border border-blue-400"
+            title="Voltar ao topo"
+            aria-label="Voltar ao topo"
+          >
+            <svg
+              width="32"
+              height="32"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
+              <polyline points="18 15 12 9 6 15"></polyline>
+            </svg>
+          </button>
+          <button
+            onClick={() => setDlg({ mode: 'addAccount' })}
+            className="fixed bottom-6 right-6 w-14 h-14 bg-blue-600 hover:bg-blue-700 text-white rounded-full shadow-lg hover:shadow-xl transition-all duration-300 flex items-center justify-center z-50"
+            title="Adicionar finança (Alt+N)"
+          >
+            <Plus size={24} />
+          </button>
+        </>
       )}
 
       {dlg.mode === 'addCollab' && (

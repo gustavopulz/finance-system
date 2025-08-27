@@ -1,11 +1,27 @@
+const API_URL = 'https://finance-system-api.prxlab.app/api';
+
 // -------------------- REGISTER --------------------
 export function registerUser(email: string, password: string, name: string) {
-  return json<{ success?: boolean; message?: string }>(`${API_URL}/register`, {
-    method: 'POST',
-    body: JSON.stringify({ email, password, name }),
-  });
+  return json<{ success?: boolean; message?: string }>(
+    `${API_URL}/user/register`,
+    {
+      method: 'POST',
+      body: JSON.stringify({ email, password, name }),
+    }
+  );
 }
-const API_URL = 'https://finance-system-api.prxlab.app/api';
+
+export async function getCurrentUser() {
+  const res = await fetch(`${API_URL}/users/me`, {
+    credentials: 'include',
+  });
+  if (!res.ok) return { user: null };
+  const data = await res.json();
+  if (data?.username && data?.id && data?.role) {
+    return { user: { id: data.id, username: data.username, role: data.role } };
+  }
+  return { user: null };
+}
 
 // Salva a ordem dos colaboradores
 export async function saveCollabOrder(order: string[]) {
@@ -94,7 +110,7 @@ export function deleteUser(id: number) {
 export async function login(email: string, password: string) {
   const data = await json<{
     user: {
-      username: string | number;
+      username: string;
       id: number;
       email: string;
       role: 'admin' | 'user';

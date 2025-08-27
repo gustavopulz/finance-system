@@ -26,24 +26,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     async function fetchUser() {
       try {
-        const res = await fetch(
-          'https://finance-system-api.prxlab.app/api/users/me',
-          {
-            credentials: 'include',
-          }
+        const { user } = await import('../lib/api').then((mod) =>
+          mod.getCurrentUser()
         );
-        if (res.ok) {
-          const data = await res.json();
-          if (data?.email && data?.id && data?.role && data?.username) {
-            setUser({
-              id: data.id,
-              email: data.email,
-              role: data.role,
-              username: data.username,
-            });
-          } else {
-            setUser(null);
-          }
+        if (user && user.id && user.username && user.role) {
+          setUser({
+            id: user.id,
+            email: String(user.email),
+            role: String(user.role),
+            username: String(user.username),
+          });
         } else {
           setUser(null);
         }

@@ -1,3 +1,5 @@
+const API_URL = 'https://finance-system-api.prxlab.app/api';
+
 // -------------------- REGISTER --------------------
 export function registerUser(email: string, password: string, name: string) {
   return json<{ success?: boolean; message?: string }>(`${API_URL}/register`, {
@@ -5,11 +7,9 @@ export function registerUser(email: string, password: string, name: string) {
     body: JSON.stringify({ email, password, name }),
   });
 }
-const API_URL = 'https://finance-system-api.prxlab.app/api';
 
-// Obtém o usuário atual usando o cookie
 export async function getCurrentUser() {
-  const res = await fetch('https://finance-system-api.prxlab.app/api/users/me', {
+  const res = await fetch(`${API_URL}/users/me`, {
     credentials: 'include',
   });
   if (!res.ok) return { user: null };

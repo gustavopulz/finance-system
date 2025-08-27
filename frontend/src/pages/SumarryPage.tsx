@@ -132,7 +132,7 @@ export default function HomePage() {
   async function load() {
     setLoading(true);
     try {
-      const data = await api.getMergedFinances();
+      const data = await api.getMergedFinances(year, month);
       const normalizedAccounts = (data.accounts as any[]).map(normalizeAccount);
       setAccounts(normalizedAccounts);
       let collabList = (data.collabs as Collaborator[]) || [];

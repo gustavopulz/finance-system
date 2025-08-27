@@ -153,6 +153,19 @@ export default function HomePage() {
     load();
   }, [month, year]);
 
+  // Atalho de teclado para adicionar finança (Ctrl+N ou Cmd+N)
+  useEffect(() => {
+    function handleKeyDown(e: KeyboardEvent) {
+      if ((e.ctrlKey || e.metaKey) && e.key === 'n') {
+        e.preventDefault();
+        setDlg({ mode: 'addAccount' });
+      }
+    }
+
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, []);
+
   const visibleAccounts = useMemo(() => {
     let result: Account[] = [];
     if (showAll) {
@@ -357,6 +370,7 @@ export default function HomePage() {
               <button
                 className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded transition"
                 onClick={() => setDlg({ mode: 'addAccount' })}
+                title="Adicionar finança (Ctrl+N)"
               >
                 <Plus size={18} />
                 <span>Adicionar finança</span>

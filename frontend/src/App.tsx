@@ -6,7 +6,7 @@ import {
   useLocation,
 } from 'react-router-dom';
 import type { JSX } from 'react';
-import HomePage from './pages/HomePage';
+import HomePage from './pages/SumarryPage';
 import LoginPage from './pages/LoginPage';
 import UserPanelPage from './pages/UserPanelPage';
 import { useAuth } from './context/AuthContext';
@@ -37,9 +37,8 @@ function AppWithHeader() {
       <main className="container-app py-6">
         <Routes>
           <Route path="/login" element={<LoginPage />} />
-          <Route path="/" element={<Navigate to="/login" replace />} />
           <Route
-            path="/home"
+            path="/"
             element={
               <PrivateRoute>
                 <HomePage />
@@ -70,7 +69,7 @@ function AppWithHeader() {
               </PrivateRoute>
             }
           />
-          <Route path="*" element={<Navigate to="/errors/404" replace />} />
+          <Route path="*" element={<Navigate to="/" />} />
         </Routes>
       </main>
     </>

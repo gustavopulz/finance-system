@@ -189,7 +189,9 @@ export default function FinanceTable({
     clearSelection();
     setShowBulkDeleteConfirm(false);
     setTimeout(() => setToast(null), 3000);
-    console.log('handleBulkDelete concluído:', { successCount: accountIds.length });
+    console.log('handleBulkDelete concluído:', {
+      successCount: accountIds.length,
+    });
   };
 
   // Atualiza localItems quando items mudar
@@ -911,27 +913,46 @@ export default function FinanceTable({
                 : ''
             }`}
           >
-            <div className="flex items-start gap-3 mb-2">
-              <input
-                type="checkbox"
-                checked={selectedItems.has(f.id)}
-                onChange={() => toggleItemSelection(f.id)}
-                className="custom-checkbox mt-1"
-              />
-              <div className="flex-1">
-                <div className="font-semibold text-slate-800 dark:text-slate-100">
+            {/* Header: checkbox + título + status */}
+            <div className="flex justify-between items-start mb-2">
+              <div className="flex items-center gap-2">
+                <input
+                  type="checkbox"
+                  checked={selectedItems.has(f.id)}
+                  onChange={() => toggleItemSelection(f.id)}
+                  className="custom-checkbox"
+                />
+                <span className="font-semibold text-slate-800 dark:text-slate-100">
                   {f.description}
-                </div>
+                </span>
+              </div>
+
+              {/* Status + data cancelamento */}
+              <div className="flex flex-col items-end">
+                {getStatusBadge(f)}
+                {f.cancelledAt && (
+                  <span className="text-xs text-slate-500 dark:text-slate-400 mt-1">
+                    {new Date(f.cancelledAt).toLocaleDateString('pt-BR', {
+                      day: '2-digit',
+                      month: '2-digit',
+                      year: 'numeric',
+                    })}
+                  </span>
+                )}
               </div>
             </div>
+
+            {/* Informações principais */}
             <div className="text-slate-600 dark:text-slate-400 text-sm">
               Valor: {brl(Number(f.value))}
             </div>
             <div className="text-slate-600 dark:text-slate-400 text-sm">
               Parcela: {parcelaLabel(f, currentComp)}
             </div>
-            <div className="text-sm">{getStatusBadge(f)}</div>
-            <div className="flex items-center justify-between mt-2">
+
+            {/* Pago + Ações */}
+            <div className="flex items-center justify-between mt-3">
+              {/* Pago */}
               <label className="flex items-center gap-2 text-xs text-slate-500 dark:text-slate-400">
                 <input
                   type="checkbox"
@@ -941,36 +962,35 @@ export default function FinanceTable({
                 />
                 Pago
               </label>
-              <span className="text-xs text-slate-500 dark:text-slate-400">
-                {f.cancelledAt
-                  ? new Date(f.cancelledAt).toLocaleDateString('pt-BR', {
-                      year: 'numeric',
-                      month: '2-digit',
-                    })
-                  : ''}
-              </span>
-            </div>
-            {/* Ações */}
-            <div className="flex justify-end gap-2 mt-3">
-              <button onClick={() => onEdit(f)}>
-                <Pencil
-                  size={16}
-                  className="text-slate-500 hover:text-yellow-500"
-                />
-              </button>
-              <button onClick={() => onCancelToggle(f.id)}>
-                {f.status === 'Pendente' || f.status === 'ativo' ? (
-                  <Ban size={16} className="text-red-400 hover:text-red-600" />
-                ) : (
-                  <CheckCircle
+
+              {/* Botões de ação */}
+              <div className="flex gap-2">
+                <button onClick={() => onEdit(f)}>
+                  <Pencil
                     size={16}
-                    className="text-green-500 hover:text-green-700"
+                    className="text-slate-400 hover:text-yellow-500"
                   />
-                )}
-              </button>
-              <button onClick={() => setFinancaToDelete(f)}>
-                <Trash2 size={16} className="text-red-600 hover:text-red-800" />
-              </button>
+                </button>
+                <button onClick={() => onCancelToggle(f.id)}>
+                  {f.status === 'Pendente' || f.status === 'ativo' ? (
+                    <Ban
+                      size={16}
+                      className="text-slate-400 hover:text-red-600"
+                    />
+                  ) : (
+                    <CheckCircle
+                      size={16}
+                      className="text-slate-400 hover:text-green-600"
+                    />
+                  )}
+                </button>
+                <button onClick={() => setFinancaToDelete(f)}>
+                  <Trash2
+                    size={16}
+                    className="text-slate-400 hover:text-red-600"
+                  />
+                </button>
+              </div>
             </div>
           </div>
         ))}

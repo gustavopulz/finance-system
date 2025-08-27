@@ -42,7 +42,7 @@ export interface FinanceTableProps {
   title: string;
   items: Account[];
   currentComp: { year: number; month: number };
-  onDelete: (id: string) => void;
+  onDelete: (id: string | string[]) => void;
   onEdit: (a: Account) => void;
   onCancelToggle: (id: string) => void;
   onCollabDeleted: (id: string) => void;
@@ -179,30 +179,17 @@ export default function FinanceTable({
       selectedItems.has(item.id)
     );
 
-    console.log(
-      'Contas para excluir:',
-      selectedAccounts.map((a) => ({ id: a.id, description: a.description }))
-    );
-
-    let successCount = 0;
-
-    for (const account of selectedAccounts) {
-      try {
-        console.log(`Excluindo conta: ${account.description}`);
-        await onDelete(account.id);
-        successCount++;
-        console.log(`Sucesso ao excluir: ${account.description}`);
-      } catch (error) {
-        console.error(`Erro ao excluir ${account.description}:`, error);
-      }
+    const accountIds = selectedAccounts.map((a) => a.id);
+    try {
+      await onDelete(accountIds);
+      setToast(`${accountIds.length} finança(s) excluída(s) com sucesso ✅`);
+    } catch (error) {
+      setToast('Erro ao excluir contas');
     }
-
     clearSelection();
     setShowBulkDeleteConfirm(false);
-    setToast(`${successCount} finança(s) excluída(s) com sucesso ✅`);
     setTimeout(() => setToast(null), 3000);
-
-    console.log('handleBulkDelete concluído:', { successCount });
+    console.log('handleBulkDelete concluído:', { successCount: accountIds.length });
   };
 
   // Atualiza localItems quando items mudar

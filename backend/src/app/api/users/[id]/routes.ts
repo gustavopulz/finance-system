@@ -1,7 +1,46 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { initFirestore, firestore } from '@/lib/firestore';
-import bcrypt from 'bcryptjs';
 import { verifyToken } from '@/lib/jwt';
+
+
+export async function PATCH(req: NextRequest, context: { params: Promise<{ id: string }> }) {
+  await initFirestore();
+  const cookie = req.cookies.get('auth_token');
+  const authToken = typeof cookie === 'string' ? cookie : cookie?.value;
+  if (!authToken) {
+    return NextResponse.json({ error: 'Token ausente' }, { status: 401 });
+  }
+  let user;
+  try {
+    user = verifyToken(authToken, "admin");
+  } catch (err: any) {
+    return NextResponse.json({ error: err.message }, { status: 403 });
+  }
+
+  const { id } = await context.params;
+  if (!id) {
+    return NextResponse.json({ error: 'ID do usuário ausente.' }, { status: 400 });
+  }
+
+  let payload;
+  try {
+    payload = await req.json();
+  } catch {
+    return NextResponse.json({ error: 'Payload inválido.' }, { status: 400 });
+  }
+
+  if (!payload.role || (payload.role !== 'admin' && payload.role !== 'user')) {
+    return NextResponse.json({ error: 'Role inválido.' }, { status: 400 });
+  }
+
+  try {
+    await firestore.collection('users').doc(id).update({ role: payload.role });
+    return NextResponse.json({ success: true });
+  } catch (err: any) {
+    return NextResponse.json({ error: err.message }, { status: 500 });
+  }
+}
+
 
 export async function DELETE(req: NextRequest, context: { params: Promise<{ id: string }> }) {
   await initFirestore();
@@ -12,14 +51,9 @@ export async function DELETE(req: NextRequest, context: { params: Promise<{ id: 
   }
   let user;
   try {
-    user = verifyToken(authToken);
+    user = verifyToken(authToken, "admin");
   } catch (err: any) {
     return NextResponse.json({ error: err.message }, { status: 403 });
-  }
-
-  // Verifica se o usuário é admin
-  if (!user?.admin) {
-    return NextResponse.json({ error: 'Apenas administradores podem deletar usuários.' }, { status: 403 });
   }
 
   const { id } = await context.params;

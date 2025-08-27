@@ -137,11 +137,16 @@ export default function Header() {
         </div>
         {/* User and Settings */}
         <div className="hidden md:flex items-center gap-4">
-          <NavLink to="/user-settings" className="btn btn-ghost">
-            <Settings size={24} className="text-white" />
+          <NavLink
+            to="/user-settings"
+            className={({ isActive }) =>
+              `btn btn-ghost flex items-center ${isActive ? 'text-blue-500' : 'text-white'}`
+            }
+          >
+            <Settings size={24} />
           </NavLink>
           <div
-            className="relative group"
+            className="relative group flex items-center gap-2"
             onMouseEnter={() => setMobileMenuOpen(true)}
             onMouseLeave={() => setMobileMenuOpen(false)}
           >

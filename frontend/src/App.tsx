@@ -82,6 +82,14 @@ function AppWithHeader() {
               }
             />
             <Route
+              path="/dashboard"
+              element={
+                <PrivateRoute>
+                  <InfoPage />
+                </PrivateRoute>
+              }
+            />
+            <Route
               path="/user-settings"
               element={
                 <PrivateRoute>

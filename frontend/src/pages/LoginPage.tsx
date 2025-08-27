@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
+import { FaEyeSlash, FaEye } from 'react-icons/fa';
 
 export default function LoginPage() {
   const auth = useAuth();

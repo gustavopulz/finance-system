@@ -45,74 +45,69 @@ function AppWithHeader() {
   return (
     <>
       {!hideHeader && <Header />}
-      <main className="flex-1 py-6">
-        <Routes>
-          <Route path="/login" element={<LoginPage />} />
-          <Route path="/register" element={<RegisterPage />} />
-
-          <Route
-            path="/"
-            element={
-              <PrivateRoute>
-                <HomePage />
-              </PrivateRoute>
-            }
-          />
-
-          <Route
-            path="/summary"
-            element={
-              <PrivateRoute>
-                <HomePage />
-              </PrivateRoute>
-            }
-          />
-
-          <Route
-            path="/info"
-            element={
-              <PrivateRoute>
-                <InfoPage />
-              </PrivateRoute>
-            }
-          />
-
-          <Route
-            path="/user-settings"
-            element={
-              <PrivateRoute>
-                <UserPanelPage />
-              </PrivateRoute>
-            }
-          />
-
-          <Route
-            path="/admin"
-            element={
-              <AdminRoute>
-                <AdminPage />
-              </AdminRoute>
-            }
-          />
-
-          <Route path="/politicas-e-termos" element={<PoliticasPage />} />
-          <Route path="/404" element={<NotFoundPage />} />
-
-          <Route
-            path="*"
-            element={
-              auth?.loading ? (
-                <div>Carregando...</div>
-              ) : !auth?.user ? (
-                <Navigate to="/login" replace />
-              ) : (
-                <Navigate to="/404" replace />
-              )
-            }
-          />
-        </Routes>
-      </main>
-      {!hideHeader && <Footer />}
+      <div className="flex flex-col min-h-screen">
+        <main className="flex-1 py-6">
+          <Routes>
+            <Route path="/login" element={<LoginPage />} />
+            <Route path="/register" element={<RegisterPage />} />
+            <Route
+              path="/"
+              element={
+                <PrivateRoute>
+                  <HomePage />
+                </PrivateRoute>
+              }
+            />
+            <Route
+              path="/summary"
+              element={
+                <PrivateRoute>
+                  <HomePage />
+                </PrivateRoute>
+              }
+            />
+            <Route
+              path="/info"
+              element={
+                <PrivateRoute>
+                  <InfoPage />
+                </PrivateRoute>
+              }
+            />
+            <Route
+              path="/user-settings"
+              element={
+                <PrivateRoute>
+                  <UserPanelPage />
+                </PrivateRoute>
+              }
+            />
+            <Route
+              path="/admin"
+              element={
+                <AdminRoute>
+                  <AdminPage />
+                </AdminRoute>
+              }
+            />
+            <Route path="/politicas-e-termos" element={<PoliticasPage />} />
+            <Route path="/404" element={<NotFoundPage />} />
+            <Route
+              path="*"
+              element={
+                auth?.loading ? (
+                  <div>Carregando...</div>
+                ) : !auth?.user ? (
+                  <Navigate to="/login" replace />
+                ) : (
+                  <Navigate to="/404" replace />
+                )
+              }
+            />
+          </Routes>
+        </main>
+        {!hideHeader && <Footer />}
+      </div>
     </>
   );
 }

@@ -77,9 +77,11 @@ export default function AddFinanceDialog({
       value:
         initial?.value != null ? String(initial.value).replace('.', ',') : '',
       parcelasTotal:
-        initial?.parcelasTotal == null || initial?.parcelasTotal === 0
-          ? '-'
-          : initial.parcelasTotal,
+        initial?.parcelasTotal === null || initial?.parcelasTotal === undefined
+          ? 'X' // Conta fixa/recorrente
+          : initial?.parcelasTotal === 0
+            ? '-' // Conta avulsa
+            : initial.parcelasTotal, // Número de parcelas
       month: initial?.month ?? defaultMonth,
       year: initial?.year ?? defaultYear,
       status:
@@ -140,13 +142,17 @@ export default function AddFinanceDialog({
       year: d.year,
       status: d.status as Status,
     };
-    if (d.parcelasTotal !== null) {
-      payload.parcelasTotal =
-        d.parcelasTotal === 'X'
-          ? undefined
-          : d.parcelasTotal === '-'
-            ? 0
-            : (d.parcelasTotal as number);
+
+    // Correção na lógica de parcelasTotal:
+    // - 'X' (Fixo) = null (conta recorrente em todos os meses)
+    // - '-' (Avulsa) = 0 (conta apenas no mês específico)
+    // - número (1-12) = número de parcelas
+    if (d.parcelasTotal === 'X') {
+      payload.parcelasTotal = null; // Conta fixa/recorrente
+    } else if (d.parcelasTotal === '-') {
+      payload.parcelasTotal = 0; // Conta avulsa
+    } else if (typeof d.parcelasTotal === 'number') {
+      payload.parcelasTotal = d.parcelasTotal; // Número específico de parcelas
     }
 
     onSave(payload, initial?.id); // edita se houver id; senão, cria

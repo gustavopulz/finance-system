@@ -1,10 +1,10 @@
 services:
   finance-system-api:
-    image: roxoo/finance-system-api:latest
+    image: youruser/finance-system-api:latest
     container_name: finance-system-api
     restart: always
-    environment:
-      - .env
+    env_file:
+      - .env   # esse arquivo fica apenas na VM
     labels:
       - "traefik.enable=true"
       - "traefik.http.routers.finance-system-api.rule=Host(`finance-system-api.prxlab.app`)"

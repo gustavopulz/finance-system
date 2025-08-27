@@ -1,4 +1,3 @@
-
 const API_URL = 'https://finance-system-api.prxlab.app/api';
 
 // -------------------- GET REQUESTS --------------------
@@ -196,10 +195,21 @@ export function toggleCancel(id: string, month?: number, year?: number) {
 }
 
 // /accounts/{id}/mark-paid
-export async function markAccountPaid(id: string, paid: boolean) {
+export async function markAccountPaid(
+  id: string,
+  paid: boolean,
+  month?: number,
+  year?: number
+) {
+  const body: any = { paid };
+  if (month && year) {
+    body.month = month;
+    body.year = year;
+  }
+
   return json(`${API_URL}/accounts/${id}/mark-paid`, {
     method: 'PATCH',
-    body: JSON.stringify({ paid }),
+    body: JSON.stringify(body),
   });
 }
 

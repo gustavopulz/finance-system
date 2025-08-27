@@ -11,7 +11,7 @@ import {
 } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import type { Account, Collaborator } from '../lib/types';
-import { MONTHS_PT } from '../lib/format';
+import { MONTHS_PT, isAccountPaidInMonth } from '../lib/format';
 import { todayComp, monthsDiff } from '../lib/date';
 import type { ReactElement } from 'react';
 import type { FinanceTableProps } from '../components/FinanceTable';
@@ -45,6 +45,7 @@ function normalizeAccount(a: any): Account {
     year: Math.max(1900, Number(a.year ?? new Date().getFullYear())),
     status: (a.status as Account['status']) ?? 'Pendente',
     paid: Boolean(a.paid),
+    paidByMonth: a.paidByMonth || {},
     createdAt: a.createdAt ?? '',
     updatedAt: a.updatedAt ?? '',
     cancelledAt: a.cancelledAt ?? undefined,
@@ -244,10 +245,13 @@ export default function HomePage() {
 
   const total = stableVisible.reduce((s, a) => s + Number(a.value), 0);
   const totalPendente = stableVisible
-    .filter((a) => !a.paid && a.status !== 'Cancelado') // Exclui itens cancelados
+    .filter(
+      (a) =>
+        !isAccountPaidInMonth(a, { year, month }) && a.status !== 'Cancelado'
+    ) // Exclui itens cancelados
     .reduce((s, a) => s + Number(a.value), 0);
   const totalPago = stableVisible
-    .filter((a) => a.paid)
+    .filter((a) => isAccountPaidInMonth(a, { year, month }))
     .reduce((s, a) => s + Number(a.value), 0);
 
   async function addOrUpdateAccount(
@@ -299,9 +303,31 @@ export default function HomePage() {
   }
   function handlePaidUpdate(accountId: string, paid: boolean) {
     setAccounts((prev) =>
-      prev.map((account) =>
-        account.id === accountId ? { ...account, paid } : account
-      )
+      prev.map((account) => {
+        if (account.id === accountId) {
+          const isRecurrentAccount =
+            account.parcelasTotal === null ||
+            account.parcelasTotal === undefined;
+
+          if (isRecurrentAccount) {
+            // Para contas recorrentes, atualiza o paidByMonth
+            const monthKey = `${year}-${String(month).padStart(2, '0')}`;
+            const updatedPaidByMonth = { ...account.paidByMonth };
+
+            if (paid) {
+              updatedPaidByMonth[monthKey] = true;
+            } else {
+              delete updatedPaidByMonth[monthKey];
+            }
+
+            return { ...account, paidByMonth: updatedPaidByMonth };
+          } else {
+            // Para contas não-recorrentes, atualiza o campo paid
+            return { ...account, paid };
+          }
+        }
+        return account;
+      })
     );
   }
 

@@ -29,6 +29,25 @@ export const MONTHS_PT = [
 ];
 
 /**
+ * Verifica se uma conta está paga em uma competência específica
+ */
+export function isAccountPaidInMonth(
+  account: Account,
+  competencia: Competencia
+): boolean {
+  const isRecurrentAccount =
+    account.parcelasTotal === null || account.parcelasTotal === undefined;
+
+  if (isRecurrentAccount && account.paidByMonth) {
+    const monthKey = `${competencia.year}-${String(competencia.month).padStart(2, '0')}`;
+    return Boolean(account.paidByMonth[monthKey]);
+  }
+
+  // Para contas não-recorrentes, usa o campo paid tradicional
+  return Boolean(account.paid);
+}
+
+/**
  * Rótulo de parcela para o modelo novo (Account) considerando a competência atual.
  * - Cancelado -> "—"
  * - parcelasTotal === null -> "Indeterminada"

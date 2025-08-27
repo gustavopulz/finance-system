@@ -1,4 +1,4 @@
-import { parcelaLabel, brl } from '../lib/format';
+import { parcelaLabel, brl, isAccountPaidInMonth } from '../lib/format';
 import { updateAccount } from '../lib/api';
 import type { Account } from '../lib/types';
 import {
@@ -102,27 +102,67 @@ export default function FinanceTable({
     });
   }, [items, sortKey, sortOrder, currentComp]);
 
-  // Totais considerando o campo paid
+  // Totais considerando o campo paid por competência
   const total = localItems.reduce((acc, f) => acc + Number(f.value), 0);
   const totalPendente = localItems
-    .filter((f) => !f.paid && f.status !== 'Cancelado') // Exclui itens cancelados
+    .filter(
+      (f) => !isAccountPaidInMonth(f, currentComp) && f.status !== 'Cancelado'
+    ) // Exclui itens cancelados
     .reduce((acc, f) => acc + Number(f.value), 0);
   const totalPago = localItems
-    .filter((f) => f.paid)
+    .filter((f) => isAccountPaidInMonth(f, currentComp))
     .reduce((acc, f) => acc + Number(f.value), 0);
 
   async function handlePaidToggle(account: Account) {
     try {
-      // Atualiza apenas o campo paid
-      const newPaid = !account.paid;
-      await updateAccount(account.id, {
-        paid: newPaid,
-      });
-      setLocalItems((prev) =>
-        prev.map((item) =>
-          item.id === account.id ? { ...item, paid: newPaid } : item
-        )
-      );
+      // Verifica se é conta recorrente
+      const isRecurrentAccount =
+        account.parcelasTotal === null || account.parcelasTotal === undefined;
+      const currentPaid = isAccountPaidInMonth(account, currentComp);
+      const newPaid = !currentPaid;
+
+      // Para contas recorrentes, envia month/year
+      if (isRecurrentAccount) {
+        await updateAccount(account.id, {
+          paid: newPaid,
+          month: currentComp.month,
+          year: currentComp.year,
+        });
+
+        // Atualiza o estado local para contas recorrentes
+        setLocalItems((prev) =>
+          prev.map((item) => {
+            if (item.id === account.id) {
+              const monthKey = `${currentComp.year}-${String(currentComp.month).padStart(2, '0')}`;
+              const updatedPaidByMonth = { ...item.paidByMonth };
+
+              if (newPaid) {
+                updatedPaidByMonth[monthKey] = true;
+              } else {
+                delete updatedPaidByMonth[monthKey];
+              }
+
+              return {
+                ...item,
+                paidByMonth: updatedPaidByMonth,
+              };
+            }
+            return item;
+          })
+        );
+      } else {
+        // Para contas não-recorrentes, usa o método tradicional
+        await updateAccount(account.id, {
+          paid: newPaid,
+        });
+
+        setLocalItems((prev) =>
+          prev.map((item) =>
+            item.id === account.id ? { ...item, paid: newPaid } : item
+          )
+        );
+      }
+
       // Notifica o componente pai sobre a mudança
       onPaidUpdate?.(account.id, newPaid);
       setToast(`Finança marcada como ${newPaid ? 'paga' : 'não paga'} ✅`);
@@ -151,7 +191,7 @@ export default function FinanceTable({
   }
 
   function getStatusBadge(account: Account): React.JSX.Element {
-    if (account.paid) {
+    if (isAccountPaidInMonth(account, currentComp)) {
       return (
         <span className="badge bg-green-100 dark:bg-green-500/30 text-green-700 dark:text-green-300">
           Pago
@@ -433,7 +473,7 @@ export default function FinanceTable({
                 <td className="px-4 py-3 text-center">
                   <input
                     type="checkbox"
-                    checked={!!f.paid}
+                    checked={isAccountPaidInMonth(f, currentComp)}
                     onChange={() => handlePaidToggle(f)}
                     aria-label="Marcar como pago"
                     className="custom-checkbox"
@@ -535,7 +575,7 @@ export default function FinanceTable({
               <label className="flex items-center gap-2 text-xs text-slate-500 dark:text-slate-400">
                 <input
                   type="checkbox"
-                  checked={!!f.paid}
+                  checked={isAccountPaidInMonth(f, currentComp)}
                   onChange={() => handlePaidToggle(f)}
                   className="custom-checkbox"
                 />

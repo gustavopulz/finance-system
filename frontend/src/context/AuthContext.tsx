@@ -24,19 +24,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Try to get user info from backend using cookie
     async function fetchUser() {
       try {
-        const res = await fetch('https://finance-system-api.prxlab.app/api/users/me', {
-          credentials: 'include',
-        });
-        if (res.ok) {
-          const data = await res.json();
-          if (data?.username && data?.id && data?.role) {
-            setUser({ id: data.id, username: data.username, role: data.role });
-          } else {
-            setUser(null);
-          }
+        const { user } = await import('../lib/api').then(mod => mod.getCurrentUser());
+        if (user && user.id && user.username && user.role) {
+          setUser({ id: user.id, username: user.username, role: user.role });
         } else {
           setUser(null);
         }

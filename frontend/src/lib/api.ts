@@ -1,5 +1,18 @@
 const API_URL = 'https://finance-system-api.prxlab.app/api';
 
+// Obtém o usuário atual usando o cookie
+export async function getCurrentUser() {
+  const res = await fetch('https://finance-system-api.prxlab.app/api/users/me', {
+    credentials: 'include',
+  });
+  if (!res.ok) return { user: null };
+  const data = await res.json();
+  if (data?.username && data?.id && data?.role) {
+    return { user: { id: data.id, username: data.username, role: data.role } };
+  }
+  return { user: null };
+}
+
 // Salva a ordem dos colaboradores
 export async function saveCollabOrder(order: string[]) {
   const res = await fetch(`${API_URL}/collabs/order`, {
@@ -84,6 +97,9 @@ export function deleteUser(id: number) {
     method: 'DELETE',
   });
 }
+
+
+
 export async function login(username: string, password: string) {
   const data = await json<{
     user: { id: number; username: string; role: 'admin' | 'user' };

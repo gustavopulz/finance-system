@@ -18,7 +18,14 @@ export async function getCurrentUser() {
   if (!res.ok) return { user: null };
   const data = await res.json();
   if (data?.username && data?.id && data?.role) {
-    return { user: { id: data.id, username: data.username, role: data.role } };
+    return {
+      user: {
+        id: data.id,
+        email: String(data.email),
+        username: String(data.username),
+        role: String(data.role),
+      },
+    };
   }
   return { user: null };
 }

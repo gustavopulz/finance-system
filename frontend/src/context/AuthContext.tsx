@@ -2,9 +2,9 @@ import { createContext, useContext, useState, useEffect } from 'react';
 
 interface User {
   id: number;
-  email: string;
   role: string;
   username: string;
+  email: string;
 }
 
 interface AuthContextType {
@@ -29,7 +29,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         const { user } = await import('../lib/api').then((mod) =>
           mod.getCurrentUser()
         );
-        if (user && user.id && user.username && user.role) {
+        if (user && user.id && user.email && user.role && user.username) {
           setUser({
             id: user.id,
             email: String(user.email),

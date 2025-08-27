@@ -53,7 +53,7 @@ export async function getLinks() {
   return json<{
     iSee: { id: number; name: string }[];
     seeMe: { id: number; name: string }[];
-  }>(`${API_URL}/links`);
+  }>(`${API_URL}/shared/links`);
 }
 
 // -------------------- POST REQUESTS --------------------

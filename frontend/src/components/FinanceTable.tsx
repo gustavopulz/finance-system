@@ -102,43 +102,30 @@ export default function FinanceTable({
 
   // Funções para seleção múltipla
   const toggleItemSelection = (itemId: string) => {
-    console.log('toggleItemSelection chamado:', { itemId });
     setSelectedItems((prev) => {
       const newSet = new Set(prev);
       if (newSet.has(itemId)) {
         newSet.delete(itemId);
-        console.log('Item desmarcado:', itemId);
       } else {
         newSet.add(itemId);
-        console.log('Item marcado:', itemId);
       }
-      console.log('Nova seleção:', Array.from(newSet));
       return newSet;
     });
   };
 
   const toggleSelectAll = () => {
-    console.log('toggleSelectAll chamado');
     if (selectedItems.size === localItems.length) {
-      console.log('Desmarcando todos');
       setSelectedItems(new Set());
     } else {
-      console.log('Marcando todos');
       setSelectedItems(new Set(localItems.map((item) => item.id)));
     }
   };
 
   const clearSelection = () => {
-    console.log('clearSelection chamado');
     setSelectedItems(new Set());
   };
 
   const handleBulkPaidToggle = async (markAsPaid: boolean) => {
-    console.log('handleBulkPaidToggle chamado:', {
-      markAsPaid,
-      selectedItemsCount: selectedItems.size,
-    });
-
     const selectedAccounts = localItems.filter((item) =>
       selectedItems.has(item.id)
     );
@@ -171,10 +158,6 @@ export default function FinanceTable({
   };
 
   const handleBulkDelete = async () => {
-    console.log('handleBulkDelete chamado:', {
-      selectedItemsCount: selectedItems.size,
-    });
-
     const selectedAccounts = localItems.filter((item) =>
       selectedItems.has(item.id)
     );
@@ -189,9 +172,6 @@ export default function FinanceTable({
     clearSelection();
     setShowBulkDeleteConfirm(false);
     setTimeout(() => setToast(null), 3000);
-    console.log('handleBulkDelete concluído:', {
-      successCount: accountIds.length,
-    });
   };
 
   // Atualiza localItems quando items mudar
@@ -241,14 +221,6 @@ export default function FinanceTable({
   // Adicionado para inspecionar os dados das contas renderizadas
   useEffect(() => {
     if (items && items.length > 0) {
-      items.forEach((item) => {
-        console.log('[FinanceTable] Conta:', {
-          id: item.id,
-          description: item.description,
-          dtPaid: item.dtPaid,
-          parcelasTotal: item.parcelasTotal,
-        });
-      });
     }
   }, [items]);
 
@@ -469,7 +441,6 @@ export default function FinanceTable({
                 onClick={(e) => {
                   e.preventDefault();
                   e.stopPropagation();
-                  console.log('Botão "Marcar Pago" clicado');
                   handleBulkPaidToggle(true);
                 }}
                 onMouseDown={(e) => {
@@ -490,7 +461,6 @@ export default function FinanceTable({
                 onClick={(e) => {
                   e.preventDefault();
                   e.stopPropagation();
-                  console.log('Botão "Marcar Pendente" clicado');
                   handleBulkPaidToggle(false);
                 }}
                 onMouseDown={(e) => {
@@ -511,7 +481,6 @@ export default function FinanceTable({
                 onClick={(e) => {
                   e.preventDefault();
                   e.stopPropagation();
-                  console.log('Botão "Excluir" clicado');
                   setShowBulkDeleteConfirm(true);
                 }}
                 onMouseDown={(e) => {
@@ -582,7 +551,6 @@ export default function FinanceTable({
                 onClick={(e) => {
                   e.preventDefault();
                   e.stopPropagation();
-                  console.log('Botão mobile "Marcar Pago" clicado');
                   handleBulkPaidToggle(true);
                 }}
                 onMouseDown={(e) => {
@@ -602,7 +570,6 @@ export default function FinanceTable({
                 onClick={(e) => {
                   e.preventDefault();
                   e.stopPropagation();
-                  console.log('Botão mobile "Pendente" clicado');
                   handleBulkPaidToggle(false);
                 }}
                 onMouseDown={(e) => {
@@ -622,7 +589,6 @@ export default function FinanceTable({
                 onClick={(e) => {
                   e.preventDefault();
                   e.stopPropagation();
-                  console.log('Botão mobile "Excluir" clicado');
                   setShowBulkDeleteConfirm(true);
                 }}
                 onMouseDown={(e) => {

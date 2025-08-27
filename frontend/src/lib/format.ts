@@ -45,15 +45,6 @@ export function isAccountPaidInMonth(
     const paidYear = paidDate.getFullYear();
     const paidMonth = paidDate.getMonth() + 1; // getMonth() retorna 0-11
 
-    // LOG PARA DEPURAÇÃO
-    console.log('[isAccountPaidInMonth]', {
-      dtPaid: account.dtPaid,
-      paidYear,
-      paidMonth,
-      competenciaYear: competencia.year,
-      competenciaMonth: competencia.month,
-    });
-
     // Só está pago se competência for menor ou igual ao mês/ano do pagamento
     if (
       competencia.year < paidYear ||

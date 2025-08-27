@@ -300,11 +300,6 @@ export default function HomePage() {
     await load();
     const updated = accounts.find((a) => a.id === id);
     if (updated) {
-      console.log('Recebido do backend:', {
-        id,
-        status: updated.status,
-        cancelledAt: updated.cancelledAt,
-      });
     }
   }
 

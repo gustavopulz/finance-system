@@ -11,9 +11,14 @@ export default function AddCollaboratorDialog({
   onSave: (nome: string) => void;
   onClose: () => void;
 }) {
-  const { register, handleSubmit } = useForm<FormData>();
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+  } = useForm<FormData>();
 
   const submit = (data: FormData) => {
+    if (data.nome.length > 30) return;
     onSave(data.nome.trim());
   };
 
@@ -27,9 +32,15 @@ export default function AddCollaboratorDialog({
             <span className="text-sm font-medium">Nome</span>
             <input
               className="input input-full"
-              {...register('nome', { required: true })} // <-- garante "nome"
+              {...register('nome', { required: true, maxLength: 25 })}
+              maxLength={25}
               placeholder="Ex.: João"
             />
+            {errors.nome?.type === 'maxLength' && (
+              <span className="text-xs text-red-600">
+                Máximo de 30 caracteres.
+              </span>
+            )}
           </label>
 
           <div className="mt-2 flex justify-end gap-2">

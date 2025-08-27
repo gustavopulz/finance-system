@@ -223,7 +223,7 @@ export async function markAccountPaid(id: string, paid: boolean) {
 }
 
 export async function changeUserRole(id: number, role: string) {
-  return fetch(`${API_URL}/users/${id}/role`, {
+  return fetch(`${API_URL}/users/${id}`, {
     method: 'PATCH',
     body: JSON.stringify({ role }),
     credentials: 'include', // Ensure cookies are sent for authentication

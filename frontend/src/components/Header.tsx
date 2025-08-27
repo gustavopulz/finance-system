@@ -6,6 +6,7 @@ import {
   LayoutDashboard,
   User,
   Settings,
+  PieChart,
 } from 'lucide-react'; // Added User and Settings icons
 import { useAuth } from '../context/AuthContext';
 import { useEffect, useState } from 'react';
@@ -39,6 +40,12 @@ export default function Header() {
   const menuLinks = [
     {
       type: 'link',
+      to: '/summary',
+      label: 'Resumo',
+      icon: <PieChart size={18} className="mr-1" />,
+    },
+    {
+      type: 'link',
       to: '/info',
       label: 'Dashboard',
       icon: null,
@@ -46,7 +53,7 @@ export default function Header() {
     auth?.user
       ? {
           type: 'link',
-          to: '/usuario',
+          to: '/user-settings',
           label: 'Minha Conta',
           icon: (
             <span className="mr-1">

@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { generateShareToken, useShareToken, getLinks, unlinkUser } from '../../lib/api';
-import { Settings, Plus, Link as LinkIcon, Eye, User, X, Lock } from 'lucide-react';
+import { Settings, Plus, Link as LinkIcon, User, X, Lock } from 'lucide-react';
 import { useNotification } from '../../context/NotificationContext';
 import SkeletonCard from '../SkeletonCard';
 

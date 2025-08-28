@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
+import { verifyToken } from '@/lib/jwt';
 
 export function middleware(request: NextRequest) {
   const origin = request.headers.get('origin') || '';
@@ -11,64 +12,68 @@ export function middleware(request: NextRequest) {
     ? origin
     : allowedOrigins[0];
 
-  // ✅ Tratamento de preflight (CORS)
+  // ✅ Preflight (CORS)
   if (request.method === 'OPTIONS') {
     return new NextResponse(null, {
       status: 204,
-      headers: {
-        'Access-Control-Allow-Origin': allowedOrigin,
-        'Access-Control-Allow-Methods': 'GET,POST,PATCH,PUT,DELETE,OPTIONS',
-        'Access-Control-Allow-Headers': 'Content-Type, Authorization',
-        'Access-Control-Allow-Credentials': 'true',
-      },
+      headers: corsHeaders(allowedOrigin),
     });
   }
 
-  // ✅ Autenticação somente para /api/*
   const isApiRoute = request.nextUrl.pathname.startsWith('/api');
-  const pathname = request.nextUrl.pathname.replace(/\/$/, ''); // remove barra final
+  const pathname = request.nextUrl.pathname.replace(/\/$/, '');
 
-  // ✅ Rotas sem autenticação
+  // ✅ Rotas públicas
   const unprotectedRoutes: string[] = [
     '/api/hello',
     '/api/user/login',
-    '/api/user/register'
+    '/api/user/register',
+    '/api/user/refresh',
   ];
 
   if (isApiRoute && !unprotectedRoutes.includes(pathname)) {
-    const cookie = request.cookies.get('auth_token');
-    const token = typeof cookie === 'string' ? cookie : cookie?.value;
+    const token = request.cookies.get('auth_token')?.value;
 
     if (!token) {
-      return new NextResponse(
-        JSON.stringify({ error: 'Não autenticado: middleware' }),
-        {
+      return new NextResponse(JSON.stringify({ error: 'not_authenticated' }), {
+        status: 401,
+        headers: corsHeaders(allowedOrigin),
+      });
+    }
+
+    try {
+      verifyToken(token); // usa função do /lib/jwt
+    } catch (err: any) {
+      if (err.message === 'Token expirado') {
+        return new NextResponse(JSON.stringify({ error: 'token_expired' }), {
           status: 401,
-          headers: {
-            'Access-Control-Allow-Origin': allowedOrigin,
-            'Access-Control-Allow-Methods':
-              'GET,POST,PATCH,PUT,DELETE,OPTIONS',
-            'Access-Control-Allow-Headers': 'Content-Type, Authorization',
-            'Access-Control-Allow-Credentials': 'true',
-          },
-        }
-      );
+          headers: corsHeaders(allowedOrigin),
+        });
+      }
+
+      return new NextResponse(JSON.stringify({ error: 'invalid_token' }), {
+        status: 403,
+        headers: corsHeaders(allowedOrigin),
+      });
     }
   }
 
   // ✅ Resposta padrão
   const response = NextResponse.next();
-  response.headers.set('Access-Control-Allow-Origin', allowedOrigin);
-  response.headers.set(
-    'Access-Control-Allow-Methods',
-    'GET,POST,PATCH,PUT,DELETE,OPTIONS'
+  Object.entries(corsHeaders(allowedOrigin)).forEach(([k, v]) =>
+    response.headers.set(k, v)
   );
-  response.headers.set(
-    'Access-Control-Allow-Headers',
-    'Content-Type, Authorization'
-  );
-  response.headers.set('Access-Control-Allow-Credentials', 'true');
   return response;
+}
+
+// 🔧 Função utilitária para headers CORS
+function corsHeaders(origin: string) {
+  return {
+    'Access-Control-Allow-Origin': origin,
+    'Access-Control-Allow-Methods': 'GET,POST,PATCH,PUT,DELETE,OPTIONS',
+    'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+    'Access-Control-Allow-Credentials': 'true',
+  };
 }
 
 export const config = {

@@ -1,11 +1,33 @@
 import { NextResponse } from 'next/server';
 
 export async function POST() {
-  // Limpa o cookie de autenticação
-  return new NextResponse(null, {
-    status: 200,
-    headers: {
-      'Set-Cookie': 'token=; Path=/; HttpOnly; Secure; SameSite=Strict; Max-Age=0',
-    },
-  });
+  try {
+    const response = new NextResponse(
+      JSON.stringify({ message: 'Logout realizado com sucesso' }),
+      { status: 200 }
+    );
+
+    // 🔒 Limpa access token
+    response.cookies.set('auth_token', '', {
+      httpOnly: true,
+      secure: true,
+      sameSite: 'strict',
+      path: '/',
+      maxAge: 0,
+    });
+
+    // 🔒 Limpa refresh token
+    response.cookies.set('refresh_token', '', {
+      httpOnly: true,
+      secure: true,
+      sameSite: 'strict',
+      path: '/',
+      maxAge: 0,
+    });
+
+    return response;
+  } catch (err) {
+    console.error('Erro no logout:', err);
+    return NextResponse.json({ error: 'Erro interno no servidor' }, { status: 500 });
+  }
 }

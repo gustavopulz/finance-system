@@ -2,7 +2,7 @@ import { createContext, useContext, useState, useEffect } from 'react';
 import * as api from '../lib/api';
 
 interface User {
-  id: number;
+  id: string;
   role: string;
   name: string;
   email: string;
@@ -13,6 +13,8 @@ interface AuthContextType {
   loading: boolean;
   login: (email: string, password: string) => Promise<void>;
   logout: () => Promise<void>;
+  updateName: (name: string) => Promise<void>;
+  updatePassword: (password: string) => Promise<void>;
   isAuthenticated: () => boolean;
 }
 
@@ -22,14 +24,20 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
 
-  // 🚀 Checa usuário logado ao montar
+  // 🔒 Força logout quando refresh falhar
+  useEffect(() => {
+    api.setAuthFailureHandler(() => {
+      logout();
+    });
+  }, []);
+
   useEffect(() => {
     async function fetchUser() {
       try {
         const data = await api.getCurrentUser();
         if (data?.id && data?.email && data?.role && data?.name) {
           setUser({
-            id: data.id,
+            id: String(data.id),
             email: String(data.email),
             role: String(data.role),
             name: String(data.name),
@@ -37,7 +45,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         } else {
           setUser(null);
         }
-      } catch (err) {
+      } catch {
         setUser(null);
       }
       setLoading(false);
@@ -45,12 +53,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     fetchUser();
   }, []);
 
-  // 🔑 Login
   const login = async (email: string, password: string) => {
     const data = await api.login(email, password);
     if (data?.user) {
       setUser({
-        id: data.user.id,
+        id: String(data.user.id),
         email: String(data.user.email),
         role: String(data.user.role),
         name: String(data.user.name),
@@ -60,18 +67,40 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
-  // 🚪 Logout
   const logout = async () => {
-    await api.logout();
+    try {
+      await api.logout();
+    } catch {}
     setUser(null);
   };
 
-  // 🔒 Helper
+  const updateName = async (name: string) => {
+    const res = await api.updateName(name);
+    if (res?.success && user) {
+      setUser({ ...user, name: res.name });
+    }
+  };
+
+  const updatePassword = async (password: string) => {
+    const res = await api.updateUserPassword(password);
+    if (!res?.success) {
+      throw new Error('Erro ao alterar senha');
+    }
+  };
+
   const isAuthenticated = () => !!user;
 
   return (
     <AuthContext.Provider
-      value={{ user, loading, login, logout, isAuthenticated }}
+      value={{
+        user,
+        loading,
+        login,
+        logout,
+        updateName,
+        updatePassword,
+        isAuthenticated,
+      }}
     >
       {children}
     </AuthContext.Provider>

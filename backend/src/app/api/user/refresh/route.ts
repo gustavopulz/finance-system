@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { verifyToken, generateAccessToken } from '@/lib/jwt';
+import { initFirestore, firestore } from '@/lib/firestore';
 
 export async function POST(req: NextRequest) {
   try {
@@ -28,12 +29,22 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // 🎫 Gera novo access token
+    // 🔎 Busca usuário no Firestore
+    await initFirestore();
+    const userDoc = await firestore.collection('users').doc(decoded.id).get();
+
+    if (!userDoc.exists) {
+      return NextResponse.json({ error: 'Usuário não encontrado' }, { status: 404 });
+    }
+
+    const userData = userDoc.data();
+
+    // 🎫 Gera novo access token com dados atualizados
     const newAccessToken = generateAccessToken({
-      id: decoded.id,
-      name: decoded.name,
-      role: decoded.role,
-      email: decoded.email,
+      id: userDoc.id,
+      name: userData?.name,
+      role: userData?.role,
+      email: userData?.email,
     });
 
     const response = NextResponse.json({ message: 'Novo token gerado' });

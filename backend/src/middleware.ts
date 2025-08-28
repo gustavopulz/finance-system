@@ -2,6 +2,11 @@ import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 import { verifyToken } from '@/lib/jwt';
 
+export const config = {
+  matcher: '/api/:path*',
+  runtime: 'nodejs', // 🚀 força runtime Node em vez de Edge
+};
+
 export function middleware(request: NextRequest) {
   const origin = request.headers.get('origin') || '';
   const allowedOrigins = [
@@ -75,7 +80,3 @@ function corsHeaders(origin: string) {
     'Access-Control-Allow-Credentials': 'true',
   };
 }
-
-export const config = {
-  matcher: '/api/:path*',
-};

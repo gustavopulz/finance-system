@@ -17,10 +17,9 @@ const NotificationContext = createContext<NotificationContextType | undefined>(
 
 export function useNotification() {
   const ctx = useContext(NotificationContext);
-  if (!ctx)
-    throw new Error(
-      'useNotification deve ser usado dentro do NotificationProvider'
-    );
+  if (!ctx) {
+    throw new Error('useNotification deve ser usado dentro do NotificationProvider');
+  }
   return ctx;
 }
 

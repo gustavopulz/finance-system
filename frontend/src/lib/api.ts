@@ -1,7 +1,7 @@
 import axios from 'axios';
 
-const API_URL = 'https://finance-system-api.prxlab.app/api';
-// const API_URL = 'http://localhost:3000/api';
+// const API_URL = 'https://finance-system-api.prxlab.app/api';
+const API_URL = 'http://localhost:3000/api';
 
 export const api = axios.create({
   baseURL: API_URL,
@@ -24,6 +24,12 @@ function processQueue(error: any, token: string | null = null) {
   failedQueue = [];
 }
 
+// 🔥 Handler configurável para falha de autenticação (refresh inválido/expirado)
+let onAuthFailure: (() => void) | null = null;
+export function setAuthFailureHandler(cb: () => void) {
+  onAuthFailure = cb;
+}
+
 // Interceptor para refresh automático
 api.interceptors.response.use(
   (response) => response,
@@ -34,12 +40,23 @@ api.interceptors.response.use(
       return Promise.reject(error);
     }
 
+    // 🔥 Refresh inválido/expirado → força logout
+    if (
+      ['refresh_token_expired', 'refresh_token_invalid'].includes(
+        error.response?.data?.error
+      )
+    ) {
+      if (onAuthFailure) onAuthFailure();
+      return Promise.reject(error);
+    }
+
     if (originalRequest._retry) {
       return Promise.reject(error);
     }
 
     originalRequest._retry = true;
 
+    // 🔄 Access token expirado → tenta refresh
     if (error.response.data?.error === 'token_expired') {
       if (isRefreshing) {
         return new Promise((resolve, reject) => {
@@ -51,11 +68,12 @@ api.interceptors.response.use(
 
       isRefreshing = true;
       try {
-        await api.post('/user/refresh'); // 🔄 gera novo access_token
+        await api.post('/user/refresh');
         processQueue(null);
-        return api(originalRequest); // repete request original
+        return api(originalRequest);
       } catch (refreshErr) {
         processQueue(refreshErr, null);
+        if (onAuthFailure) onAuthFailure();
         return Promise.reject(refreshErr);
       } finally {
         isRefreshing = false;
@@ -83,7 +101,11 @@ export async function logout() {
   localStorage.removeItem('auth');
 }
 
-export async function registerUser(email: string, password: string, name: string) {
+export async function registerUser(
+  email: string,
+  password: string,
+  name: string
+) {
   const res = await api.post('/user/register', { email, password, name });
   return res.data;
 }

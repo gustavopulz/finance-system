@@ -25,13 +25,13 @@ export function generateRefreshToken(payload: { id: string }) {
 export function verifyToken(token: string, requiredRole?: 'admin' | 'user'): JwtPayload {
   try {
     const decoded = jwt.verify(token, JWT_SECRET) as JwtPayload;
-
+    console.log("✅ Token válido:", decoded); // <--- log para checar
     if (requiredRole && decoded.role !== requiredRole) {
       throw new Error('Acesso negado');
     }
-
     return decoded;
   } catch (err: any) {
+    console.error("❌ Erro no verifyToken:", err.message); // <--- log para entender se é assinatura
     if (err.name === 'TokenExpiredError') {
       throw new Error('Token expirado');
     }

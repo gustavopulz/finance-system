@@ -43,7 +43,7 @@ export async function POST(req: NextRequest) {
     response.cookies.set('auth_token', accessToken, {
       httpOnly: true,
       secure: true,
-      sameSite: 'strict',
+      sameSite: 'none',
       path: '/',
       maxAge: 60 * 15,
     });
@@ -52,7 +52,7 @@ export async function POST(req: NextRequest) {
     response.cookies.set('refresh_token', refreshToken, {
       httpOnly: true,
       secure: true,
-      sameSite: 'strict',
+      sameSite: 'none',
       path: '/',
       maxAge: 60 * 60 * 24 * 7,
     });

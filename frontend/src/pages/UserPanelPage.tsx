@@ -6,7 +6,6 @@ import {
   generateShareToken,
   useShareToken,
   updatename,
-  updateUserPassword,
   getLinks,
   unlinkUser,
 } from '../lib/api';
@@ -65,8 +64,6 @@ export default function UserPanelPage() {
     { name: string; color: string }[]
   >([]);
   const [newCategory, setNewCategory] = useState('');
-  const [selectedCategory, setSelectedCategory] = useState<string>('');
-  const [selectedColor, setSelectedColor] = useState('#000000');
   // Token modal
   const [showTokenModal, setShowTokenModal] = useState(false);
 
@@ -171,13 +168,6 @@ export default function UserPanelPage() {
       ]);
       setNewCategory('');
     }
-  };
-  const handleChangeCategoryColor = () => {
-    setCategories(
-      categories.map((cat) =>
-        cat.name === selectedCategory ? { ...cat, color: selectedColor } : cat
-      )
-    );
   };
 
   return (

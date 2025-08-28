@@ -37,7 +37,7 @@ const schema = z.object({
       if (val === '-') return '-';
       return Number(val);
     },
-    z.union([z.literal('X'), z.literal('-'), z.number().min(1).max(12)])
+    z.union([z.literal('X'), z.literal('-'), z.number().min(1).max(48)])
   ),
   month: z.number().min(1).max(12),
   year: z.number().min(2000).max(2100),
@@ -147,7 +147,7 @@ export default function AddFinanceDialog({
     // Correção na lógica de parcelasTotal:
     // - 'X' (Fixo) = null (conta recorrente em todos os meses)
     // - '-' (Avulsa) = 0 (conta apenas no mês específico)
-    // - número (1-12) = número de parcelas
+    // - número (1-48) = número de parcelas
     if (d.parcelasTotal === 'X') {
       payload.parcelasTotal = null; // Conta fixa/recorrente
     } else if (d.parcelasTotal === '-') {
@@ -239,7 +239,7 @@ export default function AddFinanceDialog({
               >
                 <option value="-">Avulsa</option>
                 <option value="X">Fixo</option>
-                {Array.from({ length: 12 }, (_, i) => i + 1).map((n) => (
+                {Array.from({ length: 48 }, (_, i) => i + 1).map((n) => (
                   <option key={n} value={n}>
                     {n}x
                   </option>

@@ -152,8 +152,8 @@ export async function listCollabs(userId: string) {
   return res.data;
 }
 
-export async function addCollab(name: string, userId: string) {
-  const res = await api.post('/collabs', { nome: name, userId });
+export async function addCollab(name: string) {
+  const res = await api.post('/collabs', { nome: name });
   return res.data;
 }
 

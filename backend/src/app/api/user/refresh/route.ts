@@ -6,7 +6,10 @@ export async function POST(req: NextRequest) {
     const refreshToken = req.cookies.get('refresh_token')?.value;
 
     if (!refreshToken) {
-      return NextResponse.json({ error: 'Refresh token ausente' }, { status: 401 });
+      return NextResponse.json(
+        { error: 'Refresh token ausente' },
+        { status: 401 }
+      );
     }
 
     let decoded;
@@ -14,9 +17,15 @@ export async function POST(req: NextRequest) {
       decoded = verifyToken(refreshToken);
     } catch (err: any) {
       if (err.message === 'Token expirado') {
-        return NextResponse.json({ error: 'refresh_token_expired' }, { status: 401 });
+        return NextResponse.json(
+          { error: 'refresh_token_expired' },
+          { status: 401 }
+        );
       }
-      return NextResponse.json({ error: 'refresh_token_invalid' }, { status: 403 });
+      return NextResponse.json(
+        { error: 'refresh_token_invalid' },
+        { status: 403 }
+      );
     }
 
     // 🎫 Gera novo access token
@@ -28,17 +37,23 @@ export async function POST(req: NextRequest) {
     });
 
     const response = NextResponse.json({ message: 'Novo token gerado' });
+
+    const isProd = process.env.NODE_ENV === 'production';
+
     response.cookies.set('auth_token', newAccessToken, {
       httpOnly: true,
-      secure: true,
-      sameSite: 'strict',
+      secure: isProd,
+      sameSite: isProd ? 'none' : 'lax',
       path: '/',
-      maxAge: 60 * 15,
+      maxAge: 60 * 15, // 15 minutos
     });
 
     return response;
   } catch (err) {
     console.error('Erro no refresh:', err);
-    return NextResponse.json({ error: 'Erro interno no servidor' }, { status: 500 });
+    return NextResponse.json(
+      { error: 'Erro interno no servidor' },
+      { status: 500 }
+    );
   }
 }

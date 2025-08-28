@@ -7,11 +7,13 @@ export async function POST() {
       { status: 200 }
     );
 
+    const isProd = process.env.NODE_ENV === 'production';
+
     // 🔒 Limpa access token
     response.cookies.set('auth_token', '', {
       httpOnly: true,
-      secure: true,
-      sameSite: 'strict',
+      secure: isProd,
+      sameSite: isProd ? 'none' : 'lax',
       path: '/',
       maxAge: 0,
     });
@@ -19,8 +21,8 @@ export async function POST() {
     // 🔒 Limpa refresh token
     response.cookies.set('refresh_token', '', {
       httpOnly: true,
-      secure: true,
-      sameSite: 'strict',
+      secure: isProd,
+      sameSite: isProd ? 'none' : 'lax',
       path: '/',
       maxAge: 0,
     });
@@ -28,6 +30,9 @@ export async function POST() {
     return response;
   } catch (err) {
     console.error('Erro no logout:', err);
-    return NextResponse.json({ error: 'Erro interno no servidor' }, { status: 500 });
+    return NextResponse.json(
+      { error: 'Erro interno no servidor' },
+      { status: 500 }
+    );
   }
 }

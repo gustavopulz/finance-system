@@ -1,4 +1,5 @@
 import { createContext, useContext, useState, useEffect } from 'react';
+import * as api from '../lib/api';
 
 interface User {
   id: number;
@@ -9,7 +10,6 @@ interface User {
 
 interface AuthContextType {
   user: User | null;
-  token: string | null;
   loading: boolean;
   login: (email: string, password: string) => Promise<void>;
   logout: () => Promise<void>;
@@ -20,21 +20,19 @@ const AuthContext = createContext<AuthContextType | null>(null);
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
-  const [token, setToken] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
 
+  // 🚀 Checa usuário logado ao montar
   useEffect(() => {
     async function fetchUser() {
       try {
-        const { user } = await import('../lib/api').then((mod) =>
-          mod.getCurrentUser()
-        );
-        if (user && user.id && user.email && user.role && user.name) {
+        const data = await api.getCurrentUser();
+        if (data?.id && data?.email && data?.role && data?.name) {
           setUser({
-            id: user.id,
-            email: String(user.email),
-            role: String(user.role),
-            name: String(user.name),
+            id: data.id,
+            email: String(data.email),
+            role: String(data.role),
+            name: String(data.name),
           });
         } else {
           setUser(null);
@@ -47,40 +45,33 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     fetchUser();
   }, []);
 
+  // 🔑 Login
   const login = async (email: string, password: string) => {
-    try {
-      const { user } = await import('../lib/api').then((mod) =>
-        mod.login(email, password)
-      );
-      if (user && user.id && user.email && user.role && user.name) {
-        setUser({
-          id: user.id,
-          email: String(user.email),
-          role: String(user.role),
-          name: String(user.name),
-        });
-      } else {
-        setUser(null);
-        throw new Error('Usuário inválido');
-      }
-    } catch (err) {
-      setUser(null);
-      throw err;
+    const data = await api.login(email, password);
+    if (data?.user) {
+      setUser({
+        id: data.user.id,
+        email: String(data.user.email),
+        role: String(data.user.role),
+        name: String(data.user.name),
+      });
+    } else {
+      throw new Error('Usuário inválido');
     }
-    setToken(null);
   };
 
+  // 🚪 Logout
   const logout = async () => {
-    await import('../lib/api').then((mod) => mod.logout());
+    await api.logout();
     setUser(null);
-    setToken(null);
   };
 
+  // 🔒 Helper
   const isAuthenticated = () => !!user;
 
   return (
     <AuthContext.Provider
-      value={{ user, token, loading, login, logout, isAuthenticated }}
+      value={{ user, loading, login, logout, isAuthenticated }}
     >
       {children}
     </AuthContext.Provider>

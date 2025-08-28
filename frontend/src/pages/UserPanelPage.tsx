@@ -5,7 +5,7 @@ import { useNotification } from '../context/NotificationContext';
 import {
   generateShareToken,
   useShareToken,
-  updatename,
+  updateName,
   getLinks,
   unlinkUser,
 } from '../lib/api';
@@ -140,7 +140,7 @@ export default function UserPanelPage() {
   const handleSaveName = async () => {
     setNameStatus(null);
     try {
-      await updatename(newName);
+      await updateName(newName);
       setNameStatus('Nome alterado com sucesso!');
       if (auth?.user) {
         auth.user.name = newName;

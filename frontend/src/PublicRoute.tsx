@@ -2,12 +2,11 @@ import { Navigate } from 'react-router-dom';
 import { useAuth } from './context/AuthContext';
 import type { JSX } from 'react';
 
-export default function PrivateRoute({ children }: { children: JSX.Element }) {
+export default function PublicRoute({ children }: { children: JSX.Element }) {
   const auth = useAuth();
 
-  if (!auth) return null; // fallback se o contexto não existir
+  if (!auth) return null;
 
-  // 🔄 Enquanto verifica sessão
   if (auth.loading) {
     return (
       <div className="w-full h-screen flex items-center justify-center">
@@ -16,11 +15,11 @@ export default function PrivateRoute({ children }: { children: JSX.Element }) {
     );
   }
 
-  // 🚪 Se não estiver logado, manda pro login
-  if (!auth.user) {
-    return <Navigate to="/login" replace />;
+  // 🚫 se já estiver logado → redireciona para a home/painel
+  if (auth.user) {
+    return <Navigate to="/" replace />;
   }
 
-  // ✅ Senão, renderiza a rota protegida
+  // ✅ se não estiver logado → pode acessar a rota
   return children;
 }

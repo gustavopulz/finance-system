@@ -1,271 +1,208 @@
+import axios from 'axios';
+
 const API_URL = 'https://finance-system-api.prxlab.app/api';
 // const API_URL = 'http://localhost:3000/api';
 
-// -------------------- GET REQUESTS --------------------
-// /users/me
-export async function getCurrentUser() {
-  const res = await fetch(`${API_URL}/users/me`, {
-    credentials: 'include',
+export const api = axios.create({
+  baseURL: API_URL,
+  withCredentials: true, // 🔒 manda cookies em todas as requisições
+  headers: { 'Content-Type': 'application/json' },
+});
+
+// Controle do refresh para evitar chamadas paralelas
+let isRefreshing = false;
+let failedQueue: any[] = [];
+
+function processQueue(error: any, token: string | null = null) {
+  failedQueue.forEach((prom) => {
+    if (error) {
+      prom.reject(error);
+    } else {
+      prom.resolve(token);
+    }
   });
-  if (!res.ok) return { user: null };
-  const data = await res.json();
-  if (data?.name && data?.id && data?.role) {
-    return {
-      user: {
-        id: data.id,
-        email: String(data.email),
-        name: String(data.name),
-        role: String(data.role),
-      },
-    };
+  failedQueue = [];
+}
+
+// Interceptor para refresh automático
+api.interceptors.response.use(
+  (response) => response,
+  async (error) => {
+    const originalRequest = error.config;
+
+    if (error.response?.status !== 401) {
+      return Promise.reject(error);
+    }
+
+    if (originalRequest._retry) {
+      return Promise.reject(error);
+    }
+
+    originalRequest._retry = true;
+
+    if (error.response.data?.error === 'token_expired') {
+      if (isRefreshing) {
+        return new Promise((resolve, reject) => {
+          failedQueue.push({ resolve, reject });
+        })
+          .then(() => api(originalRequest))
+          .catch((err) => Promise.reject(err));
+      }
+
+      isRefreshing = true;
+      try {
+        await api.post('/user/refresh'); // 🔄 gera novo access_token
+        processQueue(null);
+        return api(originalRequest); // repete request original
+      } catch (refreshErr) {
+        processQueue(refreshErr, null);
+        return Promise.reject(refreshErr);
+      } finally {
+        isRefreshing = false;
+      }
+    }
+
+    return Promise.reject(error);
   }
-  return { user: null };
-}
+);
 
-// /users
-export function listUsers() {
-  return json<{ id: number; name: string; role: string }[]>(`${API_URL}/users`);
-}
+//
+// -------------------- ENDPOINTS --------------------
+//
 
-// /collabs?userId=...
-export function listCollabs() {
-  const auth = JSON.parse(localStorage.getItem('auth') || '{}');
-  const userId = auth?.user?.id;
-  return json<{ id: number; name: string }[]>(
-    `${API_URL}/collabs?userId=${userId}`
-  );
-}
-
-// /accounts?month=...&year=...
-export function listAccounts(month: number, year: number) {
-  return json<any[]>(`${API_URL}/accounts?month=${month}&year=${year}`);
-}
-
-// /shared/finances
-export function getMergedFinances(year: number, month: number) {
-  return json<{ accounts: any[]; collabs: any[] }>(
-    `${API_URL}/shared/finances`,
-    {
-      method: 'POST',
-      body: JSON.stringify({ year, month }),
-    }
-  );
-}
-
-// /shared/links
-export async function getLinks() {
-  return json<{
-    iSee: { id: number; name: string }[];
-    seeMe: { id: number; name: string }[];
-  }>(`${API_URL}/shared/links`);
-}
-
-// -------------------- POST REQUESTS --------------------
-// /user/register
-export function registerUser(email: string, password: string, name: string) {
-  return json<{ success?: boolean; message?: string }>(
-    `${API_URL}/user/register`,
-    {
-      method: 'POST',
-      body: JSON.stringify({ email, password, name }),
-    }
-  );
-}
-
-// /users
-export function addUser(name: string, password: string, role: string = 'user') {
-  return json<{ id: number; name: string; role: string }>(`${API_URL}/users`, {
-    method: 'POST',
-    body: JSON.stringify({ name, password, role }),
-  });
-}
-
-// /collabs
-export function addCollab(name: string) {
-  const auth = JSON.parse(localStorage.getItem('auth') || '{}');
-  const userId = auth?.user?.id;
-  return json<{ id: number; name: string }>(`${API_URL}/collabs`, {
-    method: 'POST',
-    body: JSON.stringify({ nome: name, userId }),
-  });
-}
-
-// /collabs/order
-export async function saveCollabOrder(order: string[]) {
-  const res = await fetch(`${API_URL}/collabs/order`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ order }),
-    credentials: 'include',
-  });
-  if (!res.ok) throw new Error('Erro ao salvar ordem');
-  return await res.json();
-}
-
-// /shared/generate-token
-export function generateShareToken() {
-  return json<{ token: string }>(`${API_URL}/shared/generate-token`, {
-    method: 'POST',
-  });
-}
-
-// /shared/use-token
-export function useShareToken(token: string) {
-  return json<{ success?: boolean; error?: string }>(
-    `${API_URL}/shared/use-token`,
-    {
-      method: 'POST',
-      body: JSON.stringify({ token }),
-    }
-  );
-}
-
-// /accounts
-export function addAccount(payload: any) {
-  return json(`${API_URL}/accounts`, {
-    method: 'POST',
-    body: JSON.stringify(payload),
-  });
-}
-
-// /accounts/mark-paid
-export async function markAccountPaid(
-  accounts: string[],
-  paid: boolean
-) {
-  const body = { accounts, paid };
-  return json(`${API_URL}/accounts/mark-paid`, {
-    method: 'PATCH',
-    body: JSON.stringify(body),
-  });
-}
-
-// /user/login
+// 🔑 Auth
 export async function login(email: string, password: string) {
-  const data = await json<{
-    user: {
-      name: string;
-      id: number;
-      email: string;
-      role: 'admin' | 'user';
-    };
-  }>(`${API_URL}/user/login`, {
-    method: 'POST',
-    body: JSON.stringify({ email, password }),
-    credentials: 'include',
-  });
-  return data;
+  const res = await api.post('/user/login', { email, password });
+  return res.data;
 }
 
-// /user/logout
-export function logout() {
-  fetch(`${API_URL}/user/logout`, {
-    method: 'POST',
-    credentials: 'include',
-  });
+export async function logout() {
+  try {
+    await api.post('/user/logout');
+  } catch {}
   localStorage.removeItem('auth');
 }
 
-// -------------------- PATCH REQUESTS --------------------
-// /users/me
-export function updatename(name: string) {
-  return json<{ success: boolean; name: string }>(`${API_URL}/users/me`, {
-    method: 'PATCH',
-    body: JSON.stringify({ name }),
-  });
+export async function registerUser(email: string, password: string, name: string) {
+  const res = await api.post('/user/register', { email, password, name });
+  return res.data;
 }
 
-// /users/me/password
-export function updateUserPassword(password: string) {
-  return json<{ success: boolean }>(`${API_URL}/users/me/password`, {
-    method: 'PATCH',
-    body: JSON.stringify({ password }),
-  });
+export async function getCurrentUser() {
+  const res = await api.get('/users/me');
+  return res.data;
 }
 
-// /users/{id}
+// 👥 Users
+export async function listUsers() {
+  const res = await api.get('/users');
+  return res.data;
+}
+
+export async function addUser(name: string, password: string, role: string = 'user') {
+  const res = await api.post('/users', { name, password, role });
+  return res.data;
+}
+
 export async function changeUserRole(id: number, role: string) {
-  return fetch(`${API_URL}/users/${id}`, {
-    method: 'PATCH',
-    body: JSON.stringify({ role }),
-    credentials: 'include',
-  });
+  const res = await api.patch(`/users/${id}`, { role });
+  return res.data;
 }
 
-// /accounts/{id}
-export function updateAccount(id: string, payload: any) {
-  return json(`${API_URL}/accounts/${id}`, {
-    method: 'PUT',
-    body: JSON.stringify(payload),
-  });
+export async function deleteUser(id: number) {
+  const res = await api.delete(`/users/${id}`);
+  return res.data;
 }
 
-// /accounts/{id}/toggle-cancel
-export function toggleCancel(id: string, month?: number, year?: number) {
+export async function updateName(name: string) {
+  const res = await api.patch('/users/me', { name });
+  return res.data;
+}
+
+export async function updateUserPassword(password: string) {
+  const res = await api.patch('/users/me/password', { password });
+  return res.data;
+}
+
+// 🤝 Collabs
+export async function listCollabs(userId: string) {
+  const res = await api.get(`/collabs?userId=${userId}`);
+  return res.data;
+}
+
+export async function addCollab(name: string, userId: string) {
+  const res = await api.post('/collabs', { nome: name, userId });
+  return res.data;
+}
+
+export async function saveCollabOrder(order: string[]) {
+  const res = await api.post('/collabs/order', { order });
+  return res.data;
+}
+
+export async function deleteCollab(id: string) {
+  const res = await api.delete(`/collabs/${id}`);
+  return res.data;
+}
+
+// 💰 Accounts
+export async function listAccounts(month: number, year: number) {
+  const res = await api.get(`/accounts?month=${month}&year=${year}`);
+  return res.data;
+}
+
+export async function addAccount(payload: any) {
+  const res = await api.post('/accounts', payload);
+  return res.data;
+}
+
+export async function updateAccount(id: string, payload: any) {
+  const res = await api.put(`/accounts/${id}`, payload);
+  return res.data;
+}
+
+export async function markAccountPaid(accounts: string[], paid: boolean) {
+  const res = await api.patch('/accounts/mark-paid', { accounts, paid });
+  return res.data;
+}
+
+export async function toggleCancel(id: string, month?: number, year?: number) {
   const body: any = {};
   if (month) body.month = month;
   if (year) body.year = year;
-  return json(`${API_URL}/accounts/${id}/toggle-cancel`, {
-    method: 'PATCH',
-    body: JSON.stringify(body),
-  });
+  const res = await api.patch(`/accounts/${id}/toggle-cancel`, body);
+  return res.data;
 }
 
-// -------------------- DELETE REQUESTS --------------------
-// /users/{id}
-export function deleteUser(id: number) {
-  return json<{ success: boolean }>(`${API_URL}/users/${id}`, {
-    method: 'DELETE',
+export async function deleteAccount(ids: string[] | string) {
+  const res = await api.delete('/accounts/delete', {
+    data: { accounts: Array.isArray(ids) ? ids : [ids] },
   });
+  return res.data;
 }
 
-// /collabs/{id}
-export function deleteCollab(id: string) {
-  return json<{ success: boolean }>(`${API_URL}/collabs/${id}`, {
-    method: 'DELETE',
-  });
+// 🔗 Shared
+export async function getMergedFinances(year: number, month: number) {
+  const res = await api.post('/shared/finances', { year, month });
+  return res.data;
 }
 
-// /accounts/{id}
-export function deleteAccount(id: string[] | string) {
-  return json(`${API_URL}/accounts/delete`, {
-    method: 'DELETE',
-    body: JSON.stringify({ accounts: Array.isArray(id) ? id : [id] }),
-  });
+export async function getLinks() {
+  const res = await api.get('/shared/links');
+  return res.data;
 }
 
-// /shared/unlink/{otherUserId}/{direction}
-export function unlinkUser(otherUserId: string, direction: 'i-see' | 'see-me') {
-  return fetch(`${API_URL}/shared/unlink/${otherUserId}/${direction}`, {
-    method: 'DELETE',
-    credentials: 'include',
-  }).then(async (res) => {
-    if (!res.ok) {
-      const data = await res.json().catch(() => ({}));
-      throw new Error(data?.error || 'Erro ao desvincular usuário');
-    }
-    return res.json();
-  });
+export async function generateShareToken() {
+  const res = await api.post('/shared/generate-token');
+  return res.data;
 }
 
-// -------------------- UTILS --------------------
-async function json<T>(url: string, options: RequestInit = {}): Promise<T> {
-  const res = await fetch(url, {
-    ...options,
-    headers: {
-      'Content-Type': 'application/json',
-      ...(options.headers || {}),
-    },
-    credentials: 'include',
-  });
-  if (!res.ok) {
-    let message = '';
-    try {
-      message = await res.text();
-    } catch {
-      message = res.statusText;
-    }
-    throw new Error(message || `HTTP ${res.status}`);
-  }
-  return res.json();
+export async function useShareToken(token: string) {
+  const res = await api.post('/shared/use-token', { token });
+  return res.data;
+}
+
+export async function unlinkUser(otherUserId: string, direction: 'i-see' | 'see-me') {
+  const res = await api.delete(`/shared/unlink/${otherUserId}/${direction}`);
+  return res.data;
 }

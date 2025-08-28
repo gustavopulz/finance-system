@@ -6,6 +6,7 @@ import {
   useLocation,
 } from 'react-router-dom';
 import type { JSX } from 'react';
+
 import HomePage from './pages/SumarryPage';
 import LoginPage from './pages/LoginPage';
 import UserPanelPage from './pages/UserPanelPage';
@@ -23,15 +24,10 @@ import NotFoundPage from './pages/errors/404';
 import RegisterPage from './pages/RegisterPage';
 import PoliticasPage from './pages/PrivacyPage';
 
-function PrivateRoute({ children }: { children: JSX.Element }) {
-  const auth = useAuth();
-  if (auth?.loading) return null;
-  if (!auth || !auth.user) {
-    return <Navigate to="/login" />;
-  }
-  return children;
-}
+import PrivateRoute from './PrivateRoute';
+import PublicRoute from './PublicRoute';
 
+// 🔒 AdminRoute separado (continua igual)
 function AdminRoute({ children }: { children: JSX.Element }) {
   const auth = useAuth();
   if (!auth || !auth.user) return <Navigate to="/login" />;
@@ -45,9 +41,10 @@ function AppWithHeader() {
     location.pathname === '/login' ||
     location.pathname === '/404' ||
     location.pathname === '/register';
-  const auth = useAuth();
 
+  const auth = useAuth();
   const { notifications, remove } = useNotification();
+
   return (
     <>
       <NotificationBar notifications={notifications} onRemove={remove} />
@@ -55,8 +52,25 @@ function AppWithHeader() {
       <div className="flex flex-col min-h-screen">
         <main className="flex-1 py-6">
           <Routes>
-            <Route path="/login" element={<LoginPage />} />
-            <Route path="/register" element={<RegisterPage />} />
+            {/* Rotas públicas */}
+            <Route
+              path="/login"
+              element={
+                <PublicRoute>
+                  <LoginPage />
+                </PublicRoute>
+              }
+            />
+            <Route
+              path="/register"
+              element={
+                <PublicRoute>
+                  <RegisterPage />
+                </PublicRoute>
+              }
+            />
+
+            {/* Rotas privadas */}
             <Route
               path="/"
               element={
@@ -97,6 +111,8 @@ function AppWithHeader() {
                 </PrivateRoute>
               }
             />
+
+            {/* Rota admin */}
             <Route
               path="/admin"
               element={
@@ -105,8 +121,12 @@ function AppWithHeader() {
                 </AdminRoute>
               }
             />
+
+            {/* Rotas livres */}
             <Route path="/politicas-e-termos" element={<PoliticasPage />} />
             <Route path="/404" element={<NotFoundPage />} />
+
+            {/* Catch-all */}
             <Route
               path="*"
               element={

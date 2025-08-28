@@ -21,20 +21,22 @@ export async function POST(req: NextRequest) {
     const sharedSnap = await firestore.collection('shared_accounts').where('sharedWithUserId', '==', user.id).get();
     const ids = sharedSnap.docs.map(doc => doc.data().userId);
     const allUserIds = Array.from(new Set([...ids, user.id]));
-    // Executa as queries em paralelo
-    const [accountsSnap, collabsSnap] = await Promise.all([
-      firestore.collection('accounts').where('userId', 'in', allUserIds).get(),
-      firestore.collection('collaborators').where('userId', 'in', allUserIds).get()
-    ]);
-    // Filtra contas por year e month OU parcela == null
-    const accounts = accountsSnap.docs
-      .map(doc => ({ id: doc.id, ...doc.data() }) as Account)
-      .filter(acc => {
-        if (acc.parcelasTotal != 0) return true;
-        // Supondo que acc.year e acc.month existam
-        return acc.year === year && acc.month === month;
-      });
+    // Primeiro busca os colaboradores
+    const collabsSnap = await firestore.collection('collaborators').where('userId', 'in', allUserIds).get();
     const collabs = collabsSnap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+    const collabIds = collabsSnap.docs.map(doc => doc.id);
+
+    // Agora busca as contas relacionadas aos colaboradores
+    let accounts: Account[] = [];
+    if (collabIds.length > 0) {
+      const accountsSnap = await firestore.collection('accounts').where('collaboratorId', 'in', collabIds).get();
+      accounts = accountsSnap.docs
+        .map(doc => ({ id: doc.id, ...doc.data() }) as Account)
+        .filter(acc => {
+          if (acc.parcelasTotal != 0) return true;
+          return acc.year === year && acc.month === month;
+        });
+    }
     return NextResponse.json({ accounts, collabs });
   } catch (err: any) {
     return NextResponse.json({ error: err.message }, { status: 500 });

@@ -1,6 +1,6 @@
-import { parcelaLabel, brl, isAccountPaidInMonth } from '../lib/format';
-import { markAccountPaid } from '../lib/api';
-import type { Account } from '../lib/types';
+import { parcelaLabel, brl, isAccountPaidInMonth } from '../../lib/format';
+import { markAccountPaid } from '../../lib/api';
+import type { Account } from '../../lib/types';
 import {
   Trash2,
   Pencil,
@@ -11,7 +11,7 @@ import {
   ChevronUp,
 } from 'lucide-react';
 import { useMemo, useState, useEffect } from 'react';
-import { deleteCollab } from '../lib/api';
+import { deleteCollab } from '../../lib/api';
 
 // Funções para persistir a ordenação no localStorage
 const getSortState = (collaboratorId: string) => {

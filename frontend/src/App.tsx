@@ -8,7 +8,7 @@ import {
 import type { JSX } from 'react';
 
 import HomePage from './pages/HomePage';
-import LoginPage from './pages/LoginPage';
+import LoginPage from './pages/auth/LoginPage';
 import UserPanelPage from './pages/UserPanelPage';
 import { useAuth } from './context/AuthContext';
 import AdminPage from './pages/AdminPage';
@@ -21,7 +21,7 @@ import {
 import Footer from './components/Footer';
 import InfoPage from './pages/InfoPage';
 import NotFoundPage from './pages/errors/404';
-import RegisterPage from './pages/RegisterPage';
+import RegisterPage from './pages/auth/RegisterPage';
 import PoliticasPage from './pages/PrivacyPage';
 
 import PrivateRoute from './PrivateRoute';

@@ -31,30 +31,70 @@ type DialogState =
   | { mode: 'addCollab' };
 
 function normalizeAccount(a: any): Account {
+  // parcelasTotal: normaliza 'X', 'null', vazio e NaN como fixo (null)
+  const rawPt = a.parcelasTotal;
+  let parcelasTotal: number | null;
+  if (
+    rawPt === '' ||
+    rawPt === null ||
+    rawPt === undefined ||
+    (typeof rawPt === 'string' &&
+      rawPt.toString().trim().toUpperCase() === 'X') ||
+    (typeof rawPt === 'string' &&
+      rawPt.toString().trim().toLowerCase() === 'null')
+  ) {
+    parcelasTotal = null;
+  } else {
+    const n = Number(rawPt);
+    parcelasTotal = Number.isFinite(n) ? n : null;
+  }
+
+  // dtPaid: garante string ISO quando vier como Timestamp/Date/objeto
+  let dtPaid: string | undefined = undefined;
+  const v = (a as any).dtPaid;
+  if (v) {
+    if (typeof v === 'string') {
+      dtPaid = v;
+    } else if (v instanceof Date) {
+      try {
+        dtPaid = v.toISOString();
+      } catch {}
+    } else if (v && typeof (v as any).toDate === 'function') {
+      try {
+        dtPaid = (v as any).toDate().toISOString();
+      } catch {}
+    } else if (typeof v === 'object') {
+      const secs = (v as any)._seconds ?? (v as any).seconds;
+      const nanos = (v as any)._nanoseconds ?? (v as any).nanoseconds;
+      if (typeof secs === 'number') {
+        const ms =
+          secs * 1000 +
+          (typeof nanos === 'number' ? Math.floor(nanos / 1e6) : 0);
+        try {
+          dtPaid = new Date(ms).toISOString();
+        } catch {}
+      }
+    }
+  }
+
   return {
     id: String(a.id),
     collaboratorId: String(a.collaboratorId),
     collaboratorName: a.collaboratorName ?? '',
     description: String(a.description ?? ''),
     value: Number(a.value),
-    parcelasTotal:
-      a.parcelasTotal === '' ||
-      a.parcelasTotal === null ||
-      a.parcelasTotal === undefined
-        ? null
-        : Number(a.parcelasTotal),
+    parcelasTotal,
     month: Math.min(12, Math.max(1, Number(a.month ?? 1))),
     year: Math.max(1900, Number(a.year ?? new Date().getFullYear())),
     status: (a.status as Account['status']) ?? 'Pendente',
     paid: Boolean(a.paid),
-    dtPaid: a.dtPaid ?? undefined,
+    dtPaid,
     createdAt: a.createdAt ?? '',
     updatedAt: a.updatedAt ?? '',
     cancelledAt: a.cancelledAt ?? undefined,
     // paidByMonth removido
   };
 }
-
 export default function HomePage() {
   const { notify } = useNotification();
   const collabRefs = useRef<{ [id: string]: HTMLDivElement | null }>({});
@@ -290,7 +330,9 @@ export default function HomePage() {
     // Filtro de parcela
     if (filterParcela) {
       if (filterParcela === 'avulso') {
-        result = result.filter((acc) => acc.parcelasTotal === 1);
+        result = result.filter(
+          (acc) => acc.parcelasTotal === 0 || acc.parcelasTotal === 1
+        );
       } else if (filterParcela === 'fixo') {
         result = result.filter(
           (acc) => acc.parcelasTotal === null || acc.parcelasTotal === undefined

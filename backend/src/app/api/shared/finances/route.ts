@@ -25,7 +25,7 @@ export async function POST(req: NextRequest) {
       .where('sharedWithUserId', '==', user.id)
       .get();
 
-    const ids = sharedSnap.docs.map(doc => doc.data().userId);
+    const ids = sharedSnap.docs.map((doc) => doc.data().userId);
     const allUserIds = Array.from(new Set([...ids, user.id]));
 
     // Colaboradores
@@ -34,8 +34,11 @@ export async function POST(req: NextRequest) {
       .where('userId', 'in', allUserIds)
       .get();
 
-    const collabs = collabsSnap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-    const collabIds = collabs.map(c => c.id);
+    const collabs = collabsSnap.docs.map((doc) => ({
+      id: doc.id,
+      ...doc.data(),
+    }));
+    const collabIds = collabs.map((c) => c.id);
 
     // Contas relacionadas
     let accounts: Account[] = [];
@@ -45,14 +48,9 @@ export async function POST(req: NextRequest) {
         .where('collaboratorId', 'in', collabIds)
         .get();
 
-      accounts = accountsSnap.docs
-        .map(doc => ({ id: doc.id, ...doc.data() }) as Account)
-        .filter(acc => {
-          if (!acc.parcelasTotal || acc.parcelasTotal === 0) {
-            return acc.year === year && acc.month === month;
-          }
-          return true;
-        });
+      accounts = accountsSnap.docs.map(
+        (doc) => ({ id: doc.id, ...doc.data() }) as Account
+      );
     }
 
     return NextResponse.json({ accounts, collabs });

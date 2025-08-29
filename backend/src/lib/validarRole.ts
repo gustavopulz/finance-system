@@ -12,5 +12,8 @@ export async function validarRole(userId: string, requiredRole: 'admin' | 'user'
 		throw new Error('Usuário não encontrado');
 	}
 	const userData = userDoc.data();
-	return userData?.role === requiredRole;
+	if (userData?.role === requiredRole) {
+		return true;
+	}
+	throw new Error('Usuário não possui o role necessário');
 }

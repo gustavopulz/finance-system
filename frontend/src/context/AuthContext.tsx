@@ -15,6 +15,7 @@ interface AuthContextType {
   logout: () => Promise<void>;
   updateName: (name: string) => Promise<void>;
   updatePassword: (password: string) => Promise<void>;
+  updateEmail: (email: string) => Promise<void>;
   isAuthenticated: () => boolean;
 }
 
@@ -74,10 +75,27 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setUser(null);
   };
 
+  const updateEmail = async (email: string) => {
+    const res = await api.updateUserEmail(email);
+    if (res?.success) {
+      setUser({
+        id: res.id,
+        email: res.email,
+        role: res.role,
+        name: res.name,
+      });
+    }
+  };
+
   const updateName = async (name: string) => {
     const res = await api.updateName(name);
-    if (res?.success && user) {
-      setUser({ ...user, name: res.name });
+    if (res?.success) {
+      setUser({
+        id: res.id,
+        email: res.email,
+        role: res.role,
+        name: res.name,
+      });
     }
   };
 
@@ -97,6 +115,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         loading,
         login,
         logout,
+        updateEmail,
         updateName,
         updatePassword,
         isAuthenticated,

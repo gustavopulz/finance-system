@@ -1,14 +1,30 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Pencil, Lock, Settings } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 
 export default function AccountSettings() {
   const auth = useAuth();
+
+  // Estados de edição
   const [editingName, setEditingName] = useState(false);
+  const [editingEmail, setEditingEmail] = useState(false);
   const [editingPassword, setEditingPassword] = useState(false);
-  const [newName, setNewName] = useState(auth?.user?.name || '');
+
+  // Inputs
+  const [newName, setNewName] = useState('');
+  const [newEmail, setNewEmail] = useState('');
   const [newPassword, setNewPassword] = useState('');
+
+  // Status
   const [status, setStatus] = useState<string | null>(null);
+
+  // 🔄 Sempre que o usuário mudar no AuthContext, atualiza os inputs
+  useEffect(() => {
+    if (auth?.user) {
+      setNewName(auth.user.name || '');
+      setNewEmail(auth.user.email || '');
+    }
+  }, [auth?.user]);
 
   const handleSaveName = async () => {
     try {
@@ -17,6 +33,16 @@ export default function AccountSettings() {
       setEditingName(false);
     } catch (err: any) {
       setStatus(err.message || 'Erro ao alterar nome');
+    }
+  };
+
+  const handleSaveEmail = async () => {
+    try {
+      await auth?.updateEmail(newEmail);
+      setStatus('E-mail alterado com sucesso!');
+      setEditingEmail(false);
+    } catch (err: any) {
+      setStatus(err.message || 'Erro ao alterar e-mail');
     }
   };
 
@@ -58,6 +84,34 @@ export default function AccountSettings() {
                 Cancelar
               </button>
               <button className="btn btn-primary" onClick={handleSaveName}>
+                Salvar
+              </button>
+            </>
+          )}
+        </div>
+      </div>
+
+      {/* E-mail */}
+      <div className="mb-4">
+        <label className="block font-semibold mb-2">E-mail</label>
+        <div className="flex gap-2">
+          <input
+            type="email"
+            className="input input-bordered w-full"
+            value={editingEmail ? newEmail : auth?.user?.email || ''}
+            onChange={editingEmail ? (e) => setNewEmail(e.target.value) : undefined}
+            disabled={!editingEmail}
+          />
+          {!editingEmail ? (
+            <button className="btn btn-primary" onClick={() => setEditingEmail(true)}>
+              <Pencil size={16} />
+            </button>
+          ) : (
+            <>
+              <button className="btn" onClick={() => setEditingEmail(false)}>
+                Cancelar
+              </button>
+              <button className="btn btn-primary" onClick={handleSaveEmail}>
                 Salvar
               </button>
             </>

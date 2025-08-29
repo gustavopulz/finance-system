@@ -2,7 +2,7 @@ import { useAuth } from '../context/AuthContext';
 import { Navigate } from 'react-router-dom';
 import { useEffect, useState } from 'react';
 import { useNotification } from '../context/NotificationContext';
-import { listUsers, addUser, deleteUser, changeUserRole } from '../lib/api';
+import { listUsers, deleteUser, changeUserRole } from '../lib/api';
 import { FaTrash } from 'react-icons/fa';
 import { FaUserShield, FaUser } from 'react-icons/fa';
 
@@ -78,20 +78,6 @@ export default function AdminPage() {
       await refresh();
     } catch (err: any) {
       notify(err.message || 'Erro ao excluir usuário', 'error');
-    }
-  }
-
-  async function handleEdit(e: React.FormEvent) {
-    e.preventDefault();
-    if (!userToEdit) return;
-    try {
-      // aqui você pode substituir pelo endpoint correto de edição
-      await addUser(userToEdit.name, '', userToEdit.role);
-      setShowEditModal(false);
-      setUserToEdit(null);
-      await refresh();
-    } catch (err: any) {
-      notify(err.message || 'Erro ao editar usuário', 'error');
     }
   }
 
@@ -273,15 +259,15 @@ export default function AdminPage() {
                   onChange={(e) =>
                     setUserToEdit({ ...userToEdit, name: e.target.value })
                   }
-                  className="peer w-full rounded border border-slate-300 bg-transparent px-3 pt-5 pb-2 text-sm 
+                  className="peer w-full rounded border border-slate-300 bg-transparent px-3 pt-5 pb-2 text-sm
                        text-slate-900 placeholder-transparent focus:border-blue-500 focus:ring-1 focus:ring-blue-500
                        dark:border-slate-600 dark:text-white"
                   placeholder="Usuário"
                 />
                 <label
                   htmlFor="edit-name"
-                  className="absolute left-3 top-2 text-slate-500 text-sm transition-all 
-                       peer-placeholder-shown:top-4 peer-placeholder-shown:text-slate-400 peer-placeholder-shown:text-base 
+                  className="absolute left-3 top-2 text-slate-500 text-sm transition-all
+                       peer-placeholder-shown:top-4 peer-placeholder-shown:text-slate-400 peer-placeholder-shown:text-base
                        peer-focus:top-2 peer-focus:text-sm peer-focus:text-blue-500"
                 >
                   Usuário
@@ -296,7 +282,7 @@ export default function AdminPage() {
                   onChange={(e) =>
                     setUserToEdit({ ...userToEdit, role: e.target.value })
                   }
-                  className="select w-full rounded border border-slate-300 px-3 py-2 
+                  className="select w-full rounded border border-slate-300 px-3 py-2
                        focus:border-blue-500 focus:ring-1 focus:ring-blue-500
                        dark:border-slate-600 dark:bg-slate-700 dark:text-white"
                 >

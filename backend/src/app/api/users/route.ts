@@ -2,52 +2,24 @@ import { NextRequest, NextResponse } from 'next/server';
 import { initFirestore, firestore } from '@/lib/firestore';
 import bcrypt from 'bcryptjs';
 import { verifyToken } from '@/lib/jwt';
+import { validarRole } from '@/lib/validarRole';
 
 export async function GET(req: NextRequest) {
   await initFirestore();
-  const cookie = req.cookies.get('auth_token');
-  const authToken = typeof cookie === 'string' ? cookie : cookie?.value;
-  if (!authToken)
-    return NextResponse.json({ error: 'Token ausente' }, { status: 401 });
+
+  const authToken = req.cookies.get('auth_token')?.value!;
+  const user = verifyToken(authToken, 'admin');
+
   try {
-    const user = verifyToken(authToken, 'admin');
-    const usersSnap = await firestore.collection('users').get();
-    const users = usersSnap.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
-    return NextResponse.json(users);
+    await validarRole(user.id, "admin");
   } catch (err: any) {
     return NextResponse.json({ error: err.message }, { status: 403 });
   }
-}
 
-export async function POST(req: NextRequest) {
-  await initFirestore();
-  const cookie = req.cookies.get('auth_token');
-  const authToken = typeof cookie === 'string' ? cookie : cookie?.value;
-  if (!authToken)
-    return NextResponse.json({ error: 'Token ausente' }, { status: 401 });
   try {
-    verifyToken(authToken, 'admin');
-    const { name, password, role } = await req.json();
-    if (!name || !password) {
-      return NextResponse.json(
-        { error: 'Usuário e senha obrigatórios' },
-        { status: 400 }
-      );
-    }
-    const hash = await bcrypt.hash(password, 10);
-    const existingSnap = await firestore
-      .collection('users')
-      .where('name', '==', name.trim())
-      .get();
-    if (!existingSnap.empty) {
-      return NextResponse.json({ error: 'Usuário já existe' }, { status: 400 });
-    }
-    const userRef = await firestore.collection('users').add({
-      name: name.trim(),
-      password: hash,
-      role: role || 'user',
-    });
-    return NextResponse.json({ id: userRef.id, name, role: role || 'user' });
+    const usersSnap = await firestore.collection('users').get();
+    const users = usersSnap.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
+    return NextResponse.json(users);
   } catch (err: any) {
     return NextResponse.json({ error: err.message }, { status: 500 });
   }

@@ -3,54 +3,16 @@ import { initFirestore, firestore } from '@/lib/firestore';
 import { verifyToken } from '@/lib/jwt';
 import { validarRole } from '@/lib/validarRole';
 
-export async function GET(req: NextRequest, context: { params: Promise<{ id: string }> }) {
-  await initFirestore();
-  const cookie = req.cookies.get('auth_token');
-  const authToken = typeof cookie === 'string' ? cookie : cookie?.value;
-  if (!authToken) {
-    return NextResponse.json({ error: 'Token ausente' }, { status: 401 });
-  }
-  let user;
-  try {
-    user = verifyToken(authToken, "admin");
-    const { id } = await context.params;
-    if (!id) {
-      return NextResponse.json({ error: 'ID do usuário ausente.' }, { status: 400 });
-    }
-
-    const hasRole = await validarRole(user.id, "admin");
-    if (!hasRole) {
-      return NextResponse.json({ error: 'Acesso negado.' }, { status: 403 });
-    }
-
-    const userDoc = await firestore.collection('users').doc(id).get();
-    if (!userDoc.exists) {
-      return NextResponse.json({ error: 'Usuário não encontrado.' }, { status: 404 });
-    }
-    const userData = userDoc.data();
-    return NextResponse.json({ id: userDoc.id, name: userData?.name });
-  } catch (err: any) {
-    return NextResponse.json({ error: err.message }, { status: 500 });
-  }
-}
-
+// Alterar user role
 export async function PATCH(req: NextRequest, context: { params: Promise<{ id: string }> }) {
   await initFirestore();
-  const cookie = req.cookies.get('auth_token');
-  const authToken = typeof cookie === 'string' ? cookie : cookie?.value;
-  if (!authToken) {
-    return NextResponse.json({ error: 'Token ausente' }, { status: 401 });
-  }
-  let user;
+  const authToken = req.cookies.get('auth_token')?.value!;
+  const user = verifyToken(authToken, 'admin');
+
   try {
-    user = verifyToken(authToken, "admin");
+    await validarRole(user.id, "admin");
   } catch (err: any) {
     return NextResponse.json({ error: err.message }, { status: 403 });
-  }
-
-  const hasRole = await validarRole(user.id, "admin");
-  if (!hasRole) {
-    return NextResponse.json({ error: 'Acesso negado.' }, { status: 403 });
   }
 
   const { id } = await context.params;

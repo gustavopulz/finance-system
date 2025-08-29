@@ -5,13 +5,13 @@ import { verifyToken } from '@/lib/jwt';
 
 export async function PATCH(req: NextRequest) {
   await initFirestore();
-  const cookie = req.cookies.get('auth_token');
-  const authToken = typeof cookie === 'string' ? cookie : cookie?.value;
-  if (!authToken) throw new Error('Token ausente');
+
+  const authToken = req.cookies.get('auth_token')?.value!;
+  const user = verifyToken(authToken);
+
   try {
-    const user = verifyToken(authToken);
     const { password } = await req.json();
-    if (!password || password.length < 4) {
+    if (!password || password.length < 6) {
       return NextResponse.json({ error: 'Senha deve ter ao menos 4 caracteres' }, { status: 400 });
     }
     const hash = await bcrypt.hash(password, 10);

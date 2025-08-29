@@ -1,7 +1,7 @@
 import axios from 'axios';
 
-const API_URL = 'https://finance-system-api.prxlab.app/api';
-// const API_URL = 'http://localhost:3000/api';
+// const API_URL = 'https://finance-system-api.prxlab.app/api';
+const API_URL = 'http://localhost:3000/api';
 
 export const api = axios.create({
   baseURL: API_URL,
@@ -111,18 +111,13 @@ export async function registerUser(
 }
 
 export async function getCurrentUser() {
-  const res = await api.get('/users/me');
+  const res = await api.get('/user/me');
   return res.data;
 }
 
 // 👥 Users
 export async function listUsers() {
   const res = await api.get('/users');
-  return res.data;
-}
-
-export async function addUser(name: string, password: string, role: string = 'user') {
-  const res = await api.post('/users', { name, password, role });
   return res.data;
 }
 
@@ -136,13 +131,18 @@ export async function deleteUser(id: number) {
   return res.data;
 }
 
+export async function updateUserEmail(email: string) {
+  const res = await api.patch('/user/me/email', { email });
+  return res.data;
+}
+
 export async function updateName(name: string) {
-  const res = await api.patch('/users/me', { name });
+  const res = await api.patch('/user/me', { name });
   return res.data;
 }
 
 export async function updateUserPassword(password: string) {
-  const res = await api.patch('/users/me/password', { password });
+  const res = await api.patch('/user/me/password', { password });
   return res.data;
 }
 

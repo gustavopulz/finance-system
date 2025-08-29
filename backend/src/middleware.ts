@@ -40,6 +40,7 @@ export function middleware(request: NextRequest) {
     const token = request.cookies.get('auth_token')?.value;
 
     if (!token) {
+      // 🚨 Sem token nenhum → usuário não autenticado
       return new NextResponse(JSON.stringify({ error: 'not_authenticated' }), {
         status: 401,
         headers: corsHeaders(allowedOrigin),
@@ -50,12 +51,14 @@ export function middleware(request: NextRequest) {
       verifyToken(token); // usa função do /lib/jwt
     } catch (err: any) {
       if (err.message === 'Token expirado') {
+        // 🚨 Token existe mas expirou → front deve chamar /user/refresh
         return new NextResponse(JSON.stringify({ error: 'token_expired' }), {
           status: 401,
           headers: corsHeaders(allowedOrigin),
         });
       }
 
+      // 🚨 Qualquer outro erro → token inválido
       return new NextResponse(JSON.stringify({ error: 'invalid_token' }), {
         status: 403,
         headers: corsHeaders(allowedOrigin),

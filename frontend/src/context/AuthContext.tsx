@@ -25,13 +25,23 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
 
-  // 🔒 Força logout quando refresh falhar
+  // 🔒 Handlers globais configurados no api.ts
   useEffect(() => {
     api.setAuthFailureHandler(() => {
       logout();
     });
+
+    api.setUserRefreshHandler((user) => {
+      setUser({
+        id: String(user.id),
+        email: String(user.email),
+        role: String(user.role),
+        name: String(user.name),
+      });
+    });
   }, []);
 
+  // 🔄 Puxa usuário inicial
   useEffect(() => {
     async function fetchUser() {
       try {

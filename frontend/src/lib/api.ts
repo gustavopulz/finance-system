@@ -24,13 +24,19 @@ function processQueue(error: any, token: string | null = null) {
   failedQueue = [];
 }
 
-// 🔥 Handler configurável para falha de autenticação (refresh inválido/expirado)
+// -------------------- HANDLERS --------------------
 let onAuthFailure: (() => void) | null = null;
+let onUserRefreshed: ((user: any) => void) | null = null;
+
 export function setAuthFailureHandler(cb: () => void) {
   onAuthFailure = cb;
 }
 
-// Interceptor para refresh automático
+export function setUserRefreshHandler(cb: (user: any) => void) {
+  onUserRefreshed = cb;
+}
+
+// -------------------- INTERCEPTOR --------------------
 api.interceptors.response.use(
   (response) => response,
   async (error) => {
@@ -68,7 +74,12 @@ api.interceptors.response.use(
 
       isRefreshing = true;
       try {
-        await api.post('/user/refresh');
+        const res = await api.post('/user/refresh');
+
+        if (res.data?.user && onUserRefreshed) {
+          onUserRefreshed(res.data.user); // 🔥 atualiza AuthContext
+        }
+
         processQueue(null);
         return api(originalRequest);
       } catch (refreshErr) {
@@ -224,7 +235,10 @@ export async function useShareToken(token: string) {
   return res.data;
 }
 
-export async function unlinkUser(otherUserId: string, direction: 'i-see' | 'see-me') {
+export async function unlinkUser(
+  otherUserId: string,
+  direction: 'i-see' | 'see-me'
+) {
   const res = await api.delete(`/shared/unlink/${otherUserId}/${direction}`);
   return res.data;
 }

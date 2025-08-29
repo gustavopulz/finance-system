@@ -129,7 +129,7 @@ const Summary: React.FC<SummaryProps> = ({
           ))}
         </select>
         <select className="select rounded flex-1 min-w-[120px]" disabled>
-          <option value="">Categoria</option>
+          <option value="">Categoria (em breve)</option>
         </select>
         <select
           className="select rounded flex-1 min-w-[120px]"
@@ -191,7 +191,7 @@ const Summary: React.FC<SummaryProps> = ({
           ))}
         </select>
         <select className="select rounded w-full" disabled>
-          <option value="">Categoria</option>
+          <option value="">Categoria (em breve)</option>
         </select>
         <select
           className="select rounded w-full"

@@ -4,8 +4,8 @@ import { useForm } from 'react-hook-form';
 import type { SubmitHandler } from 'react-hook-form';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { parseBRL, MONTHS_PT } from '../lib/format';
-import type { Collaborator, Status, Account } from '../lib/types';
+import { parseBRL, MONTHS_PT } from '../../lib/format';
+import type { Collaborator, Status, Account } from '../../lib/types';
 
 type Props = {
   initial?: Account;

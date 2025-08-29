@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
-import SidebarTotalColabs from '../components/SidebarTotalColabs';
+import SidebarTotalColabs from '../components/HomePage/SidebarTotalColabs';
 import SkeletonCard from '../components/SkeletonCard';
 import React from 'react';
 import { useNotification } from '../context/NotificationContext';
@@ -15,12 +15,12 @@ import type { Account, Collaborator } from '../lib/types';
 import { MONTHS_PT, isAccountPaidInMonth } from '../lib/format';
 import { todayComp, monthsDiff } from '../lib/date';
 import type { ReactElement } from 'react';
-import type { FinanceTableProps } from '../components/FinanceTable';
-import FinanceTable from '../components/FinanceTable';
-import FinanceDialog from '../components/AddFinanceDialog';
-import AddCollaboratorDialog from '../components/AddCollaboratorDialog';
+import type { FinanceTableProps } from '../components/HomePage/FinanceTable';
+import FinanceTable from '../components/HomePage/FinanceTable';
+import FinanceDialog from '../components/HomePage/AddFinanceDialog';
+import AddCollaboratorDialog from '../components/HomePage/AddCollaboratorDialog';
 import { Plus } from 'lucide-react';
-import Summary from '../components/Summary';
+import Summary from '../components/HomePage/Summary';
 import { isVisibleInMonth } from '../lib/storage';
 import * as api from '../lib/api';
 

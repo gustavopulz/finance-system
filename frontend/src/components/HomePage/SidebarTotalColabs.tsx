@@ -1,6 +1,6 @@
 import React from 'react';
-import { brl } from '../lib/format';
-import type { Collaborator } from '../lib/types';
+import { brl } from '../../lib/format';
+import type { Collaborator } from '../../lib/types';
 import { Eye, EyeOff } from 'lucide-react';
 
 interface SidebarProps {

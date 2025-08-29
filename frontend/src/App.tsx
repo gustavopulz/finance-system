@@ -7,7 +7,7 @@ import {
 } from 'react-router-dom';
 import type { JSX } from 'react';
 
-import HomePage from './pages/SumarryPage';
+import HomePage from './pages/HomePage';
 import LoginPage from './pages/LoginPage';
 import UserPanelPage from './pages/UserPanelPage';
 import { useAuth } from './context/AuthContext';

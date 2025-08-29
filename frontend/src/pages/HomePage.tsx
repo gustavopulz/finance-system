@@ -31,18 +31,29 @@ type DialogState =
   | { mode: 'addCollab' };
 
 function normalizeAccount(a: any): Account {
+  const rawPt = a.parcelasTotal;
+  let normPt: number | null;
+  if (
+    rawPt === '' ||
+    rawPt === null ||
+    rawPt === undefined ||
+    (typeof rawPt === 'string' &&
+      rawPt.toString().trim().toUpperCase() === 'X') ||
+    (typeof rawPt === 'string' &&
+      rawPt.toString().trim().toLowerCase() === 'null')
+  ) {
+    normPt = null;
+  } else {
+    const n = Number(rawPt);
+    normPt = Number.isFinite(n) ? n : null;
+  }
   return {
     id: String(a.id),
     collaboratorId: String(a.collaboratorId),
     collaboratorName: a.collaboratorName ?? '',
     description: String(a.description ?? ''),
     value: Number(a.value),
-    parcelasTotal:
-      a.parcelasTotal === '' ||
-      a.parcelasTotal === null ||
-      a.parcelasTotal === undefined
-        ? null
-        : Number(a.parcelasTotal),
+    parcelasTotal: normPt,
     month: Math.min(12, Math.max(1, Number(a.month ?? 1))),
     year: Math.max(1900, Number(a.year ?? new Date().getFullYear())),
     status: (a.status as Account['status']) ?? 'Pendente',
@@ -51,7 +62,6 @@ function normalizeAccount(a: any): Account {
     createdAt: a.createdAt ?? '',
     updatedAt: a.updatedAt ?? '',
     cancelledAt: a.cancelledAt ?? undefined,
-    // paidByMonth removido
   };
 }
 
@@ -290,7 +300,9 @@ export default function HomePage() {
     // Filtro de parcela
     if (filterParcela) {
       if (filterParcela === 'avulso') {
-        result = result.filter((acc) => acc.parcelasTotal === 1);
+        result = result.filter(
+          (acc) => acc.parcelasTotal === 0 || acc.parcelasTotal === 1
+        );
       } else if (filterParcela === 'fixo') {
         result = result.filter(
           (acc) => acc.parcelasTotal === null || acc.parcelasTotal === undefined

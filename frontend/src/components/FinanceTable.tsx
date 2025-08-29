@@ -94,7 +94,23 @@ export default function FinanceTable({
     open: boolean;
     financa: Account | null;
   }>({ open: false, financa: null });
-  const [isCollapsed, setIsCollapsed] = useState(false);
+  // Estado de colapso persistido no localStorage
+  const getCollapseState = (collaboratorId: string) => {
+    const saved = localStorage.getItem(`collapse_${collaboratorId}`);
+    if (saved === 'true') return true;
+    if (saved === 'false') return false;
+    return false;
+  };
+  const [isCollapsed, _setIsCollapsed] = useState(
+    getCollapseState(collaboratorId)
+  );
+  const setIsCollapsed = (value: boolean) => {
+    localStorage.setItem(
+      `collapse_${collaboratorId}`,
+      value ? 'true' : 'false'
+    );
+    _setIsCollapsed(value);
+  };
 
   // Estados para seleção múltipla
   const [selectedItems, setSelectedItems] = useState<Set<string>>(new Set());
@@ -382,13 +398,41 @@ export default function FinanceTable({
     return isCollapsed ? sortedData.slice(0, 1) : sortedData;
   }, [sortedData, isCollapsed]);
 
+  // Drag só é permitido se não estiver colapsado
+
+  // Bloqueia qualquer drag/pointer/mouse quando colapsado
+  const blockEventsIfCollapsed = isCollapsed
+    ? {
+        onDragStart: (e: any) => {
+          e.preventDefault();
+          e.stopPropagation();
+        },
+        onPointerDown: (e: any) => {
+          e.preventDefault();
+          e.stopPropagation();
+        },
+        onMouseDown: (e: any) => {
+          e.preventDefault();
+          e.stopPropagation();
+        },
+        onTouchStart: (e: any) => {
+          e.preventDefault();
+          e.stopPropagation();
+        },
+      }
+    : {};
+  // dragHandleProps nunca é passado para o DOM quando colapsado
+  const dragProps = isCollapsed ? {} : dragHandleProps || {};
+  const dragStyle = isCollapsed ? {} : dragHandleProps?.style || {};
+
   return (
     <section className="relative">
       {/* Cabeçalho DESKTOP minimalista */}
       <div
         className="hidden md:flex items-center justify-between px-6 py-2 border border-b-0 border-slate-300 dark:border-slate-700 rounded-t-md cursor-grab"
-        {...(dragHandleProps || {})}
-        style={{ ...(dragHandleProps?.style || {}), userSelect: 'none' }}
+        {...dragProps}
+        {...blockEventsIfCollapsed}
+        style={{ ...dragStyle, userSelect: 'none' }}
       >
         {/* Área esquerda: grip + título + seta */}
         <div className="flex items-center gap-2 flex-1">
@@ -642,8 +686,9 @@ export default function FinanceTable({
         )}
         <div
           className="flex items-center justify-between cursor-grab"
-          {...(dragHandleProps || {})}
-          style={{ ...(dragHandleProps?.style || {}), userSelect: 'none' }}
+          {...dragProps}
+          {...blockEventsIfCollapsed}
+          style={{ ...dragStyle, userSelect: 'none' }}
         >
           <div className="flex items-center gap-2">
             <h3 className="text-lg font-semibold">{title}</h3>

@@ -35,13 +35,6 @@ export default function AdminPage() {
   const [, setShowModal] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [userToDelete, setUserToDelete] = useState<number | null>(null);
-  const [showEditModal, setShowEditModal] = useState(false);
-  const [userToEdit, setUserToEdit] = useState<{
-    id: number;
-    name: string;
-    role: string;
-    email: string;
-  } | null>(null);
   const [loading, setLoading] = useState(true);
   const [sortKey, setSortKey] = useState<'name' | 'role' | 'email' | null>(
     null
@@ -241,68 +234,6 @@ export default function AdminPage() {
                 Excluir
               </button>
             </div>
-          </div>
-        </div>
-      )}
-
-      {/* MODAL EDITAR */}
-      {showEditModal && userToEdit && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-          <div className="bg-white dark:bg-slate-800 rounded p-6 shadow-lg max-w-sm w-full">
-            <h2 className="text-xl font-bold mb-4">Editar Usuário</h2>
-            <form onSubmit={handleEdit} className="flex flex-col gap-4">
-              <div className="relative">
-                <input
-                  type="text"
-                  id="edit-name"
-                  value={userToEdit.name}
-                  onChange={(e) =>
-                    setUserToEdit({ ...userToEdit, name: e.target.value })
-                  }
-                  className="peer w-full rounded border border-slate-300 bg-transparent px-3 pt-5 pb-2 text-sm
-                       text-slate-900 placeholder-transparent focus:border-blue-500 focus:ring-1 focus:ring-blue-500
-                       dark:border-slate-600 dark:text-white"
-                  placeholder="Usuário"
-                />
-                <label
-                  htmlFor="edit-name"
-                  className="absolute left-3 top-2 text-slate-500 text-sm transition-all
-                       peer-placeholder-shown:top-4 peer-placeholder-shown:text-slate-400 peer-placeholder-shown:text-base
-                       peer-focus:top-2 peer-focus:text-sm peer-focus:text-blue-500"
-                >
-                  Usuário
-                </label>
-              </div>
-              <div>
-                <label className="block text-sm text-slate-500 mb-1">
-                  Função
-                </label>
-                <select
-                  value={userToEdit.role}
-                  onChange={(e) =>
-                    setUserToEdit({ ...userToEdit, role: e.target.value })
-                  }
-                  className="select w-full rounded border border-slate-300 px-3 py-2
-                       focus:border-blue-500 focus:ring-1 focus:ring-blue-500
-                       dark:border-slate-600 dark:bg-slate-700 dark:text-white"
-                >
-                  <option value="user">Usuário</option>
-                  <option value="admin">Administrador</option>
-                </select>
-              </div>
-              <div className="flex justify-end gap-2 mt-4">
-                <button
-                  type="button"
-                  onClick={() => setShowEditModal(false)}
-                  className="btn btn-secondary"
-                >
-                  Cancelar
-                </button>
-                <button type="submit" className="btn btn-primary">
-                  Salvar
-                </button>
-              </div>
-            </form>
           </div>
         </div>
       )}

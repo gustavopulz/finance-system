@@ -4,7 +4,7 @@ import { Settings, Plus, Link as LinkIcon, User, X, Lock } from 'lucide-react';
 import { useNotification } from '../../context/NotificationContext';
 import SkeletonCard from '../SkeletonCard';
 
-export default function TokenSettings() {
+export default function TokenSettings({ active }: { active: boolean }) {
   const { notify } = useNotification();
   const [token, setToken] = useState('');
   const [sharedToken, setSharedToken] = useState('');
@@ -13,8 +13,10 @@ export default function TokenSettings() {
   const [loadingLinks, setLoadingLinks] = useState(false);
 
   useEffect(() => {
-    fetchLinks();
-  }, []);
+    if (active) {
+      fetchLinks();
+    }
+  }, [active]);
 
   async function fetchLinks() {
     setLoadingLinks(true);

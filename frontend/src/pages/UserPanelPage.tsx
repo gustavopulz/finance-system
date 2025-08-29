@@ -15,7 +15,7 @@ export default function UserPanelPage() {
       {/* Conteúdo principal */}
       <main className="flex-1 px-4 grid gap-8">
         {activeTab === 'account' && <AccountSettings />}
-        {activeTab === 'token' && <TokenSettings />}
+        {activeTab === 'token' && <TokenSettings active={true} />}
         {activeTab === 'categories' && <CategorySettings />}
       </main>
     </div>

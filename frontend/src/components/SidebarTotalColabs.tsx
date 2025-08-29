@@ -1,6 +1,7 @@
 import React from 'react';
 import { brl } from '../lib/format';
 import type { Collaborator } from '../lib/types';
+import { Eye, EyeOff } from 'lucide-react';
 
 interface SidebarProps {
   total: number;
@@ -9,6 +10,8 @@ interface SidebarProps {
   collaborators: Collaborator[];
   selectedId: string | null;
   onSelect: (id: string | null) => void;
+  hiddenCollabs: string[];
+  onToggleCollabVisibility: (id: string) => void;
 }
 
 export default function SidebarTotalColabs({
@@ -18,6 +21,8 @@ export default function SidebarTotalColabs({
   collaborators,
   selectedId,
   onSelect,
+  hiddenCollabs,
+  onToggleCollabVisibility,
 }: SidebarProps) {
   // Handler para limpar seleção ao clicar na sidebar fora dos botões
   function handleSidebarClick(
@@ -28,9 +33,14 @@ export default function SidebarTotalColabs({
     onSelect(null);
   }
 
+  function isCollabHidden(id: string) {
+    return hiddenCollabs.includes(id);
+  }
+
   return (
     <aside
-      className="w-64 bg-slate-50 dark:bg-slate-900 pr-4 flex flex-col gap-3 border-r border-slate-200 dark:border-slate-800 sticky top-6 pt-3 pb-3 self-stretch h-full"
+      className="w-64 bg-slate-50 dark:bg-slate-900 pr-4 flex flex-col gap-3 border-r border-slate-200 dark:border-slate-800 pt-3 pb-3"
+      style={{ height: 'auto', alignSelf: 'flex-start' }}
       onClick={handleSidebarClick}
     >
       <div>
@@ -59,7 +69,7 @@ export default function SidebarTotalColabs({
         </div>
         <ul className="flex flex-col gap-1">
           {collaborators.map((c) => (
-            <li key={c.id}>
+            <li key={c.id} className="flex items-center gap-2">
               <button
                 className={`w-full text-left px-2 py-1.5 rounded border transition-all text-sm
                   ${
@@ -71,6 +81,19 @@ export default function SidebarTotalColabs({
                 onClick={() => onSelect(c.id)}
               >
                 {c.name}
+              </button>
+              <button
+                className="p-1 text-slate-500 hover:text-slate-800 dark:hover:text-slate-200"
+                title={
+                  isCollabHidden(c.id) ? 'Exibir tabela' : 'Ocultar tabela'
+                }
+                onClick={() => onToggleCollabVisibility(c.id)}
+              >
+                {isCollabHidden(c.id) ? (
+                  <EyeOff size={18} />
+                ) : (
+                  <Eye size={18} />
+                )}
               </button>
             </li>
           ))}

@@ -129,8 +129,50 @@ export default function HomePage() {
   const [accounts, setAccounts] = useState<Account[]>([]);
   const [loading, setLoading] = useState(false);
 
+  const [filterDesc, setFilterDesc] = useState('');
+  const [filterValor, setFilterValor] = useState('');
+  const [filterParcela, setFilterParcela] = useState('');
+
   const visibleSnapshotRef = useRef<Account[]>([]);
   const resumoRef = useRef<HTMLDivElement>(null);
+
+  // Colaboradores ocultos (centralizado)
+  const [hiddenCollabs, setHiddenCollabs] = useState<string[]>(() => {
+    try {
+      const saved = localStorage.getItem('hiddenCollabs');
+      return saved ? JSON.parse(saved) : [];
+    } catch {
+      return [];
+    }
+  });
+  function toggleCollabVisibility(id: string) {
+    setHiddenCollabs((prev) => {
+      let updated: string[];
+      if (prev.includes(id)) {
+        updated = prev.filter((cid) => cid !== id);
+      } else {
+        updated = [...prev, id];
+      }
+      localStorage.setItem('hiddenCollabs', JSON.stringify(updated));
+      return updated;
+    });
+  }
+
+  // Atualiza ao mudar no localStorage
+  useEffect(() => {
+    function syncHiddenCollabs() {
+      try {
+        const saved = localStorage.getItem('hiddenCollabs');
+        setHiddenCollabs(saved ? JSON.parse(saved) : []);
+      } catch {}
+    }
+    window.addEventListener('storage', syncHiddenCollabs);
+    window.addEventListener('hiddenCollabsChanged', syncHiddenCollabs);
+    return () => {
+      window.removeEventListener('storage', syncHiddenCollabs);
+      window.removeEventListener('hiddenCollabsChanged', syncHiddenCollabs);
+    };
+  }, []);
 
   async function load() {
     setLoading(true);
@@ -232,8 +274,45 @@ export default function HomePage() {
     if (!showCancelled) {
       result = result.filter((acc) => acc.status !== 'Cancelado');
     }
+    // Filtro de descrição
+    if (filterDesc.trim()) {
+      result = result.filter((acc) =>
+        acc.description.toLowerCase().includes(filterDesc.trim().toLowerCase())
+      );
+    }
+    // Filtro de valor
+    if (filterValor.trim()) {
+      result = result.filter(
+        (acc) => Number(acc.value) === Number(filterValor)
+      );
+    }
+    // Filtro de parcela
+    if (filterParcela) {
+      if (filterParcela === 'avulso') {
+        result = result.filter((acc) => acc.parcelasTotal === 1);
+      } else if (filterParcela === 'fixo') {
+        result = result.filter(
+          (acc) => acc.parcelasTotal === null || acc.parcelasTotal === undefined
+        );
+      } else {
+        result = result.filter(
+          (acc) =>
+            typeof (acc as any).parcelaAtual !== 'undefined' &&
+            (acc as any).parcelaAtual === Number(filterParcela)
+        );
+      }
+    }
     return result;
-  }, [accounts, year, month, showAll, showCancelled]);
+  }, [
+    accounts,
+    year,
+    month,
+    showAll,
+    showCancelled,
+    filterDesc,
+    filterValor,
+    filterParcela,
+  ]);
 
   useEffect(() => {
     if (!loading) {
@@ -254,6 +333,27 @@ export default function HomePage() {
     ) // Exclui itens cancelados
     .reduce((s, a) => s + Number(a.value), 0);
   const totalPago = stableVisible
+    .filter((a) => isAccountPaidInMonth(a, { year, month }))
+    .reduce((s, a) => s + Number(a.value), 0);
+
+  // Filtra contas dos colaboradores visíveis
+  const visibleCollabIds = collabs
+    .map((c) => c.id)
+    .filter((id) => !hiddenCollabs.includes(id));
+  const visibleAccountsForSidebar = stableVisible.filter((acc) =>
+    visibleCollabIds.includes(acc.collaboratorId)
+  );
+  const totalSidebar = visibleAccountsForSidebar.reduce(
+    (s, a) => s + Number(a.value),
+    0
+  );
+  const totalPendenteSidebar = visibleAccountsForSidebar
+    .filter(
+      (a) =>
+        !isAccountPaidInMonth(a, { year, month }) && a.status !== 'Cancelado'
+    )
+    .reduce((s, a) => s + Number(a.value), 0);
+  const totalPagoSidebar = visibleAccountsForSidebar
     .filter((a) => isAccountPaidInMonth(a, { year, month }))
     .reduce((s, a) => s + Number(a.value), 0);
 
@@ -342,15 +442,15 @@ export default function HomePage() {
   }
 
   return (
-    <div className="flex px-4 sm:px-6 lg:px-20 2xl:px-40 gap-6 mx-auto">
+    <div className="flex items-start px-4 sm:px-6 lg:px-20 2xl:px-40 gap-6 mx-auto">
       <div
         id="sidebar-total-colabs"
         className="hidden md:block sticky top-6 h-screen"
       >
         <SidebarTotalColabs
-          total={total}
-          totalPendente={totalPendente}
-          totalPago={totalPago}
+          total={totalSidebar}
+          totalPendente={totalPendenteSidebar}
+          totalPago={totalPagoSidebar}
           collaborators={collabs}
           selectedId={selectedCollab}
           onSelect={(id) => {
@@ -368,6 +468,8 @@ export default function HomePage() {
               }
             }, 100);
           }}
+          hiddenCollabs={hiddenCollabs}
+          onToggleCollabVisibility={toggleCollabVisibility}
         />
       </div>
       <div id="main-content" className="flex-1 grid gap-6">
@@ -375,42 +477,12 @@ export default function HomePage() {
           ref={resumoRef}
           className="border border-slate-300 dark:border-slate-700 shadow-sm rounded-lg bg-white dark:bg-slate-900 p-4"
         >
-          <h1 className="text-xl font-bold mb-4 flex items-center gap-2">
-            <Filter size={18} className="text-slate-500" /> Resumo
-          </h1>
-
-          {/* Filtros + Botões */}
-          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-            <div className="flex flex-col sm:flex-row sm:items-center sm:flex-wrap gap-2">
-              <select
-                className="select w-full rounded sm:w-44"
-                value={showAll ? 'all' : month}
-                onChange={(e) => {
-                  if (e.target.value === 'all') {
-                    setShowAll(true);
-                  } else {
-                    setShowAll(false);
-                    setMonth(Number(e.target.value));
-                  }
-                }}
-              >
-                <option value="all">Ver todos os meses</option>
-                {MONTHS_PT.map((m, i) => (
-                  <option key={i + 1} value={i + 1}>
-                    {m}
-                  </option>
-                ))}
-              </select>
-
-              <input
-                className="input w-full sm:w-28"
-                type="number"
-                value={year}
-                onChange={(e) => setYear(Number(e.target.value))}
-                disabled={showAll}
-              />
-
-              <label className="flex items-center gap-2 cursor-pointer text-slate-600 dark:text-slate-300">
+          <div className="flex items-center justify-between mb-4">
+            <h1 className="text-xl font-bold flex items-center gap-2">
+              <Filter size={18} className="text-slate-500" /> Resumo
+            </h1>
+            <div className="flex gap-2 items-center">
+              <label className="flex items-center gap-2 cursor-pointer text-slate-600 dark:text-slate-300 whitespace-nowrap">
                 <input
                   type="checkbox"
                   checked={showCancelled}
@@ -419,10 +491,6 @@ export default function HomePage() {
                 />
                 Ver Cancelados
               </label>
-            </div>
-
-            {/* Botões (desktop: lado direito) */}
-            <div className="flex flex-col sm:flex-row gap-2 md:ml-auto">
               <button
                 className="border border-slate-300 dark:border-slate-700 flex items-center gap-2 bg-transparent hover:bg-slate-700 text-white px-4 py-2 rounded-md transition"
                 onClick={() => setDlg({ mode: 'addCollab' })}
@@ -438,6 +506,74 @@ export default function HomePage() {
                 <span>Adicionar finança</span>
               </button>
             </div>
+          </div>
+
+          {/* Filtros em uma linha só, ocupando toda a largura */}
+          <div className="flex flex-wrap gap-2 items-center mb-2 w-full">
+            {/* Descrição */}
+            <input
+              className="input flex-1 min-w-[140px]"
+              type="text"
+              placeholder="Descrição"
+              value={filterDesc}
+              onChange={(e) => setFilterDesc(e.target.value)}
+            />
+            {/* Valor */}
+            <input
+              className="input flex-1 min-w-[100px]"
+              type="number"
+              placeholder="Valor"
+              value={filterValor}
+              onChange={(e) => setFilterValor(e.target.value)}
+            />
+            {/* Parcela */}
+            <select
+              className="select rounded flex-1 min-w-[120px]"
+              value={filterParcela}
+              onChange={(e) => setFilterParcela(e.target.value)}
+            >
+              <option value="">Todas parcelas</option>
+              <option value="avulso">Avulso</option>
+              <option value="fixo">Fixo</option>
+              {[...Array(48)].map((_, i) => (
+                <option key={i + 1} value={i + 1}>
+                  {i + 1}
+                </option>
+              ))}
+            </select>
+            {/* Categoria (apenas campo visual) */}
+            <select className="select rounded flex-1 min-w-[120px]" disabled>
+              <option value="">Categoria</option>
+            </select>
+            {/* Mês */}
+            <select
+              className="select rounded flex-1 min-w-[120px]"
+              value={showAll ? 'all' : month}
+              onChange={(e) => {
+                if (e.target.value === 'all') {
+                  setShowAll(true);
+                } else {
+                  setShowAll(false);
+                  setMonth(Number(e.target.value));
+                }
+              }}
+            >
+              <option value="all">Todos os meses</option>
+              {MONTHS_PT.map((m, i) => (
+                <option key={i + 1} value={i + 1}>
+                  {m}
+                </option>
+              ))}
+            </select>
+            {/* Ano */}
+            <input
+              className="input flex-1 min-w-[80px]"
+              type="number"
+              value={year}
+              onChange={(e) => setYear(Number(e.target.value))}
+              disabled={showAll}
+              placeholder="Ano"
+            />
           </div>
 
           {/* Totais: só no mobile */}
@@ -507,6 +643,7 @@ export default function HomePage() {
               {collabOrder.map((id) => {
                 const c = collabs.find((cc) => cc.id === id);
                 if (!c) return null;
+                if (hiddenCollabs.includes(c.id)) return null;
                 return (
                   <div
                     key={c.id}

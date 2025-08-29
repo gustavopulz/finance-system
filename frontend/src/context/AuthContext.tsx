@@ -1,12 +1,6 @@
 import { createContext, useContext, useState, useEffect } from 'react';
 import * as api from '../lib/api';
-
-interface User {
-  id: string;
-  role: string;
-  name: string;
-  email: string;
-}
+import type { User } from '../lib/types';
 
 interface AuthContextType {
   user: User | null;
@@ -25,19 +19,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
 
-  // 🔒 Handlers globais configurados no api.ts
+  // 🔒 Handlers globais
   useEffect(() => {
     api.setAuthFailureHandler(() => {
       logout();
     });
 
     api.setUserRefreshHandler((user) => {
-      setUser({
-        id: String(user.id),
-        email: String(user.email),
-        role: String(user.role),
-        name: String(user.name),
-      });
+      setUser(api.normalizeUser(user));
     });
   }, []);
 
@@ -46,66 +35,42 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     async function fetchUser() {
       try {
         const data = await api.getCurrentUser();
-        if (data?.id && data?.email && data?.role && data?.name) {
-          setUser({
-            id: String(data.id),
-            email: String(data.email),
-            role: String(data.role),
-            name: String(data.name),
-          });
-        } else {
-          setUser(null);
-        }
+        setUser(api.normalizeUser(data));
       } catch {
         setUser(null);
+      } finally {
+        setLoading(false);
       }
-      setLoading(false);
     }
     fetchUser();
   }, []);
 
   const login = async (email: string, password: string) => {
     const data = await api.login(email, password);
-    if (data?.user) {
-      setUser({
-        id: String(data.user.id),
-        email: String(data.user.email),
-        role: String(data.user.role),
-        name: String(data.user.name),
-      });
+    const normalized = api.normalizeUser(data.user);
+    if (normalized) {
+      setUser(normalized);
     } else {
-      throw new Error('Usuário inválido');
+      throw new Error('Credenciais inválidas');
     }
   };
 
   const logout = async () => {
-    try {
-      await api.logout();
-    } catch {}
+    await api.logout();
     setUser(null);
   };
 
   const updateEmail = async (email: string) => {
     const res = await api.updateUserEmail(email);
     if (res?.success) {
-      setUser({
-        id: res.id,
-        email: res.email,
-        role: res.role,
-        name: res.name,
-      });
+      setUser(api.normalizeUser(res));
     }
   };
 
   const updateName = async (name: string) => {
     const res = await api.updateName(name);
     if (res?.success) {
-      setUser({
-        id: res.id,
-        email: res.email,
-        role: res.role,
-        name: res.name,
-      });
+      setUser(api.normalizeUser(res));
     }
   };
 

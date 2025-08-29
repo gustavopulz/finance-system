@@ -1,42 +1,39 @@
 import axios from 'axios';
+import type { User } from './types';
 
 const API_URL = 'https://finance-system-api.prxlab.app/api';
 // const API_URL = 'http://localhost:3000/api';
 
 export const api = axios.create({
   baseURL: API_URL,
-  withCredentials: true, // 🔒 manda cookies em todas as requisições
+  withCredentials: true,
   headers: { 'Content-Type': 'application/json' },
 });
 
-// Controle do refresh para evitar chamadas paralelas
+// -------------------- Controle de fila --------------------
 let isRefreshing = false;
 let failedQueue: any[] = [];
 
 function processQueue(error: any, token: string | null = null) {
   failedQueue.forEach((prom) => {
-    if (error) {
-      prom.reject(error);
-    } else {
-      prom.resolve(token);
-    }
+    if (error) prom.reject(error);
+    else prom.resolve(token);
   });
   failedQueue = [];
 }
 
-// -------------------- HANDLERS --------------------
+// 🔥 Handlers globais
 let onAuthFailure: (() => void) | null = null;
-let onUserRefreshed: ((user: any) => void) | null = null;
-
 export function setAuthFailureHandler(cb: () => void) {
   onAuthFailure = cb;
 }
 
-export function setUserRefreshHandler(cb: (user: any) => void) {
-  onUserRefreshed = cb;
+let onUserRefresh: ((user: User) => void) | null = null;
+export function setUserRefreshHandler(cb: (user: User) => void) {
+  onUserRefresh = cb;
 }
 
-// -------------------- INTERCEPTOR --------------------
+// -------------------- Interceptor --------------------
 api.interceptors.response.use(
   (response) => response,
   async (error) => {
@@ -46,12 +43,9 @@ api.interceptors.response.use(
       return Promise.reject(error);
     }
 
-    // 🔥 Refresh inválido/expirado → força logout
-    if (
-      ['refresh_token_expired', 'refresh_token_invalid'].includes(
-        error.response?.data?.error
-      )
-    ) {
+    const errorCode = error.response?.data?.error;
+
+    if (['refresh_token_expired', 'refresh_token_invalid'].includes(errorCode)) {
       if (onAuthFailure) onAuthFailure();
       return Promise.reject(error);
     }
@@ -59,11 +53,9 @@ api.interceptors.response.use(
     if (originalRequest._retry) {
       return Promise.reject(error);
     }
-
     originalRequest._retry = true;
 
-    // 🔄 Access token expirado → tenta refresh
-    if (error.response.data?.error === 'token_expired') {
+    if (errorCode === 'token_expired') {
       if (isRefreshing) {
         return new Promise((resolve, reject) => {
           failedQueue.push({ resolve, reject });
@@ -76,8 +68,8 @@ api.interceptors.response.use(
       try {
         const res = await api.post('/user/refresh');
 
-        if (res.data?.user && onUserRefreshed) {
-          onUserRefreshed(res.data.user); // 🔥 atualiza AuthContext
+        if (onUserRefresh && res.data?.user) {
+          onUserRefresh(res.data.user);
         }
 
         processQueue(null);
@@ -95,11 +87,20 @@ api.interceptors.response.use(
   }
 );
 
-//
-// -------------------- ENDPOINTS --------------------
-//
+// -------------------- Utils --------------------
+export function normalizeUser(u: any): User | null {
+  if (u?.id && u?.email && u?.role && u?.name) {
+    return {
+      id: String(u.id),
+      email: String(u.email),
+      role: u.role as 'admin' | 'user',
+      name: String(u.name),
+    };
+  }
+  return null;
+}
 
-// 🔑 Auth
+// -------------------- ENDPOINTS --------------------
 export async function login(email: string, password: string) {
   const res = await api.post('/user/login', { email, password });
   return res.data;
@@ -109,14 +110,9 @@ export async function logout() {
   try {
     await api.post('/user/logout');
   } catch {}
-  localStorage.removeItem('auth');
 }
 
-export async function registerUser(
-  email: string,
-  password: string,
-  name: string
-) {
+export async function registerUser(email: string, password: string, name: string) {
   const res = await api.post('/user/register', { email, password, name });
   return res.data;
 }

@@ -1,36 +1,36 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { initFirestore, firestore } from '@/lib/firestore';
 import { verifyToken } from '@/lib/jwt';
+import { getUserFromFirestore } from '@/lib/users';
 
 export async function GET(req: NextRequest) {
   try {
-    await initFirestore();
-
-    // ✅ Middleware já garantiu autenticado; só decodifica
     const authToken = req.cookies.get('auth_token')?.value!;
     const user = verifyToken(authToken);
 
-    const userDoc = await firestore.collection('users').doc(user.id).get();
-    if (!userDoc.exists) {
+    const userData = await getUserFromFirestore(user.id);
+    if (!userData) {
       return NextResponse.json({ error: 'Usuário não encontrado' }, { status: 404 });
     }
 
-    const userData = userDoc.data();
     return NextResponse.json({
-      id: userDoc.id,
-      name: userData?.name,
-      role: userData?.role,
-      email: userData?.email,
+      id: userData.id,
+      name: userData.name,
+      role: userData.role,
+      email: userData.email,
     });
   } catch (err: any) {
-    return NextResponse.json({ error: err.message }, { status: 500 });
+    if (err.message === 'Token expirado') {
+      return NextResponse.json({ error: 'token_expired' }, { status: 401 });
+    }
+    if (err.message === 'Token inválido') {
+      return NextResponse.json({ error: 'invalid_token' }, { status: 403 });
+    }
+    return NextResponse.json({ error: 'Erro interno' }, { status: 500 });
   }
 }
 
 export async function PATCH(req: NextRequest) {
   try {
-    await initFirestore();
-
     const authToken = req.cookies.get('auth_token')?.value!;
     const user = verifyToken(authToken);
 
@@ -40,20 +40,13 @@ export async function PATCH(req: NextRequest) {
     }
 
     // Atualiza no Firestore
-    await firestore.collection('users').doc(user.id).update({ name: name.trim() });
+    const userRef = (await import('@/lib/firestore')).firestore.collection('users').doc(user.id);
+    await userRef.update({ name: name.trim() });
 
-    // Busca novamente o doc atualizado
-    const userDoc = await firestore.collection('users').doc(user.id).get();
-
-    if (!userDoc.exists) {
-      return NextResponse.json({ error: 'Usuário não encontrado' }, { status: 404 });
-    }
-
-    const userData = userDoc.data();
-
+    const userData = await (await userRef.get()).data();
     return NextResponse.json({
       success: true,
-      id: userDoc.id,
+      id: user.id,
       name: userData?.name,
       role: userData?.role,
       email: userData?.email,

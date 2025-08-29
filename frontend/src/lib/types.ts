@@ -1,4 +1,4 @@
-export type Status = 'Pendente' | 'Cancelado' | 'quitado';
+export type Status = 'Pendente' | 'Cancelado' | 'quitado' | 'ativo';
 
 export type Collaborator = {
   id: string;
@@ -20,7 +20,7 @@ export type Account = {
   parcelasTotal: number | null;
   month: number;
   year: number;
-  status: 'Cancelado' | 'quitado' | 'ativo' | 'Pendente';
+  status: Status;
   createdAt: string;
   updatedAt: string;
   cancelledAt?: string;
@@ -35,7 +35,14 @@ export type Finance = {
   valor: number;
   start?: Competencia;
   parcelasTotal: number | 'X';
-  status: 'ativo' | 'Pendente' | 'Cancelado' | 'quitado';
+  status: Status;
   createdAt: string;
   competencia?: Competencia;
 };
+
+export interface User {
+  id: string;
+  role: 'admin' | 'user';
+  name: string;
+  email: string;
+}

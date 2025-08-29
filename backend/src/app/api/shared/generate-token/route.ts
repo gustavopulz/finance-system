@@ -17,10 +17,11 @@ export async function POST(req: NextRequest) {
     const name = userDoc.exists ? userDoc.data()?.name : '';
     const raw = `${name}:${user.id}:${Date.now()}:${Math.random()}`;
     const token = crypto.createHash('sha256').update(raw).digest('hex');
-    await firestore
+    // Preserve existing configuration (allowedCollabIds) when regenerating token
+    const tokenDocRef = firestore
       .collection('shared_accounts_tokens')
-      .doc(String(user.id))
-      .set({ userId: user.id, token });
+      .doc(String(user.id));
+    await tokenDocRef.set({ userId: user.id, token }, { merge: true });
     return NextResponse.json({ token });
   } catch (err: any) {
     return NextResponse.json({ error: err.message }, { status: 500 });

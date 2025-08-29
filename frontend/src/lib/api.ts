@@ -45,7 +45,9 @@ api.interceptors.response.use(
 
     const errorCode = error.response?.data?.error;
 
-    if (['refresh_token_expired', 'refresh_token_invalid'].includes(errorCode)) {
+    if (
+      ['refresh_token_expired', 'refresh_token_invalid'].includes(errorCode)
+    ) {
       if (onAuthFailure) onAuthFailure();
       return Promise.reject(error);
     }
@@ -112,7 +114,11 @@ export async function logout() {
   } catch {}
 }
 
-export async function registerUser(email: string, password: string, name: string) {
+export async function registerUser(
+  email: string,
+  password: string,
+  name: string
+) {
   const res = await api.post('/user/register', { email, password, name });
   return res.data;
 }
@@ -236,5 +242,31 @@ export async function unlinkUser(
   direction: 'i-see' | 'see-me'
 ) {
   const res = await api.delete(`/shared/unlink/${otherUserId}/${direction}`);
+  return res.data;
+}
+
+// Token and link configurations
+export async function getTokenConfig() {
+  const res = await api.get('/shared/token-config');
+  return res.data as { token: string | null; allowedCollabIds: string[] };
+}
+
+export async function saveTokenConfig(allowedCollabIds: string[]) {
+  const res = await api.put('/shared/token-config', { allowedCollabIds });
+  return res.data;
+}
+
+export async function getLinkConfig(otherUserId: string) {
+  const res = await api.get(`/shared/link-config/${otherUserId}`);
+  return res.data as { allowedCollabIds: string[] };
+}
+
+export async function saveLinkConfig(
+  otherUserId: string,
+  allowedCollabIds: string[]
+) {
+  const res = await api.put(`/shared/link-config/${otherUserId}`, {
+    allowedCollabIds,
+  });
   return res.data;
 }

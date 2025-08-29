@@ -71,11 +71,16 @@ export default function AccountSettings() {
             type="text"
             className="input input-bordered w-full"
             value={editingName ? newName : auth?.user?.name || ''}
-            onChange={editingName ? (e) => setNewName(e.target.value) : undefined}
+            onChange={
+              editingName ? (e) => setNewName(e.target.value) : undefined
+            }
             disabled={!editingName}
           />
           {!editingName ? (
-            <button className="btn btn-primary" onClick={() => setEditingName(true)}>
+            <button
+              className="btn btn-primary"
+              onClick={() => setEditingName(true)}
+            >
               <Pencil size={16} />
             </button>
           ) : (
@@ -99,11 +104,16 @@ export default function AccountSettings() {
             type="email"
             className="input input-bordered w-full"
             value={editingEmail ? newEmail : auth?.user?.email || ''}
-            onChange={editingEmail ? (e) => setNewEmail(e.target.value) : undefined}
+            onChange={
+              editingEmail ? (e) => setNewEmail(e.target.value) : undefined
+            }
             disabled={!editingEmail}
           />
           {!editingEmail ? (
-            <button className="btn btn-primary" onClick={() => setEditingEmail(true)}>
+            <button
+              className="btn btn-primary"
+              onClick={() => setEditingEmail(true)}
+            >
               <Pencil size={16} />
             </button>
           ) : (
@@ -124,8 +134,16 @@ export default function AccountSettings() {
         <label className="block font-semibold mb-2">Senha</label>
         {!editingPassword ? (
           <div className="flex gap-2">
-            <input type="password" className="input input-bordered w-full" value="********" disabled />
-            <button className="btn btn-primary" onClick={() => setEditingPassword(true)}>
+            <input
+              type="password"
+              className="input input-bordered w-full"
+              value="********"
+              disabled
+            />
+            <button
+              className="btn btn-primary"
+              onClick={() => setEditingPassword(true)}
+            >
               <Lock size={16} />
             </button>
           </div>

@@ -17,7 +17,6 @@ import {
   Link as LinkIcon,
   User,
   X,
-  Lock,
   SlidersHorizontal,
 } from 'lucide-react';
 import { useNotification } from '../../context/NotificationContext';
@@ -52,7 +51,7 @@ export default function TokenSettings({ active }: { active: boolean }) {
   const [linkAllowedCollabIds, setLinkAllowedCollabIds] = useState<string[]>(
     []
   );
-  const [modalCollabs, setModalCollabs] = useState<any[]>([]);
+  const [linkConfigLoading, setLinkConfigLoading] = useState(false);
   const [savingLinkConfig, setSavingLinkConfig] = useState(false);
 
   useEffect(() => {
@@ -146,26 +145,32 @@ export default function TokenSettings({ active }: { active: boolean }) {
     otherUserId: string,
     direction: 'i-see' | 'see-me'
   ) {
+    setSelectedCollabId('');
     setLinkConfigOpen({ open: true, otherUserId, direction });
+    setLinkConfigLoading(true);
     try {
-      const res = await getLinkConfig(otherUserId, direction);
-      setLinkAllowedCollabIds(res?.allowedCollabIds || []);
-    } catch {
-      setLinkAllowedCollabIds([]);
-    }
-    // Load proper collaborators for this modal based on direction
-    try {
-      if (direction === 'see-me') {
-        // My collaborators (already in state), but keep a local snapshot
-        setModalCollabs(collabs);
-      } else {
-        // Other user's collaborators
-        const otherCollabs = await listCollabs(otherUserId);
-        setModalCollabs(otherCollabs);
+      let res = await getLinkConfig(otherUserId, direction);
+      let ids = res?.allowedCollabIds || [];
+      // Fallback: if nothing returned (legacy/inverted saves), try opposite direction
+      if (!ids.length) {
+        const fallbackDir = direction === 'see-me' ? 'i-see' : 'see-me';
+        try {
+          const fb = await getLinkConfig(otherUserId, fallbackDir as any);
+          if (fb?.allowedCollabIds?.length) ids = fb.allowedCollabIds;
+        } catch {}
       }
-    } catch {
-      setModalCollabs([]);
+      setLinkAllowedCollabIds(ids);
+    } catch (e: any) {
+      setLinkAllowedCollabIds([]);
+      notify(
+        e?.message || 'Não foi possível carregar a configuração do vínculo',
+        'error'
+      );
+    } finally {
+      setLinkConfigLoading(false);
     }
+    // For now, only 'see-me' configuration is available in the UI, so we keep using
+    // the current user's collaborators already loaded into `collabs`.
   }
 
   function addSelectedCollabToLink() {
@@ -203,23 +208,24 @@ export default function TokenSettings({ active }: { active: boolean }) {
 
   return (
     <div className="bg-white dark:bg-slate-900 rounded shadow-md p-6 sm:p-8 border border-slate-200 dark:border-slate-800">
-      <h3 className="text-lg font-bold mb-4 flex items-center gap-2">
-        <Settings size={20} /> Configuração de Token
-      </h3>
-
-      <div className="flex items-center gap-2 mb-4">
-        <button
-          className="btn btn-primary flex items-center gap-2"
-          onClick={handleGenerateToken}
-        >
-          <Plus size={16} /> Gerar Token
-        </button>
-        <button
-          className="btn btn-secondary flex items-center gap-2"
-          onClick={() => setTokenModalOpen(true)}
-        >
-          <SlidersHorizontal size={16} /> Configurar token
-        </button>
+      <div className="mb-4 flex items-center gap-3">
+        <h3 className="text-lg font-bold flex items-center gap-2 m-0">
+          <Settings size={20} /> Configuração de Token
+        </h3>
+        <div className="ml-auto flex items-center gap-2">
+          <button
+            className="border border-slate-300 dark:border-slate-700 flex items-center gap-2 bg-transparent hover:bg-slate-700 text-white px-4 py-2 rounded-md transition"
+            onClick={() => setTokenModalOpen(true)}
+          >
+            <SlidersHorizontal size={16} /> Configurar token
+          </button>
+          <button
+            className="btn btn-primary flex items-center gap-2"
+            onClick={handleGenerateToken}
+          >
+            <Plus size={16} /> Gerar Token
+          </button>
+        </div>
       </div>
 
       {token && (
@@ -231,7 +237,7 @@ export default function TokenSettings({ active }: { active: boolean }) {
             readOnly
           />
           <button
-            className={`btn ${copied ? 'btn-success' : 'btn-secondary'}`}
+            className="border border-slate-300 dark:border-slate-700 flex items-center gap-2 bg-transparent hover:bg-slate-700 text-white px-4 py-2 rounded-md transition"
             onClick={() => {
               navigator.clipboard.writeText(token);
               setCopied(true);
@@ -273,61 +279,63 @@ export default function TokenSettings({ active }: { active: boolean }) {
             {/* Você vê */}
             <div>
               <h5 className="font-semibold mb-2">Você vê:</h5>
-              {links.iSee.map((u) => (
-                <div
-                  key={u.id}
-                  className="flex justify-between items-center border-b py-1 gap-2"
-                >
-                  <span className="flex gap-2 items-center">
-                    <User size={16} /> {u.name || u.id}
-                  </span>
-                  <div className="flex items-center gap-2">
-                    <button
-                      className="btn btn-xs btn-ghost opacity-50 cursor-not-allowed"
-                      title="Configuração bloqueada: apenas o dono do vínculo pode alterar"
-                      disabled
-                    >
-                      <SlidersHorizontal size={14} />
-                    </button>
-                    <button
-                      className="btn btn-xs btn-error"
-                      onClick={() => handleUnlink(u.id, 'i-see')}
-                    >
-                      <X size={14} />
-                    </button>
+              <div className="flex flex-col gap-2">
+                {links.iSee.map((u) => (
+                  <div
+                    key={u.id}
+                    className="flex items-center justify-between p-3 rounded-md border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800"
+                  >
+                    <span className="flex gap-2 items-center font-medium">
+                      <User size={16} /> {u.name || u.id}
+                    </span>
+                    <div className="flex items-center gap-2">
+                      <button
+                        className="btn btn-xs btn-ghost text-red-600 hover:bg-red-50 dark:hover:bg-red-900/30"
+                        onClick={() => handleUnlink(u.id, 'i-see')}
+                        title="Remover vínculo"
+                        aria-label="Remover vínculo"
+                      >
+                        <X size={16} />
+                      </button>
+                    </div>
                   </div>
-                </div>
-              ))}
+                ))}
+              </div>
             </div>
 
             {/* Vê sua conta */}
             <div>
               <h5 className="font-semibold mb-2">Vê sua conta:</h5>
-              {links.seeMe.map((u) => (
-                <div
-                  key={u.id}
-                  className="flex justify-between items-center border-b py-1 gap-2"
-                >
-                  <span className="flex gap-2 items-center">
-                    <Lock size={16} /> {u.name || u.id}
-                  </span>
-                  <div className="flex items-center gap-2">
-                    <button
-                      className="btn btn-xs"
-                      title="Configurar quais colaboradores desse vínculo veem da sua conta"
-                      onClick={() => startLinkConfig(u.id, 'see-me')}
-                    >
-                      <SlidersHorizontal size={14} />
-                    </button>
-                    <button
-                      className="btn btn-xs btn-error"
-                      onClick={() => handleUnlink(u.id, 'see-me')}
-                    >
-                      <X size={14} />
-                    </button>
+              <div className="flex flex-col gap-2">
+                {links.seeMe.map((u) => (
+                  <div
+                    key={u.id}
+                    className="flex items-center justify-between p-3 rounded-md border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800"
+                  >
+                    <span className="flex gap-2 items-center font-medium">
+                      <LinkIcon size={16} /> {u.name || u.id}
+                    </span>
+                    <div className="flex items-center gap-2">
+                      <button
+                        className="btn btn-xs btn-ghost text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/30"
+                        title="Configurar quais colaboradores desse vínculo veem da sua conta"
+                        aria-label="Configurar vínculo"
+                        onClick={() => startLinkConfig(u.id, 'see-me')}
+                      >
+                        <SlidersHorizontal size={16} />
+                      </button>
+                      <button
+                        className="btn btn-xs btn-ghost text-red-600 hover:bg-red-50 dark:hover:bg-red-900/30"
+                        onClick={() => handleUnlink(u.id, 'see-me')}
+                        title="Remover vínculo"
+                        aria-label="Remover vínculo"
+                      >
+                        <X size={16} />
+                      </button>
+                    </div>
                   </div>
-                </div>
-              ))}
+                ))}
+              </div>
             </div>
           </div>
         )}
@@ -338,59 +346,72 @@ export default function TokenSettings({ active }: { active: boolean }) {
         <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50">
           <div className="bg-white dark:bg-slate-900 p-6 rounded shadow-md w-full max-w-lg">
             <h4 className="font-bold mb-4">Configurar Token</h4>
-            <div className="flex items-end gap-2 mb-4">
-              <div className="flex-1">
-                <label className="block text-sm mb-1">Colaborador</label>
+            <div className="mb-4">
+              <label className="block text-sm mb-1">Colaborador</label>
+              <div className="flex w-full items-stretch gap-2">
                 <select
-                  className="select select-bordered w-full"
+                  className="select select-bordered flex-1 min-w-0"
                   value={selectedCollabId}
                   onChange={(e: ChangeEvent<HTMLSelectElement>) =>
                     setSelectedCollabId(e.target.value)
                   }
                 >
                   <option value="">Selecione...</option>
-                  {modalCollabs.map((c) => (
+                  {collabs.map((c) => (
                     <option key={c.id} value={c.id}>
                       {c.name}
                     </option>
                   ))}
                 </select>
+                <button
+                  className="btn btn-primary btn-square shrink-0"
+                  onClick={addSelectedCollabToToken}
+                  disabled={!selectedCollabId}
+                  aria-label="Adicionar colaborador"
+                  title="Adicionar colaborador"
+                >
+                  <Plus size={16} />
+                </button>
               </div>
-              <button
-                className="btn btn-primary"
-                onClick={addSelectedCollabToToken}
-              >
-                <Plus size={16} />
-              </button>
             </div>
             {/* Selected list */}
-            <div className="max-h-48 overflow-auto border rounded p-2 mb-4">
+            <div className="max-h-48 overflow-auto border border-slate-300 dark:border-slate-700 rounded p-3 mb-4">
               {tokenAllowedCollabIds.length === 0 ? (
                 <p className="text-sm text-slate-500">
                   Nenhum colaborador selecionado. Todos serão compartilhados.
                 </p>
               ) : (
-                tokenAllowedCollabIds.map((id) => {
-                  const c = collabs.find((x) => x.id === id);
-                  return (
-                    <div
-                      key={id}
-                      className="flex items-center justify-between py-1 border-b last:border-0"
-                    >
-                      <span>{c?.name || id}</span>
-                      <button
-                        className="btn btn-xs"
-                        onClick={() => removeFromTokenList(id)}
+                <div className="flex flex-wrap gap-2">
+                  {tokenAllowedCollabIds.map((id) => {
+                    const c = collabs.find((x) => x.id === id);
+                    return (
+                      <span
+                        key={id}
+                        className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-full bg-slate-100 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 text-sm"
+                        title={c?.name || id}
                       >
-                        <X size={14} />
-                      </button>
-                    </div>
-                  );
-                })
+                        <span className="max-w-[14rem] truncate">
+                          {c?.name || id}
+                        </span>
+                        <button
+                          className="inline-flex items-center justify-center rounded-full hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors"
+                          onClick={() => removeFromTokenList(id)}
+                          aria-label="Remover"
+                          title="Remover"
+                        >
+                          <X size={14} />
+                        </button>
+                      </span>
+                    );
+                  })}
+                </div>
               )}
             </div>
             <div className="flex justify-end gap-2">
-              <button className="btn" onClick={() => setTokenModalOpen(false)}>
+              <button
+                className="border border-slate-300 dark:border-slate-700 flex items-center gap-2 bg-transparent hover:bg-slate-700 text-white px-4 py-2 rounded-md transition"
+                onClick={() => setTokenModalOpen(false)}
+              >
                 Cancelar
               </button>
               <button
@@ -410,15 +431,16 @@ export default function TokenSettings({ active }: { active: boolean }) {
         <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50">
           <div className="bg-white dark:bg-slate-900 p-6 rounded shadow-md w-full max-w-lg">
             <h4 className="font-bold mb-4">Configurar Vínculo</h4>
-            <div className="flex items-end gap-2 mb-4">
-              <div className="flex-1">
-                <label className="block text-sm mb-1">Colaborador</label>
+            <div className="mb-4">
+              <label className="block text-sm mb-1">Colaborador</label>
+              <div className="flex w-full items-stretch gap-2">
                 <select
-                  className="select select-bordered w-full"
+                  className="select select-bordered flex-1 min-w-0"
                   value={selectedCollabId}
                   onChange={(e: ChangeEvent<HTMLSelectElement>) =>
                     setSelectedCollabId(e.target.value)
                   }
+                  disabled={linkConfigLoading}
                 >
                   <option value="">Selecione...</option>
                   {collabs.map((c) => (
@@ -427,42 +449,54 @@ export default function TokenSettings({ active }: { active: boolean }) {
                     </option>
                   ))}
                 </select>
+                <button
+                  className="btn btn-primary btn-square shrink-0"
+                  onClick={addSelectedCollabToLink}
+                  disabled={!selectedCollabId || linkConfigLoading}
+                  aria-label="Adicionar colaborador"
+                  title="Adicionar colaborador"
+                >
+                  <Plus size={16} />
+                </button>
               </div>
-              <button
-                className="btn btn-primary"
-                onClick={addSelectedCollabToLink}
-              >
-                <Plus size={16} />
-              </button>
             </div>
-            <div className="max-h-48 overflow-auto border rounded p-2 mb-4">
-              {linkAllowedCollabIds.length === 0 ? (
+            <div className="max-h-48 overflow-auto border border-slate-300 dark:border-slate-700 rounded p-3 mb-4">
+              {linkConfigLoading ? (
+                <p className="text-sm text-slate-500">Carregando...</p>
+              ) : linkAllowedCollabIds.length === 0 ? (
                 <p className="text-sm text-slate-500">
                   Nenhum colaborador selecionado. Todos serão compartilhados.
                 </p>
               ) : (
-                linkAllowedCollabIds.map((id) => {
-                  const c = collabs.find((x) => x.id === id);
-                  return (
-                    <div
-                      key={id}
-                      className="flex items-center justify-between py-1 border-b last:border-0"
-                    >
-                      <span>{c?.name || id}</span>
-                      <button
-                        className="btn btn-xs"
-                        onClick={() => removeFromLinkList(id)}
+                <div className="flex flex-wrap gap-2">
+                  {linkAllowedCollabIds.map((id) => {
+                    const c = collabs.find((x) => x.id === id);
+                    return (
+                      <span
+                        key={id}
+                        className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-full bg-slate-100 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 text-sm"
+                        title={c?.name || id}
                       >
-                        <X size={14} />
-                      </button>
-                    </div>
-                  );
-                })
+                        <span className="max-w-[14rem] truncate">
+                          {c?.name || id}
+                        </span>
+                        <button
+                          className="inline-flex items-center justify-center rounded-full hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors"
+                          onClick={() => removeFromLinkList(id)}
+                          aria-label="Remover"
+                          title="Remover"
+                        >
+                          <X size={14} />
+                        </button>
+                      </span>
+                    );
+                  })}
+                </div>
               )}
             </div>
             <div className="flex justify-end gap-2">
               <button
-                className="btn"
+                className="border border-slate-300 dark:border-slate-700 flex items-center gap-2 bg-transparent hover:bg-slate-700 text-white px-4 py-2 rounded-md transition"
                 onClick={() =>
                   setLinkConfigOpen({ open: false, otherUserId: null })
                 }
@@ -472,7 +506,7 @@ export default function TokenSettings({ active }: { active: boolean }) {
               <button
                 className={`btn btn-primary ${savingLinkConfig ? 'loading' : ''}`}
                 onClick={saveLinkConfiguration}
-                disabled={savingLinkConfig}
+                disabled={savingLinkConfig || linkConfigLoading}
               >
                 Salvar
               </button>

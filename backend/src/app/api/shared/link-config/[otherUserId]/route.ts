@@ -39,8 +39,23 @@ export async function GET(
         { status: 404 }
       );
     const linkDoc = linkSnap.docs[0];
-    const data = linkDoc.data();
-    return NextResponse.json({ allowedCollabIds: data.allowedCollabIds || [] });
+    const data: any = linkDoc.data();
+    let allowed: string[] = Array.isArray(data.allowedCollabIds)
+      ? data.allowedCollabIds
+      : [];
+    if (!allowed.length) {
+      // Fallback to token-level configuration from the owner of the data being shared
+      const ownerId = direction === 'i-see' ? otherUserId : user.id;
+      const tokenCfg = await firestore
+        .collection('shared_accounts_tokens')
+        .doc(String(ownerId))
+        .get();
+      const tokenData = tokenCfg.exists ? (tokenCfg.data() as any) : null;
+      if (Array.isArray(tokenData?.allowedCollabIds)) {
+        allowed = tokenData!.allowedCollabIds.map(String);
+      }
+    }
+    return NextResponse.json({ allowedCollabIds: allowed });
   } catch (err: any) {
     return NextResponse.json({ error: err.message }, { status: 500 });
   }

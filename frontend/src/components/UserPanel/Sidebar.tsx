@@ -10,7 +10,7 @@ export default function UserPanelSidebar({
   onTabChange,
 }: UserPanelSidebarProps) {
   return (
-    <aside className="w-70 bg-slate-50 dark:bg-slate-900 pr-4 flex flex-col gap-3 border-r border-slate-200 dark:border-slate-800 sticky top-6 pt-3 pb-3 self-stretch h-full">
+    <aside className="w-70 bg-slate-50 dark:bg-slate-900 pr-4 flex flex-col gap-3 sticky top-6 pt-3 pb-3 self-stretch h-full">
       <h2 className="text-xl font-bold mb-6 flex items-center gap-2">
         <User size={22} className="text-slate-500" /> Painel do Usuário
       </h2>
@@ -21,7 +21,8 @@ export default function UserPanelSidebar({
           }`}
           onClick={() => onTabChange('account')}
         >
-          <Settings size={18} className="text-slate-500" /> Configuração de Conta
+          <Settings size={18} className="text-slate-500" /> Configuração de
+          Conta
         </button>
 
         <button
@@ -30,7 +31,8 @@ export default function UserPanelSidebar({
           }`}
           onClick={() => onTabChange('token')}
         >
-          <LinkIcon size={18} className="text-slate-500" /> Configuração de Token
+          <LinkIcon size={18} className="text-slate-500" /> Configuração de
+          Token
         </button>
 
         <button
@@ -39,7 +41,8 @@ export default function UserPanelSidebar({
           }`}
           onClick={() => onTabChange('categories')}
         >
-          <Palette size={18} className="text-slate-500" /> Configuração de Categorias
+          <Palette size={18} className="text-slate-500" /> Configuração de
+          Categorias
         </button>
       </nav>
     </aside>

@@ -47,16 +47,26 @@ export default function TokenSettings({ active }: { active: boolean }) {
   const [linkConfigOpen, setLinkConfigOpen] = useState<{
     open: boolean;
     otherUserId: string | null;
-  }>({ open: false, otherUserId: null });
+    direction?: 'i-see' | 'see-me';
+  }>({ open: false, otherUserId: null, direction: 'see-me' });
   const [linkAllowedCollabIds, setLinkAllowedCollabIds] = useState<string[]>(
     []
   );
+  const [modalCollabs, setModalCollabs] = useState<any[]>([]);
   const [savingLinkConfig, setSavingLinkConfig] = useState(false);
 
   useEffect(() => {
     if (!active) return;
     fetchLinks();
     bootstrapTokenConfig();
+  }, [active]);
+
+  // Quando sair da aba (active=false), limpa a exibição temporária do token
+  useEffect(() => {
+    if (!active) {
+      setToken('');
+      setCopied(false);
+    }
   }, [active]);
 
   async function fetchLinks() {
@@ -83,7 +93,7 @@ export default function TokenSettings({ active }: { active: boolean }) {
         setCollabs(cl);
       }
       const cfg = await getTokenConfig();
-      if (cfg?.token) setToken(cfg.token);
+      // Não exibir token automaticamente ao abrir a tela; exibição é apenas após gerar
       setTokenAllowedCollabIds(cfg?.allowedCollabIds || []);
     } catch {}
   }
@@ -132,11 +142,30 @@ export default function TokenSettings({ active }: { active: boolean }) {
     }
   }
 
-  function startLinkConfig(otherUserId: string) {
-    setLinkConfigOpen({ open: true, otherUserId });
-    getLinkConfig(otherUserId)
-      .then((res) => setLinkAllowedCollabIds(res?.allowedCollabIds || []))
-      .catch(() => setLinkAllowedCollabIds([]));
+  async function startLinkConfig(
+    otherUserId: string,
+    direction: 'i-see' | 'see-me'
+  ) {
+    setLinkConfigOpen({ open: true, otherUserId, direction });
+    try {
+      const res = await getLinkConfig(otherUserId, direction);
+      setLinkAllowedCollabIds(res?.allowedCollabIds || []);
+    } catch {
+      setLinkAllowedCollabIds([]);
+    }
+    // Load proper collaborators for this modal based on direction
+    try {
+      if (direction === 'see-me') {
+        // My collaborators (already in state), but keep a local snapshot
+        setModalCollabs(collabs);
+      } else {
+        // Other user's collaborators
+        const otherCollabs = await listCollabs(otherUserId);
+        setModalCollabs(otherCollabs);
+      }
+    } catch {
+      setModalCollabs([]);
+    }
   }
 
   function addSelectedCollabToLink() {
@@ -154,9 +183,17 @@ export default function TokenSettings({ active }: { active: boolean }) {
     if (!linkConfigOpen.otherUserId) return;
     setSavingLinkConfig(true);
     try {
-      await saveLinkConfig(linkConfigOpen.otherUserId, linkAllowedCollabIds);
+      await saveLinkConfig(
+        linkConfigOpen.otherUserId,
+        linkAllowedCollabIds,
+        linkConfigOpen.direction || 'see-me'
+      );
       notify('Configuração do vínculo salva.', 'success');
-      setLinkConfigOpen({ open: false, otherUserId: null });
+      setLinkConfigOpen({
+        open: false,
+        otherUserId: null,
+        direction: 'see-me',
+      });
     } catch (e: any) {
       notify(e?.message || 'Erro ao salvar configuração do vínculo', 'error');
     } finally {
@@ -246,6 +283,13 @@ export default function TokenSettings({ active }: { active: boolean }) {
                   </span>
                   <div className="flex items-center gap-2">
                     <button
+                      className="btn btn-xs btn-ghost opacity-50 cursor-not-allowed"
+                      title="Configuração bloqueada: apenas o dono do vínculo pode alterar"
+                      disabled
+                    >
+                      <SlidersHorizontal size={14} />
+                    </button>
+                    <button
                       className="btn btn-xs btn-error"
                       onClick={() => handleUnlink(u.id, 'i-see')}
                     >
@@ -271,7 +315,7 @@ export default function TokenSettings({ active }: { active: boolean }) {
                     <button
                       className="btn btn-xs"
                       title="Configurar quais colaboradores desse vínculo veem da sua conta"
-                      onClick={() => startLinkConfig(u.id)}
+                      onClick={() => startLinkConfig(u.id, 'see-me')}
                     >
                       <SlidersHorizontal size={14} />
                     </button>
@@ -305,7 +349,7 @@ export default function TokenSettings({ active }: { active: boolean }) {
                   }
                 >
                   <option value="">Selecione...</option>
-                  {collabs.map((c) => (
+                  {modalCollabs.map((c) => (
                     <option key={c.id} value={c.id}>
                       {c.name}
                     </option>

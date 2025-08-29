@@ -15,12 +15,24 @@ export async function GET(
     const user = verifyToken(authToken);
     const { otherUserId } = await context.params;
 
-    // Only owner of the link (userId=user.id) can configure what others see of their account
-    const linkSnap = await firestore
-      .collection('shared_accounts')
-      .where('userId', '==', user.id)
-      .where('sharedWithUserId', '==', otherUserId)
-      .get();
+    // direction can be 'see-me' (default) or 'i-see'
+    const direction = req.nextUrl.searchParams.get('direction') || 'see-me';
+    let linkSnap;
+    if (direction === 'i-see') {
+      // Other user shared with me
+      linkSnap = await firestore
+        .collection('shared_accounts')
+        .where('userId', '==', otherUserId)
+        .where('sharedWithUserId', '==', user.id)
+        .get();
+    } else {
+      // I shared with other user
+      linkSnap = await firestore
+        .collection('shared_accounts')
+        .where('userId', '==', user.id)
+        .where('sharedWithUserId', '==', otherUserId)
+        .get();
+    }
     if (linkSnap.empty)
       return NextResponse.json(
         { error: 'Vínculo não encontrado' },
@@ -53,11 +65,21 @@ export async function PUT(
       );
     }
 
-    const linkSnap = await firestore
-      .collection('shared_accounts')
-      .where('userId', '==', user.id)
-      .where('sharedWithUserId', '==', otherUserId)
-      .get();
+    const direction = req.nextUrl.searchParams.get('direction') || 'see-me';
+    let linkSnap;
+    if (direction === 'i-see') {
+      linkSnap = await firestore
+        .collection('shared_accounts')
+        .where('userId', '==', otherUserId)
+        .where('sharedWithUserId', '==', user.id)
+        .get();
+    } else {
+      linkSnap = await firestore
+        .collection('shared_accounts')
+        .where('userId', '==', user.id)
+        .where('sharedWithUserId', '==', otherUserId)
+        .get();
+    }
     if (linkSnap.empty)
       return NextResponse.json(
         { error: 'Vínculo não encontrado' },

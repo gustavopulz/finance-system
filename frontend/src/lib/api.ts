@@ -256,17 +256,26 @@ export async function saveTokenConfig(allowedCollabIds: string[]) {
   return res.data;
 }
 
-export async function getLinkConfig(otherUserId: string) {
-  const res = await api.get(`/shared/link-config/${otherUserId}`);
+export async function getLinkConfig(
+  otherUserId: string,
+  direction: 'i-see' | 'see-me' = 'see-me'
+) {
+  const res = await api.get(
+    `/shared/link-config/${otherUserId}?direction=${direction}`
+  );
   return res.data as { allowedCollabIds: string[] };
 }
 
 export async function saveLinkConfig(
   otherUserId: string,
-  allowedCollabIds: string[]
+  allowedCollabIds: string[],
+  direction: 'i-see' | 'see-me' = 'see-me'
 ) {
-  const res = await api.put(`/shared/link-config/${otherUserId}`, {
-    allowedCollabIds,
-  });
+  const res = await api.put(
+    `/shared/link-config/${otherUserId}?direction=${direction}`,
+    {
+      allowedCollabIds,
+    }
+  );
   return res.data;
 }

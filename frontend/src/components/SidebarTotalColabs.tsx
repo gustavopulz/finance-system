@@ -12,6 +12,7 @@ interface SidebarProps {
   onSelect: (id: string | null) => void;
   hiddenCollabs: string[];
   onToggleCollabVisibility: (id: string) => void;
+  onAddFinance?: (collabId: string) => void;
 }
 
 export default function SidebarTotalColabs({
@@ -23,6 +24,7 @@ export default function SidebarTotalColabs({
   onSelect,
   hiddenCollabs,
   onToggleCollabVisibility,
+  onAddFinance,
 }: SidebarProps) {
   // Handler para limpar seleção ao clicar na sidebar fora dos botões
   function handleSidebarClick(
@@ -81,6 +83,28 @@ export default function SidebarTotalColabs({
                 onClick={() => onSelect(c.id)}
               >
                 {c.name}
+              </button>
+              <button
+                className="p-1 text-slate-500 hover:text-slate-800 dark:hover:text-slate-200"
+                title="Adicionar finança para este colaborador"
+                onClick={() => onAddFinance && onAddFinance(c.id)}
+                style={{ marginLeft: 0 }}
+              >
+                <svg
+                  width="18"
+                  height="18"
+                  viewBox="0 0 20 20"
+                  fill="none"
+                  xmlns="http://www.w3.org/2000/svg"
+                >
+                  <path
+                    d="M10 4V16M4 10H16"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
+                </svg>
               </button>
               <button
                 className="p-1 text-slate-500 hover:text-slate-800 dark:hover:text-slate-200"

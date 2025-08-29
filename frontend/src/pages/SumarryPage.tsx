@@ -26,7 +26,7 @@ import * as api from '../lib/api';
 
 type DialogState =
   | { mode: 'closed' }
-  | { mode: 'addAccount' }
+  | { mode: 'addAccount'; initialCollaboratorId?: string }
   | { mode: 'editAccount'; account: Account }
   | { mode: 'addCollab' };
 
@@ -471,6 +471,9 @@ export default function HomePage() {
           }}
           hiddenCollabs={hiddenCollabs}
           onToggleCollabVisibility={toggleCollabVisibility}
+          onAddFinance={(collabId) => {
+            setDlg({ mode: 'addAccount', initialCollaboratorId: collabId });
+          }}
         />
       </div>
       <div className="w-px bg-slate-300 dark:bg-slate-700 mx-2 self-stretch hidden md:block" />
@@ -614,6 +617,11 @@ export default function HomePage() {
         <FinanceDialog
           initial={dlg.mode === 'editAccount' ? dlg.account : undefined}
           collaborators={collabs.map((c) => ({ id: c.id, name: c.name }))}
+          filteredMonth={month}
+          filteredYear={year}
+          initialCollaboratorId={
+            dlg.mode === 'addAccount' ? dlg.initialCollaboratorId : undefined
+          }
           onSave={addOrUpdateAccount}
           onClose={() => setDlg({ mode: 'closed' })}
         />

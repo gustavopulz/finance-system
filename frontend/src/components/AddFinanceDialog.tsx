@@ -10,6 +10,9 @@ import type { Collaborator, Status, Account } from '../lib/types';
 type Props = {
   initial?: Account;
   collaborators: Collaborator[];
+  filteredMonth?: number;
+  filteredYear?: number;
+  initialCollaboratorId?: string;
   onSave: (
     data: {
       collaboratorId: string;
@@ -50,12 +53,15 @@ type FormData = z.input<typeof schema>;
 export default function AddFinanceDialog({
   collaborators,
   initial,
+  filteredMonth,
+  filteredYear,
+  initialCollaboratorId,
   onSave,
   onClose,
 }: Props) {
   const now = new Date();
-  const defaultMonth = now.getMonth() + 1;
-  const defaultYear = now.getFullYear();
+  const defaultMonth = filteredMonth ?? now.getMonth() + 1;
+  const defaultYear = filteredYear ?? now.getFullYear();
 
   // Ref para focar no input de descrição
   const descriptionInputRef = useRef<HTMLInputElement>(null);
@@ -70,9 +76,11 @@ export default function AddFinanceDialog({
     defaultValues: {
       collaboratorId: initial?.collaboratorId
         ? String(initial.collaboratorId)
-        : collaborators[0]?.id
-          ? String(collaborators[0].id)
-          : '',
+        : initialCollaboratorId
+          ? String(initialCollaboratorId)
+          : collaborators.length === 1
+            ? String(collaborators[0].id)
+            : '',
       description: initial?.description || '',
       value:
         initial?.value != null ? String(initial.value).replace('.', ',') : '',
@@ -116,10 +124,14 @@ export default function AddFinanceDialog({
 
   // garante colaborador setado quando a lista chega depois
   useEffect(() => {
-    if (!initial && collaborators[0]) {
-      setValue('collaboratorId', String(collaborators[0].id));
+    if (!initial) {
+      if (initialCollaboratorId) {
+        setValue('collaboratorId', String(initialCollaboratorId));
+      } else if (collaborators.length === 1) {
+        setValue('collaboratorId', String(collaborators[0].id));
+      } // Se houver mais de um, não faz nada, deixa vazio
     }
-  }, [collaborators, initial, setValue]);
+  }, [collaborators, initial, initialCollaboratorId, setValue]);
 
   // Foca no input de descrição ao abrir o dialog
   useEffect(() => {
@@ -183,6 +195,11 @@ export default function AddFinanceDialog({
               {...register('collaboratorId')}
               disabled={disabled}
             >
+              {collaborators.length > 1 && (
+                <option value="" disabled>
+                  Selecione um Colaborador
+                </option>
+              )}
               {collaborators.map((c) => (
                 <option key={c.id} value={String(c.id)}>
                   {c.name}

@@ -44,19 +44,23 @@ export async function POST(req: NextRequest) {
     }));
 
     // Apply per-link filtering: if a link has allowedCollabIds, restrict collabs of that owner
+    // If allowedCollabIds is an empty array, it means "no restriction" explicitly for this link.
     const perOwnerAllowed = new Map<string, Set<string>>();
+    const ownersNoRestriction = new Set<string>();
     for (const link of links) {
-      if (
-        Array.isArray(link.allowedCollabIds) &&
-        link.allowedCollabIds.length
-      ) {
-        perOwnerAllowed.set(
-          String(link.userId),
-          new Set(link.allowedCollabIds.map(String))
-        );
+      const ownerId = String(link.userId);
+      if (Array.isArray(link.allowedCollabIds)) {
+        if (link.allowedCollabIds.length > 0) {
+          perOwnerAllowed.set(
+            ownerId,
+            new Set(link.allowedCollabIds.map(String))
+          );
+        } else {
+          ownersNoRestriction.add(ownerId);
+        }
       }
     }
-    // Fallback to token-level config if link hasn't got a specific list
+    // Fallback to token-level config if link hasn't got a specific list and didn't explicitly set "no restriction"
     if (perOwnerAllowed.size < ownerIds.length) {
       const uniqueOwnerIds = Array.from(new Set(ownerIds.map(String)));
       // Fetch token configs in batches of 10 to respect Firestore 'in' limits
@@ -72,6 +76,7 @@ export async function POST(req: NextRequest) {
           const data: any = doc.data();
           if (
             !perOwnerAllowed.has(String(data.userId)) &&
+            !ownersNoRestriction.has(String(data.userId)) &&
             Array.isArray(data.allowedCollabIds) &&
             data.allowedCollabIds.length
           ) {

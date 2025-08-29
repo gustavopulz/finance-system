@@ -261,7 +261,7 @@ export default function TokenSettings({ active }: { active: boolean }) {
             }
           />
           <button
-            className="btn btn-primary"
+            className="btn btn-primary cursor-pointer"
             disabled={!sharedToken.trim()}
             onClick={handleUseToken}
           >
@@ -315,7 +315,7 @@ export default function TokenSettings({ active }: { active: boolean }) {
                     <span className="flex gap-2 items-center font-medium">
                       <LinkIcon size={16} /> {u.name || u.id}
                     </span>
-                    <div className="flex items-center gap-2">
+                    <div className="flex items-center">
                       <button
                         className="btn btn-xs btn-ghost text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/30"
                         title="Configurar quais colaboradores desse vínculo veem da sua conta"

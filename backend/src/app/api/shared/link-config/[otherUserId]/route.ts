@@ -43,7 +43,12 @@ export async function GET(
     let allowed: string[] = Array.isArray(data.allowedCollabIds)
       ? data.allowedCollabIds
       : [];
-    if (!allowed.length) {
+    // If the link document has the field and it's an empty array, it explicitly means "no restriction"; don't fallback.
+    const hasExplicitField = Object.prototype.hasOwnProperty.call(
+      data,
+      'allowedCollabIds'
+    );
+    if (!hasExplicitField && !allowed.length) {
       // Fallback to token-level configuration from the owner of the data being shared
       const ownerId = direction === 'i-see' ? otherUserId : user.id;
       const tokenCfg = await firestore

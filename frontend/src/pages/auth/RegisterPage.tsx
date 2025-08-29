@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
-import { useNotification } from '../context/NotificationContext';
-import { registerUser } from '../lib/api';
+import { useNotification } from '../../context/NotificationContext';
+import { registerUser } from '../../lib/api';
 import { FaEye, FaEyeSlash } from 'react-icons/fa';
 
 export default function RegisterPage() {

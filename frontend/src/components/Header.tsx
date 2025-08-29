@@ -46,8 +46,8 @@ export default function Header() {
     },
     {
       type: 'link',
-      to: '/info',
-      label: 'Dashboard',
+      to: '/dashboard',
+      label: 'Ajuda',
       icon: null,
     },
     auth?.user
@@ -132,7 +132,7 @@ export default function Header() {
               `${isActive ? 'text-blue-500' : 'text-white'}`
             }
           >
-            Dashboard
+            Ajuda
           </NavLink>
         </div>
         {/* User and Settings */}

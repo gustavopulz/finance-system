@@ -19,7 +19,8 @@ import type { FinanceTableProps } from '../components/FinanceTable';
 import FinanceTable from '../components/FinanceTable';
 import FinanceDialog from '../components/AddFinanceDialog';
 import AddCollaboratorDialog from '../components/AddCollaboratorDialog';
-import { Plus, Filter, UserPlus } from 'lucide-react';
+import { Plus } from 'lucide-react';
+import Summary from '../components/Summary';
 import { isVisibleInMonth } from '../lib/storage';
 import * as api from '../lib/api';
 
@@ -472,146 +473,30 @@ export default function HomePage() {
           onToggleCollabVisibility={toggleCollabVisibility}
         />
       </div>
+      <div className="w-px bg-slate-300 dark:bg-slate-700 mx-2 self-stretch hidden md:block" />
       <div id="main-content" className="flex-1 grid gap-6">
-        <div
-          ref={resumoRef}
-          className="border border-slate-300 dark:border-slate-700 shadow-sm rounded-lg bg-white dark:bg-slate-900 p-4"
-        >
-          <div className="flex items-center justify-between mb-4">
-            <h1 className="text-xl font-bold flex items-center gap-2">
-              <Filter size={18} className="text-slate-500" /> Resumo
-            </h1>
-            <div className="flex gap-2 items-center">
-              <label className="flex items-center gap-2 cursor-pointer text-slate-600 dark:text-slate-300 whitespace-nowrap">
-                <input
-                  type="checkbox"
-                  checked={showCancelled}
-                  onChange={(e) => setShowCancelled(e.target.checked)}
-                  className="register-checkbox"
-                />
-                Ver Cancelados
-              </label>
-              <button
-                className="border border-slate-300 dark:border-slate-700 flex items-center gap-2 bg-transparent hover:bg-slate-700 text-white px-4 py-2 rounded-md transition"
-                onClick={() => setDlg({ mode: 'addCollab' })}
-              >
-                <UserPlus size={18} /> Adicionar colaborador
-              </button>
-              <button
-                className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md transition"
-                onClick={() => setDlg({ mode: 'addAccount' })}
-                title="Adicionar finança (Alt+N)"
-              >
-                <Plus size={18} />
-                <span>Adicionar finança</span>
-              </button>
-            </div>
-          </div>
-
-          {/* Filtros em uma linha só, ocupando toda a largura */}
-          <div className="flex flex-wrap gap-2 items-center mb-2 w-full">
-            {/* Descrição */}
-            <input
-              className="input flex-1 min-w-[140px]"
-              type="text"
-              placeholder="Descrição"
-              value={filterDesc}
-              onChange={(e) => setFilterDesc(e.target.value)}
-            />
-            {/* Valor */}
-            <input
-              className="input flex-1 min-w-[100px]"
-              type="number"
-              placeholder="Valor"
-              value={filterValor}
-              onChange={(e) => setFilterValor(e.target.value)}
-            />
-            {/* Parcela */}
-            <select
-              className="select rounded flex-1 min-w-[120px]"
-              value={filterParcela}
-              onChange={(e) => setFilterParcela(e.target.value)}
-            >
-              <option value="">Todas parcelas</option>
-              <option value="avulso">Avulso</option>
-              <option value="fixo">Fixo</option>
-              {[...Array(48)].map((_, i) => (
-                <option key={i + 1} value={i + 1}>
-                  {i + 1}
-                </option>
-              ))}
-            </select>
-            {/* Categoria (apenas campo visual) */}
-            <select className="select rounded flex-1 min-w-[120px]" disabled>
-              <option value="">Categoria</option>
-            </select>
-            {/* Mês */}
-            <select
-              className="select rounded flex-1 min-w-[120px]"
-              value={showAll ? 'all' : month}
-              onChange={(e) => {
-                if (e.target.value === 'all') {
-                  setShowAll(true);
-                } else {
-                  setShowAll(false);
-                  setMonth(Number(e.target.value));
-                }
-              }}
-            >
-              <option value="all">Todos os meses</option>
-              {MONTHS_PT.map((m, i) => (
-                <option key={i + 1} value={i + 1}>
-                  {m}
-                </option>
-              ))}
-            </select>
-            {/* Ano */}
-            <input
-              className="input flex-1 min-w-[80px]"
-              type="number"
-              value={year}
-              onChange={(e) => setYear(Number(e.target.value))}
-              disabled={showAll}
-              placeholder="Ano"
-            />
-          </div>
-
-          {/* Totais: só no mobile */}
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mt-4 md:hidden">
-            <div className="p-3 rounded bg-slate-100 dark:bg-slate-800 text-center">
-              <span className="block text-xs uppercase text-slate-500">
-                Total
-              </span>
-              <span className="text-lg font-bold text-slate-800 dark:text-slate-200">
-                {new Intl.NumberFormat('pt-BR', {
-                  style: 'currency',
-                  currency: 'BRL',
-                }).format(total)}
-              </span>
-            </div>
-            <div className="p-3 rounded bg-yellow-100 dark:bg-yellow-500/20 text-center">
-              <span className="block text-xs uppercase text-yellow-700">
-                Pendente
-              </span>
-              <span className="text-lg font-bold text-yellow-700 dark:text-yellow-300">
-                {new Intl.NumberFormat('pt-BR', {
-                  style: 'currency',
-                  currency: 'BRL',
-                }).format(totalPendente)}
-              </span>
-            </div>
-            <div className="p-3 rounded bg-green-100 dark:bg-green-500/20 text-center">
-              <span className="block text-xs uppercase text-green-700">
-                Pago
-              </span>
-              <span className="text-lg font-bold text-green-700 dark:text-green-300">
-                {new Intl.NumberFormat('pt-BR', {
-                  style: 'currency',
-                  currency: 'BRL',
-                }).format(totalPago)}
-              </span>
-            </div>
-          </div>
+        <div ref={resumoRef}>
+          <Summary
+            total={total}
+            totalPendente={totalPendente}
+            totalPago={totalPago}
+            showCancelled={showCancelled}
+            setShowCancelled={setShowCancelled}
+            setDlg={setDlg}
+            setMonth={setMonth}
+            setShowAll={setShowAll}
+            showAll={showAll}
+            month={month}
+            year={year}
+            setYear={setYear}
+            filterDesc={filterDesc}
+            setFilterDesc={setFilterDesc}
+            filterValor={filterValor}
+            setFilterValor={setFilterValor}
+            filterParcela={filterParcela}
+            setFilterParcela={setFilterParcela}
+            MONTHS_PT={MONTHS_PT}
+          />
         </div>
 
         {loading && <SkeletonCard className="mb-4" />}

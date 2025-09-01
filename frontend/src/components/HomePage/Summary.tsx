@@ -1,5 +1,6 @@
 import React from 'react';
 import { Filter, Plus, UserPlus } from 'lucide-react';
+// no types required here
 
 interface SummaryProps {
   total: number;
@@ -21,6 +22,7 @@ interface SummaryProps {
   filterParcela: string;
   setFilterParcela: (parcela: string) => void;
   MONTHS_PT: string[];
+  activeView?: 'resumo' | 'entradas' | 'saidas';
 }
 
 const Summary: React.FC<SummaryProps> = ({
@@ -43,13 +45,20 @@ const Summary: React.FC<SummaryProps> = ({
   filterParcela,
   setFilterParcela,
   MONTHS_PT,
+  activeView = 'saidas',
 }) => {
+  // (Resumo tree is rendered by the parent `HomePage`; keep this card for filters/totals only.)
   return (
     <div className="border border-slate-300 dark:border-slate-700 shadow-sm rounded-lg bg-white dark:bg-slate-900 p-4">
       {/* Header */}
       <div className="flex items-center justify-between mb-4">
         <h1 className="text-xl font-bold flex items-center gap-2">
-          <Filter size={18} className="text-slate-500" /> Resumo
+          <Filter size={18} className="text-slate-500" />
+          {activeView === 'resumo'
+            ? 'Resumo'
+            : activeView === 'entradas'
+              ? 'Entradas'
+              : 'Saídas'}
         </h1>
 
         {/* Desktop actions */}
@@ -79,6 +88,8 @@ const Summary: React.FC<SummaryProps> = ({
           </button>
         </div>
       </div>
+
+      {/* Tabs are rendered by the parent; this card only shows the current selected content */}
 
       {/* Mobile actions */}
       <div className="flex flex-col gap-2 md:hidden mb-4">
@@ -267,6 +278,8 @@ const Summary: React.FC<SummaryProps> = ({
           </span>
         </div>
       </div>
+
+      {/* Resumo tree moved to parent (`HomePage`). This card keeps filters/totals only. */}
     </div>
   );
 };

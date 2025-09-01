@@ -21,6 +21,7 @@ import FinanceDialog from '../components/HomePage/AddFinanceDialog';
 import AddCollaboratorDialog from '../components/HomePage/AddCollaboratorDialog';
 import { Plus } from 'lucide-react';
 import Summary from '../components/HomePage/Summary';
+import ResumoTimeline from '../components/HomePage/ResumoTimeline';
 import { isVisibleInMonth } from '../lib/storage';
 import * as api from '../lib/api';
 
@@ -163,6 +164,9 @@ export default function HomePage() {
   const [showAll, setShowAll] = useState(false);
   const [showCancelled, setShowCancelled] = useState(true);
   const [showFloatingButton, setShowFloatingButton] = useState(false);
+  const [activeView, setActiveView] = useState<
+    'resumo' | 'entradas' | 'saidas'
+  >('saidas');
 
   const [dlg, setDlg] = useState<DialogState>({ mode: 'closed' });
   const [collabs, setCollabs] = useState<Collaborator[]>([]);
@@ -520,6 +524,30 @@ export default function HomePage() {
       </div>
       <div className="w-px bg-slate-300 dark:bg-slate-700 mx-2 self-stretch hidden md:block" />
       <div id="main-content" className="flex-1 grid gap-6">
+        {/* Tabs above the summary card */}
+        <div className="flex items-center gap-2">
+          {(['resumo', 'entradas', 'saidas'] as const).map((v) => {
+            const active = v === activeView;
+            return (
+              <button
+                key={v}
+                onClick={() => setActiveView(v)}
+                className={`px-3 py-2 rounded-md text-sm font-medium transition ${
+                  active
+                    ? 'bg-blue-600 text-white'
+                    : 'bg-transparent text-slate-600 dark:text-slate-300'
+                }`}
+              >
+                {v === 'resumo'
+                  ? 'Resumo'
+                  : v === 'entradas'
+                    ? 'Entradas'
+                    : 'Saídas'}
+              </button>
+            );
+          })}
+        </div>
+
         <div ref={resumoRef}>
           <Summary
             total={total}
@@ -541,74 +569,86 @@ export default function HomePage() {
             filterParcela={filterParcela}
             setFilterParcela={setFilterParcela}
             MONTHS_PT={MONTHS_PT}
+            activeView={activeView}
+            // parent handles tabs
           />
         </div>
 
+        {/* Resumo timeline component */}
+        {activeView === 'resumo' && <ResumoTimeline accounts={stableVisible} />}
+
         {loading && <SkeletonCard className="mb-4" />}
 
-        <DndContext
-          collisionDetection={closestCenter}
-          onDragEnd={(e) => {
-            const { active, over } = e;
+        {activeView !== 'resumo' && (
+          <DndContext
+            collisionDetection={closestCenter}
+            onDragEnd={(e) => {
+              const { active, over } = e;
 
-            if (!over) return;
+              if (!over) return;
 
-            if (active.id !== over.id) {
-              const oldIndex = collabOrder.indexOf(String(active.id));
-              const newIndex = collabOrder.indexOf(String(over.id));
+              if (active.id !== over.id) {
+                const oldIndex = collabOrder.indexOf(String(active.id));
+                const newIndex = collabOrder.indexOf(String(over.id));
 
-              if (oldIndex === -1 || newIndex === -1) return;
+                if (oldIndex === -1 || newIndex === -1) return;
 
-              const newOrder = arrayMove(collabOrder, oldIndex, newIndex);
-              setCollabOrder(newOrder);
-              saveCollabOrder(newOrder);
-            }
-          }}
-        >
-          <SortableContext
-            items={collabOrder}
-            strategy={verticalListSortingStrategy}
+                const newOrder = arrayMove(collabOrder, oldIndex, newIndex);
+                setCollabOrder(newOrder);
+                saveCollabOrder(newOrder);
+              }
+            }}
           >
-            <div className="flex flex-col gap-6">
-              {collabOrder.map((id) => {
-                const c = collabs.find((cc) => cc.id === id);
-                if (!c) return null;
-                if (hiddenCollabs.includes(c.id)) return null;
-                return (
-                  <div
-                    key={c.id}
-                    ref={(el) => {
-                      collabRefs.current[c.id] = el;
-                    }}
-                    className={
-                      selectedCollab === c.id
-                        ? 'border-2 border-blue-500 rounded transition-all'
-                        : 'rounded'
-                    }
-                  >
-                    <SortableCollab id={c.id}>
-                      <FinanceTable
-                        collaboratorId={c.id}
-                        title={c.name}
-                        items={byCollab(c.id)}
-                        currentComp={{ year, month }}
-                        onDelete={(id) => removeAccount(id)}
-                        onEdit={(account) =>
-                          setDlg({ mode: 'editAccount', account })
-                        }
-                        onCancelToggle={(id) => toggleCancel(id)}
-                        onCollabDeleted={async (collabId) => {
-                          await handleCollabDeleted(collabId);
-                        }}
-                        onPaidUpdate={handlePaidUpdate}
-                      />
-                    </SortableCollab>
-                  </div>
-                );
-              })}
-            </div>
-          </SortableContext>
-        </DndContext>
+            <SortableContext
+              items={collabOrder}
+              strategy={verticalListSortingStrategy}
+            >
+              <div className="flex flex-col gap-6">
+                {collabOrder.map((id) => {
+                  const c = collabs.find((cc) => cc.id === id);
+                  if (!c) return null;
+                  if (hiddenCollabs.includes(c.id)) return null;
+                  // filter items per activeView
+                  const itemsForCollab = byCollab(c.id).filter((a) => {
+                    if (activeView === 'entradas') return a.value < 0;
+                    return a.value >= 0; // 'saidas'
+                  });
+                  return (
+                    <div
+                      key={c.id}
+                      ref={(el) => {
+                        collabRefs.current[c.id] = el;
+                      }}
+                      className={
+                        selectedCollab === c.id
+                          ? 'border-2 border-blue-500 rounded transition-all'
+                          : 'rounded'
+                      }
+                    >
+                      <SortableCollab id={c.id}>
+                        <FinanceTable
+                          collaboratorId={c.id}
+                          title={c.name}
+                          items={itemsForCollab}
+                          currentComp={{ year, month }}
+                          onDelete={(id) => removeAccount(id)}
+                          onEdit={(account) =>
+                            setDlg({ mode: 'editAccount', account })
+                          }
+                          onCancelToggle={(id) => toggleCancel(id)}
+                          onCollabDeleted={async (collabId) => {
+                            await handleCollabDeleted(collabId);
+                          }}
+                          onPaidUpdate={handlePaidUpdate}
+                        />
+                      </SortableCollab>
+                    </div>
+                  );
+                })}
+              </div>
+            </SortableContext>
+          </DndContext>
+        )}
       </div>
 
       {/* Botões flutuantes */}

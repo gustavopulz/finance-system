@@ -339,6 +339,43 @@ export default function FinanceTable({
     );
   }
 
+  function StatusWithCancelInfo({ account }: { account: Account }) {
+    const [show, setShow] = useState(false);
+    const cancelledAt = account.cancelledAt;
+    const formatted = cancelledAt
+      ? new Date(cancelledAt).toLocaleDateString('pt-BR', {
+          day: '2-digit',
+          month: '2-digit',
+          year: 'numeric',
+        })
+      : null;
+
+    if (account.status === 'Cancelado') {
+      return (
+        <div className="flex flex-col items-center">
+          <button
+            type="button"
+            onClick={(e) => {
+              e.stopPropagation();
+              setShow((s) => !s);
+            }}
+            title={cancelledAt ? `Cancelado em: ${formatted}` : 'Cancelado'}
+            className="badge bg-red-100 dark:bg-red-500/30 text-red-700 dark:text-red-300"
+          >
+            Cancelado
+          </button>
+          {show && cancelledAt && (
+            <span className="text-xs text-slate-500 dark:text-slate-400 mt-1">
+              Cancelado em: {formatted}
+            </span>
+          )}
+        </div>
+      );
+    }
+
+    return getStatusBadge(account);
+  }
+
   const sortedData = useMemo(() => {
     const copy = [...localItems];
     copy.sort((a: Account, b: Account) => {
@@ -794,9 +831,7 @@ export default function FinanceTable({
                 {sortKey === 'status' && (sortOrder === 'asc' ? '↑' : '↓')}
               </th>
               <th className="px-4 py-3 font-medium text-center w-[8%]">Pago</th>
-              <th className="px-4 py-3 font-medium text-center w-[12%]">
-                Cancelado em
-              </th>
+              {/* coluna 'Cancelado em' removida; info exibida via badge */}
               <th className="px-2 py-3 font-medium text-center w-[8%]">
                 Ações
               </th>
@@ -829,7 +864,9 @@ export default function FinanceTable({
                 <td className="px-4 py-3 text-center text-slate-600 dark:text-slate-400">
                   {parcelaLabel(f, currentComp)}
                 </td>
-                <td className="px-4 py-3 text-center">{getStatusBadge(f)}</td>
+                <td className="px-4 py-3 text-center">
+                  <StatusWithCancelInfo account={f} />
+                </td>
                 <td className="px-4 py-3 text-center">
                   <input
                     type="checkbox"
@@ -839,14 +876,7 @@ export default function FinanceTable({
                     className="custom-checkbox"
                   />
                 </td>
-                <td className="px-4 py-3 text-center text-xs text-slate-500 dark:text-slate-400">
-                  {f.cancelledAt
-                    ? new Date(f.cancelledAt).toLocaleDateString('pt-BR', {
-                        year: 'numeric',
-                        month: '2-digit',
-                      })
-                    : ''}
-                </td>
+                {/* cancelamento agora exibido via badge */}
 
                 {/* COLUNA AÇÕES - agora garantida no desktop */}
                 <td className="px-2 py-3 text-center">
@@ -892,7 +922,7 @@ export default function FinanceTable({
             {displayData.length === 0 && (
               <tr>
                 <td
-                  colSpan={8}
+                  colSpan={7}
                   className="py-6 text-center text-slate-500 dark:text-slate-400"
                 >
                   Sem lançamentos
@@ -902,7 +932,7 @@ export default function FinanceTable({
             {isCollapsed && sortedData.length > 1 && (
               <tr>
                 <td
-                  colSpan={8}
+                  colSpan={7}
                   className="py-2 text-center text-slate-500 dark:text-slate-400 text-sm italic"
                 >
                   ... e mais {sortedData.length - 1} item(ns)

@@ -52,7 +52,7 @@ const Summary: React.FC<SummaryProps> = ({
     <div className="border border-slate-300 dark:border-slate-700 shadow-sm rounded-lg bg-white dark:bg-slate-900 p-4">
       {/* Header */}
       <div className="flex items-center justify-between mb-4">
-        <h1 className="text-xl font-bold flex items-center gap-2">
+        <h1 className="text-2xl font-medium flex items-center gap-2">
           <Filter size={18} className="text-slate-500" />
           {activeView === 'resumo'
             ? 'Resumo'
@@ -76,15 +76,28 @@ const Summary: React.FC<SummaryProps> = ({
             className="border border-slate-300 dark:border-slate-700 flex items-center gap-2 bg-transparent hover:bg-slate-700 text-white px-4 py-2 rounded-md transition"
             onClick={() => setDlg({ mode: 'addCollab' })}
           >
-            <UserPlus size={18} /> Adicionar colaborador
+            <UserPlus size={18} /> Adicionar Grupo
           </button>
           <button
             className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md transition"
-            onClick={() => setDlg({ mode: 'addAccount' })}
-            title="Adicionar finança (Alt+N)"
+            onClick={() =>
+              setDlg({
+                mode: 'addAccount',
+                tipo: activeView === 'entradas' ? 'entrada' : 'saida',
+              })
+            }
+            title={
+              activeView === 'entradas'
+                ? 'Adicionar entrada (Alt+N)'
+                : 'Adicionar saída (Alt+N)'
+            }
           >
             <Plus size={18} />
-            <span>Adicionar finança</span>
+            <span>
+              {activeView === 'entradas'
+                ? 'Adicionar entrada'
+                : 'Adicionar saída'}
+            </span>
           </button>
         </div>
       </div>
@@ -97,15 +110,28 @@ const Summary: React.FC<SummaryProps> = ({
           className="border border-slate-300 dark:border-slate-700 flex items-center justify-center gap-2 bg-transparent hover:bg-slate-700 text-white px-4 py-2 rounded-md transition"
           onClick={() => setDlg({ mode: 'addCollab' })}
         >
-          <UserPlus size={18} /> Adicionar colaborador
+          <UserPlus size={18} /> Adicionar Grupo
         </button>
         <button
           className="flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md transition"
-          onClick={() => setDlg({ mode: 'addAccount' })}
-          title="Adicionar finança (Alt+N)"
+          onClick={() =>
+            setDlg({
+              mode: 'addAccount',
+              tipo: activeView === 'entradas' ? 'entrada' : 'saida',
+            })
+          }
+          title={
+            activeView === 'entradas'
+              ? 'Adicionar entrada (Alt+N)'
+              : 'Adicionar saída (Alt+N)'
+          }
         >
           <Plus size={18} />
-          <span>Adicionar finança</span>
+          <span>
+            {activeView === 'entradas'
+              ? 'Adicionar entrada'
+              : 'Adicionar saída'}
+          </span>
         </button>
       </div>
 
@@ -250,7 +276,7 @@ const Summary: React.FC<SummaryProps> = ({
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mt-4 md:hidden">
         <div className="p-3 rounded bg-slate-100 dark:bg-slate-800 text-center">
           <span className="block text-xs uppercase text-slate-500">Total</span>
-          <span className="text-lg font-bold text-slate-800 dark:text-slate-200">
+          <span className="text-lg font-medium text-slate-800 dark:text-slate-200">
             {new Intl.NumberFormat('pt-BR', {
               style: 'currency',
               currency: 'BRL',
@@ -261,7 +287,7 @@ const Summary: React.FC<SummaryProps> = ({
           <span className="block text-xs uppercase text-yellow-700">
             Pendente
           </span>
-          <span className="text-lg font-bold text-yellow-700 dark:text-yellow-300">
+          <span className="text-lg font-medium text-yellow-700 dark:text-yellow-300">
             {new Intl.NumberFormat('pt-BR', {
               style: 'currency',
               currency: 'BRL',
@@ -270,7 +296,7 @@ const Summary: React.FC<SummaryProps> = ({
         </div>
         <div className="p-3 rounded bg-green-100 dark:bg-green-500/20 text-center">
           <span className="block text-xs uppercase text-green-700">Pago</span>
-          <span className="text-lg font-bold text-green-700 dark:text-green-300">
+          <span className="text-lg font-medium text-green-700 dark:text-green-300">
             {new Intl.NumberFormat('pt-BR', {
               style: 'currency',
               currency: 'BRL',

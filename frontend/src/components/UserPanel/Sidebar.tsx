@@ -11,7 +11,7 @@ export default function UserPanelSidebar({
 }: UserPanelSidebarProps) {
   return (
     <aside className="w-70 bg-slate-50 dark:bg-slate-900 pr-4 flex flex-col gap-3 sticky top-6 pt-3 pb-3 self-stretch h-full">
-      <h2 className="text-xl font-bold mb-6 flex items-center gap-2">
+      <h2 className="text-xl font-medium mb-6 flex items-center gap-2">
         <User size={22} className="text-slate-500" /> Painel do Usuário
       </h2>
       <nav className="flex flex-col gap-2">

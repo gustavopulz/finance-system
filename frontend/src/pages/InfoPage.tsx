@@ -7,11 +7,13 @@ export default function InfoPage() {
     <div className="container-app mx-auto px-4 sm:px-6 lg:px-20 2xl:px-40 py-6 grid gap-6">
       {/* Hero */}
       <section className="rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 p-6">
-        <h1 className="text-2xl font-bold mb-2">Como usar o Finance System</h1>
+        <h1 className="text-2xl font-medium mb-2">
+          Como usar o Finance System
+        </h1>
         <p className="text-slate-600 dark:text-slate-400">
           Este guia rápido mostra os principais recursos para organizar suas
-          finanças por colaborador, com filtros, marcação de pagamento,
-          cancelamento e muito mais.
+          finanças por Grupo, com filtros, marcação de pagamento, cancelamento e
+          muito mais.
         </p>
         <div className="mt-4 flex flex-wrap gap-2 items-center">
           <div className="inline-flex rounded border border-slate-300 dark:border-slate-700 overflow-hidden">
@@ -49,7 +51,7 @@ export default function InfoPage() {
                 /summary
               </code>
               . Use a barra de resumo, os filtros e a sidebar para navegar entre
-              colaboradores e lançamentos.
+              Grupoes e lançamentos.
             </p>
             <div className="mt-3">
               <NavLink to="/summary" className="btn btn-primary">
@@ -83,7 +85,7 @@ export default function InfoPage() {
                   href="#sidebar"
                   className="text-blue-600 dark:text-blue-400 hover:underline"
                 >
-                  Sidebar de Colaboradores
+                  Sidebar de Grupoes
                 </a>
               </li>
               <li>
@@ -99,7 +101,7 @@ export default function InfoPage() {
                   href="#dialogs"
                   className="text-blue-600 dark:text-blue-400 hover:underline"
                 >
-                  Adicionar Finança e Colaborador
+                  Adicionar Finança e Grupo
                 </a>
               </li>
               <li>
@@ -181,7 +183,7 @@ export default function InfoPage() {
               <li>
                 Ações rápidas:{' '}
                 <code className="px-1 py-0.5 rounded bg-slate-100 dark:bg-slate-800">
-                  Adicionar colaborador
+                  Adicionar Grupo
                 </code>{' '}
                 e{' '}
                 <code className="px-1 py-0.5 rounded bg-slate-100 dark:bg-slate-800">
@@ -255,7 +257,7 @@ export default function InfoPage() {
             className="rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 p-6"
           >
             <h2 className="text-xl font-semibold mb-3">
-              3) Sidebar de Colaboradores
+              3) Sidebar de Grupoes
             </h2>
             <ul className="list-disc pl-5 space-y-2 text-slate-700 dark:text-slate-300">
               <li>
@@ -271,11 +273,11 @@ export default function InfoPage() {
                 <code className="px-1 py-0.5 rounded bg-slate-100 dark:bg-slate-800">
                   Total Pago
                 </code>{' '}
-                apenas dos colaboradores visíveis.
+                apenas dos Grupoes visíveis.
               </li>
               <li>
-                Clique no nome para destacar e rolar até a tabela do
-                colaborador. Clique novamente para desfazer a seleção.
+                Clique no nome para destacar e rolar até a tabela do Grupo.
+                Clique novamente para desfazer a seleção.
               </li>
               <li>
                 Use o botão{' '}
@@ -283,14 +285,14 @@ export default function InfoPage() {
                   +
                 </code>{' '}
                 ao lado do nome para adicionar uma finança já associada ao
-                colaborador.
+                Grupo.
               </li>
               <li>
                 O ícone de{' '}
                 <code className="px-1 py-0.5 rounded bg-slate-100 dark:bg-slate-800">
                   olho
                 </code>{' '}
-                oculta/exibe a tabela do colaborador (salvo no navegador).
+                oculta/exibe a tabela do Grupo (salvo no navegador).
               </li>
             </ul>
           </section>
@@ -301,11 +303,11 @@ export default function InfoPage() {
             className="rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 p-6"
           >
             <h2 className="text-xl font-semibold mb-3">
-              4) Tabelas de Lançamentos por colaborador
+              4) Tabelas de Lançamentos por Grupo
             </h2>
             <ul className="list-disc pl-5 space-y-2 text-slate-700 dark:text-slate-300">
               <li>
-                Reordenar colaboradores: arraste pelo cabeçalho (ícone de{' '}
+                Reordenar Grupoes: arraste pelo cabeçalho (ícone de{' '}
                 <code className="px-1 py-0.5 rounded bg-slate-100 dark:bg-slate-800">
                   grip
                 </code>
@@ -418,7 +420,7 @@ export default function InfoPage() {
             className="rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 p-6"
           >
             <h2 className="text-xl font-semibold mb-3">
-              5) Adicionar Finança e Colaborador
+              5) Adicionar Finança e Grupo
             </h2>
             <div className="space-y-3 text-slate-700 dark:text-slate-300">
               <div>
@@ -427,7 +429,7 @@ export default function InfoPage() {
                   <li>
                     Campos:{' '}
                     <code className="px-1 py-0.5 rounded bg-slate-100 dark:bg-slate-800">
-                      Colaborador
+                      Grupo
                     </code>
                     ,{' '}
                     <code className="px-1 py-0.5 rounded bg-slate-100 dark:bg-slate-800">
@@ -476,12 +478,11 @@ export default function InfoPage() {
                 </ul>
               </div>
               <div>
-                <h3 className="font-semibold">Novo Colaborador</h3>
+                <h3 className="font-semibold">Novo Grupo</h3>
                 <ul className="list-disc pl-5 space-y-1">
                   <li>
-                    Informe um nome curto (limite aplicado) e salve. O
-                    colaborador aparece na sidebar e já pode receber
-                    lançamentos.
+                    Informe um nome curto (limite aplicado) e salve. O Grupo
+                    aparece na sidebar e já pode receber lançamentos.
                   </li>
                 </ul>
               </div>
@@ -539,9 +540,7 @@ export default function InfoPage() {
             <h2 className="text-xl font-semibold mb-3">7) FAQ rápido</h2>
             <div className="space-y-3 text-slate-700 dark:text-slate-300">
               <div>
-                <p className="font-semibold">
-                  Não vejo a tabela de um colaborador.
-                </p>
+                <p className="font-semibold">Não vejo a tabela de um Grupo.</p>
                 <p>
                   Verifique o ícone de{' '}
                   <code className="px-1 py-0.5 rounded bg-slate-100 dark:bg-slate-800">
@@ -552,7 +551,7 @@ export default function InfoPage() {
               </div>
               <div>
                 <p className="font-semibold">
-                  A ordem dos colaboradores não está salvando.
+                  A ordem dos Grupoes não está salvando.
                 </p>
                 <p>
                   Arraste pelo cabeçalho com o ícone de{' '}

@@ -27,7 +27,11 @@ import * as api from '../lib/api';
 
 type DialogState =
   | { mode: 'closed' }
-  | { mode: 'addAccount'; initialCollaboratorId?: string }
+  | {
+      mode: 'addAccount';
+      initialCollaboratorId?: string;
+      tipo?: 'entrada' | 'saida';
+    }
   | { mode: 'editAccount'; account: Account }
   | { mode: 'addCollab' };
 
@@ -122,7 +126,7 @@ export default function HomePage() {
     try {
       await api.saveCollabOrder(newOrder);
     } catch (err) {
-      console.error('Erro ao salvar ordem dos colaboradores:', err);
+      console.error('Erro ao salvar ordem dos Grupoes:', err);
     }
   }
 
@@ -181,7 +185,7 @@ export default function HomePage() {
   const visibleSnapshotRef = useRef<Account[]>([]);
   const resumoRef = useRef<HTMLDivElement>(null);
 
-  // Colaboradores ocultos (centralizado)
+  // Grupoes ocultos (centralizado)
   const [hiddenCollabs, setHiddenCollabs] = useState<string[]>(() => {
     try {
       const saved = localStorage.getItem('hiddenCollabs');
@@ -251,7 +255,10 @@ export default function HomePage() {
     function handleKeyDown(e: KeyboardEvent) {
       if (e.altKey && e.key === 'n') {
         e.preventDefault();
-        setDlg({ mode: 'addAccount' });
+        setDlg({
+          mode: 'addAccount',
+          tipo: activeView === 'entradas' ? 'entrada' : 'saida',
+        });
       }
     }
 
@@ -383,7 +390,7 @@ export default function HomePage() {
     .filter((a) => isAccountPaidInMonth(a, { year, month }))
     .reduce((s, a) => s + Number(a.value), 0);
 
-  // Filtra contas dos colaboradores visíveis
+  // Filtra contas dos Grupoes visíveis
   const visibleCollabIds = collabs
     .map((c) => c.id)
     .filter((id) => !hiddenCollabs.includes(id));
@@ -452,11 +459,11 @@ export default function HomePage() {
 
   async function createCollab(name: string) {
     if (collabs.some((c) => c.name.toLowerCase() === name.toLowerCase())) {
-      notify('Já existe um colaborador com esse nome!', 'error');
+      notify('Já existe um Grupo com esse nome!', 'error');
       return;
     }
     await api.addCollab(name);
-    notify(`Colaborador "${name}" criado com sucesso!`, 'success');
+    notify(`Grupo "${name}" criado com sucesso!`, 'success');
     setDlg({ mode: 'closed' });
     await load();
   }
@@ -476,13 +483,13 @@ export default function HomePage() {
     );
   }
 
-  // Notificação melhorada para colaborador removido
+  // Notificação melhorada para Grupo removido
   async function handleCollabDeleted(collabId: string) {
     const collab = collabs.find((c) => c.id === collabId);
     notify(
       collab
-        ? `Colaborador "${collab.name}" removido com sucesso!`
-        : 'Colaborador removido com sucesso!',
+        ? `Grupo "${collab.name}" removido com sucesso!`
+        : 'Grupo removido com sucesso!',
       'success'
     );
     await load();
@@ -518,7 +525,11 @@ export default function HomePage() {
           hiddenCollabs={hiddenCollabs}
           onToggleCollabVisibility={toggleCollabVisibility}
           onAddFinance={(collabId) => {
-            setDlg({ mode: 'addAccount', initialCollaboratorId: collabId });
+            setDlg({
+              mode: 'addAccount',
+              initialCollaboratorId: collabId,
+              tipo: activeView === 'entradas' ? 'entrada' : 'saida',
+            });
           }}
         />
       </div>
@@ -575,7 +586,13 @@ export default function HomePage() {
         </div>
 
         {/* Resumo timeline component */}
-        {activeView === 'resumo' && <ResumoTimeline accounts={stableVisible} />}
+        {activeView === 'resumo' && (
+          <ResumoTimeline
+            accounts={stableVisible.filter((a) =>
+              visibleCollabIds.includes(a.collaboratorId)
+            )}
+          />
+        )}
 
         {loading && <SkeletonCard className="mb-4" />}
 
@@ -660,7 +677,11 @@ export default function HomePage() {
             <button
               onClick={() => setDlg({ mode: 'addAccount' })}
               className="w-14 h-14 bg-blue-600 hover:bg-blue-700 text-white rounded-full shadow-lg hover:shadow-xl transition-all duration-300 flex items-center justify-center"
-              title="Adicionar finança (Alt+N)"
+              title={
+                activeView === 'entradas'
+                  ? 'Adicionar entrada (Alt+N)'
+                  : 'Adicionar saída (Alt+N)'
+              }
             >
               <Plus size={24} />
             </button>
@@ -704,6 +725,7 @@ export default function HomePage() {
           initialCollaboratorId={
             dlg.mode === 'addAccount' ? dlg.initialCollaboratorId : undefined
           }
+          initialTipo={dlg.mode === 'addAccount' ? dlg.tipo : undefined}
           onSave={addOrUpdateAccount}
           onClose={() => setDlg({ mode: 'closed' })}
         />

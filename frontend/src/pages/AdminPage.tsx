@@ -107,7 +107,7 @@ export default function AdminPage() {
   return (
     <div className="mx-auto px-4 2xl:px-40 lg:px-20">
       <div className="flex items-center justify-between mb-6">
-        <h1 className="text-2xl font-bold">Administração de Usuários</h1>
+        <h1 className="text-2xl font-medium">Administração de Usuários</h1>
       </div>
 
       {/* TABELA */}
@@ -218,7 +218,7 @@ export default function AdminPage() {
       {showDeleteModal && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
           <div className="bg-white dark:bg-slate-800 rounded p-6 shadow-lg max-w-sm w-full">
-            <h2 className="text-xl font-bold mb-4">Confirmar Exclusão</h2>
+            <h2 className="text-xl font-medium mb-4">Confirmar Exclusão</h2>
             <p>Tem certeza que deseja excluir este usuário?</p>
             <div className="flex justify-end gap-2 mt-4">
               <button

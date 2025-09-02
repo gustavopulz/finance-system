@@ -12,7 +12,7 @@ export default function Footer() {
             {/* Logo */}
             <NavLink
               to="/"
-              className="flex items-center text-lg font-bold text-brand-700 dark:text-brand-400"
+              className="flex items-center text-lg font-medium text-brand-700 dark:text-brand-400"
             >
               <img
                 src="/finance-system-logo-light.png"

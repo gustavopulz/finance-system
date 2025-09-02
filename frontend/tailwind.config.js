@@ -3,6 +3,24 @@ export default {
   content: ['./index.html', './src/**/*.{ts,tsx}'],
   theme: {
     extend: {
+      fontFamily: {
+        sans: [
+          'Inter',
+          "'SF Pro Text'",
+          "'SF Pro Display'",
+          '-apple-system',
+          'BlinkMacSystemFont',
+          "'Segoe UI'",
+          'Roboto',
+          "'Helvetica Neue'",
+          'Arial',
+          'Noto Sans',
+          "'Apple Color Emoji'",
+          "'Segoe UI Emoji'",
+          "'Segoe UI Symbol'",
+          'sans-serif',
+        ],
+      },
       colors: {
         brand: {
           50: '#eff6ff',

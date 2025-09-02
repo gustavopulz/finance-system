@@ -1,5 +1,5 @@
 import type { Account } from '../../lib/types';
-import { ArrowDownCircle } from 'lucide-react';
+import { ArrowRight, ArrowUpRight } from 'lucide-react';
 
 interface Props {
   accounts: Account[];
@@ -9,6 +9,7 @@ interface Props {
 type Group = {
   label: string; // Exibido no card (ex.: 01/08/2025)
   saidas: number;
+  entradas: number;
   items: Account[];
 };
 
@@ -38,11 +39,18 @@ export default function ResumoTimeline({ accounts, className = '' }: Props) {
 
   for (const a of accounts) {
     const { key, label } = keyAndLabel(a);
-    if (!map.has(key)) map.set(key, { label, saidas: 0, items: [] });
+    if (!map.has(key))
+      map.set(key, { label, saidas: 0, entradas: 0, items: [] });
     const g = map.get(key)!;
 
     g.items.push(a);
-    g.saidas += Number(a.value); // tudo tratado como saída
+    const v = Number(a.value) || 0;
+    // Convenção: valores positivos = Saídas (despesas), valores negativos = entradas (receitas)
+    if (v > 0) {
+      g.saidas += v;
+    } else if (v < 0) {
+      g.entradas += Math.abs(v);
+    }
   }
 
   const nodes = Array.from(map.entries()).sort(([a], [b]) => (a < b ? 1 : -1));
@@ -67,10 +75,30 @@ export default function ResumoTimeline({ accounts, className = '' }: Props) {
               {g.label}
             </div>
 
-            {/* Saídas */}
+            {/* Entradas (exibidas acima das Saídas) */}
             <div className="flex pt-6 items-center gap-2 mt-4">
-              <span className="w-6 h-6 rounded-full bg-red-600/90 text-white flex items-center justify-center">
-                <ArrowDownCircle size={14} />
+              <span
+                className={`w-7 h-7 rounded-full flex items-center justify-center text-white shadow-md ${
+                  g.entradas === 0 ? 'bg-blue-600' : 'bg-green-600'
+                }`}
+              >
+                <ArrowUpRight size={16} />
+              </span>
+              <span className="text-slate-600 dark:text-slate-300">
+                Entradas:
+              </span>
+              <b className="text-slate-900 dark:text-slate-100">
+                {new Intl.NumberFormat('pt-BR', {
+                  style: 'currency',
+                  currency: 'BRL',
+                }).format(g.entradas)}
+              </b>
+            </div>
+
+            {/* Saídas */}
+            <div className="flex items-center gap-2 mt-2">
+              <span className="w-7 h-7 rounded-full bg-red-600 text-white flex items-center justify-center shadow-md">
+                <ArrowRight size={16} />
               </span>
               <span className="text-slate-600 dark:text-slate-300">
                 Saídas:
@@ -79,7 +107,7 @@ export default function ResumoTimeline({ accounts, className = '' }: Props) {
                 {new Intl.NumberFormat('pt-BR', {
                   style: 'currency',
                   currency: 'BRL',
-                }).format(g.saidas)}
+                }).format(Math.abs(g.saidas))}
               </b>
             </div>
 

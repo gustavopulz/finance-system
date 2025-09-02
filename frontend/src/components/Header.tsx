@@ -103,7 +103,7 @@ export default function Header() {
       <div className="container-app flex items-center justify-between py-4">
         <NavLink
           to="/"
-          className="text-lg font-bold text-brand-700 dark:text-brand-400 flex items-center"
+          className="text-lg font-medium text-brand-700 dark:text-brand-400 flex items-center"
         >
           <img
             src={

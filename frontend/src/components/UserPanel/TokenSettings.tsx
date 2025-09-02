@@ -209,7 +209,7 @@ export default function TokenSettings({ active }: { active: boolean }) {
   return (
     <div className="bg-white dark:bg-slate-900 rounded shadow-md p-6 sm:p-8 border border-slate-200 dark:border-slate-800">
       <div className="mb-4 flex items-center gap-3">
-        <h3 className="text-lg font-bold flex items-center gap-2 m-0">
+        <h3 className="text-lg font-medium flex items-center gap-2 m-0">
           <Settings size={20} /> Configuração de Token
         </h3>
         <div className="ml-auto flex items-center gap-2">
@@ -271,7 +271,7 @@ export default function TokenSettings({ active }: { active: boolean }) {
       </div>
 
       <div className="mt-6">
-        <h4 className="font-bold mb-2">Vínculos</h4>
+        <h4 className="font-medium mb-2">Vínculos</h4>
         {loadingLinks ? (
           <SkeletonCard />
         ) : (
@@ -318,7 +318,7 @@ export default function TokenSettings({ active }: { active: boolean }) {
                     <div className="flex items-center">
                       <button
                         className="btn btn-xs btn-ghost text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/30"
-                        title="Configurar quais colaboradores desse vínculo veem da sua conta"
+                        title="Configurar quais Grupoes desse vínculo veem da sua conta"
                         aria-label="Configurar vínculo"
                         onClick={() => startLinkConfig(u.id, 'see-me')}
                       >
@@ -345,9 +345,9 @@ export default function TokenSettings({ active }: { active: boolean }) {
       {tokenModalOpen && (
         <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50">
           <div className="bg-white dark:bg-slate-900 p-6 rounded shadow-md w-full max-w-lg">
-            <h4 className="font-bold mb-4">Configurar Token</h4>
+            <h4 className="font-medium mb-4">Configurar Token</h4>
             <div className="mb-4">
-              <label className="block text-sm mb-1">Colaborador</label>
+              <label className="block text-sm mb-1">Grupo</label>
               <div className="flex w-full items-stretch gap-2">
                 <select
                   className="select select-bordered flex-1 min-w-0"
@@ -367,8 +367,8 @@ export default function TokenSettings({ active }: { active: boolean }) {
                   className="btn btn-primary btn-square shrink-0"
                   onClick={addSelectedCollabToToken}
                   disabled={!selectedCollabId}
-                  aria-label="Adicionar colaborador"
-                  title="Adicionar colaborador"
+                  aria-label="Adicionar Grupo"
+                  title="Adicionar Grupo"
                 >
                   <Plus size={16} />
                 </button>
@@ -378,7 +378,7 @@ export default function TokenSettings({ active }: { active: boolean }) {
             <div className="max-h-48 overflow-auto border border-slate-300 dark:border-slate-700 rounded p-3 mb-4">
               {tokenAllowedCollabIds.length === 0 ? (
                 <p className="text-sm text-slate-500">
-                  Nenhum colaborador selecionado. Todos serão compartilhados.
+                  Nenhum Grupo selecionado. Todos serão compartilhados.
                 </p>
               ) : (
                 <div className="flex flex-wrap gap-2">
@@ -430,9 +430,9 @@ export default function TokenSettings({ active }: { active: boolean }) {
       {linkConfigOpen.open && (
         <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50">
           <div className="bg-white dark:bg-slate-900 p-6 rounded shadow-md w-full max-w-lg">
-            <h4 className="font-bold mb-4">Configurar Vínculo</h4>
+            <h4 className="font-medium mb-4">Configurar Vínculo</h4>
             <div className="mb-4">
-              <label className="block text-sm mb-1">Colaborador</label>
+              <label className="block text-sm mb-1">Grupo</label>
               <div className="flex w-full items-stretch gap-2">
                 <select
                   className="select select-bordered flex-1 min-w-0"
@@ -453,8 +453,8 @@ export default function TokenSettings({ active }: { active: boolean }) {
                   className="btn btn-primary btn-square shrink-0"
                   onClick={addSelectedCollabToLink}
                   disabled={!selectedCollabId || linkConfigLoading}
-                  aria-label="Adicionar colaborador"
-                  title="Adicionar colaborador"
+                  aria-label="Adicionar Grupo"
+                  title="Adicionar Grupo"
                 >
                   <Plus size={16} />
                 </button>
@@ -465,7 +465,7 @@ export default function TokenSettings({ active }: { active: boolean }) {
                 <p className="text-sm text-slate-500">Carregando...</p>
               ) : linkAllowedCollabIds.length === 0 ? (
                 <p className="text-sm text-slate-500">
-                  Nenhum colaborador selecionado. Todos serão compartilhados.
+                  Nenhum Grupo selecionado. Todos serão compartilhados.
                 </p>
               ) : (
                 <div className="flex flex-wrap gap-2">

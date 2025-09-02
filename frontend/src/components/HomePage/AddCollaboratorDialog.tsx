@@ -25,7 +25,7 @@ export default function AddCollaboratorDialog({
   return (
     <div className="fixed inset-0 bg-black/30 backdrop-blur-sm flex items-center justify-center p-4 z-50">
       <div className="card w-full max-w-md p-5">
-        <h3 className="text-lg font-semibold mb-3">Novo colaborador</h3>
+        <h3 className="text-lg font-semibold mb-3">Novo Grupo</h3>
 
         <form onSubmit={handleSubmit(submit)} className="grid gap-3">
           <label className="grid gap-1">

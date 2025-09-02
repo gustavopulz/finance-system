@@ -3,7 +3,7 @@ import { Shield, Cookie, HelpCircle } from 'lucide-react';
 export default function PoliticasPage() {
   return (
     <div className="px-4 sm:px-6 lg:px-20 2xl:px-40 ">
-      <h1 className="py-6 text-3xl font-bold text-brand-400">
+      <h1 className="py-6 text-3xl font-medium text-brand-400">
         Políticas de Privacidade & Uso de Cookies
       </h1>
       <section className="py-6">

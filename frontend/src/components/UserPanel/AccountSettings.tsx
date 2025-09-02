@@ -59,7 +59,7 @@ export default function AccountSettings() {
 
   return (
     <div className="bg-white dark:bg-slate-900 rounded shadow-md p-6 sm:p-8 border border-slate-200 dark:border-slate-800">
-      <h3 className="text-lg font-bold mb-4 flex items-center gap-2">
+      <h3 className="text-lg font-medium mb-4 flex items-center gap-2">
         <Settings size={20} /> Configuração de Conta
       </h3>
 

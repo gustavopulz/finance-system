@@ -66,7 +66,7 @@ export default function FinanceTable({
 }: FinanceTableProps) {
   const [localItems, setLocalItems] = useState<Account[]>(items);
 
-  // Inicializa a ordenação com os valores salvos para este colaborador
+  // Inicializa a ordenação com os valores salvos para este Grupo
   const savedSort = getSortState(collaboratorId);
   const [sortKey, setSortKey] = useState<SortKey>(savedSort.sortKey as SortKey);
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>(
@@ -283,7 +283,7 @@ export default function FinanceTable({
     await deleteCollab(collaboratorId);
     onCollabDeleted(collaboratorId);
     setShowConfirm(false);
-    setToast(`Colaborador "${title}" excluído com sucesso ✅`);
+    setToast(`Grupo "${title}" excluído com sucesso ✅`);
     setTimeout(() => setToast(null), 3000);
   }
 
@@ -1045,7 +1045,7 @@ export default function FinanceTable({
       {showConfirm && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
           <div className="bg-white dark:bg-slate-800 rounded p-6 shadow-lg max-w-sm w-full">
-            <h2 className="text-lg font-semibold mb-4">Excluir colaborador</h2>
+            <h2 className="text-lg font-semibold mb-4">Excluir Grupo</h2>
             <p className="mb-6">
               Tem certeza que deseja excluir <b>{title}</b>? Essa ação não pode
               ser desfeita.

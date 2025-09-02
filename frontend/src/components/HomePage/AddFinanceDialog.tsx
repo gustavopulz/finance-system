@@ -4,7 +4,7 @@ import { useForm } from 'react-hook-form';
 import type { SubmitHandler } from 'react-hook-form';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { parseBRL, MONTHS_PT } from '../../lib/format';
+import { parseBRL } from '../../lib/format';
 import type { Collaborator, Status, Account } from '../../lib/types';
 
 type Props = {
@@ -13,6 +13,7 @@ type Props = {
   filteredMonth?: number;
   filteredYear?: number;
   initialCollaboratorId?: string;
+  initialTipo?: 'entrada' | 'saida';
   onSave: (
     data: {
       collaboratorId: string;
@@ -31,7 +32,7 @@ type Props = {
 // ⚡ Schema do form
 // (corrigido: converte "3" -> 3 antes de validar; mantém "X" como string)
 const schema = z.object({
-  collaboratorId: z.string().min(1, 'Selecione um colaborador'),
+  collaboratorId: z.string().min(1, 'Selecione um Grupo'),
   description: z.string().min(1, 'Informe uma descrição'),
   value: z.string().min(1, 'Informe um valor'),
   parcelasTotal: z.preprocess(
@@ -44,6 +45,7 @@ const schema = z.object({
   ),
   month: z.number().min(1).max(12),
   year: z.number().min(2000).max(2100),
+  date: z.string().optional(),
   status: z.enum(['Pendente', 'Cancelado', 'quitado']),
 });
 
@@ -56,6 +58,7 @@ export default function AddFinanceDialog({
   filteredMonth,
   filteredYear,
   initialCollaboratorId,
+  initialTipo,
   onSave,
   onClose,
 }: Props) {
@@ -93,14 +96,27 @@ export default function AddFinanceDialog({
         : '-', // NOVO: padrão é Avulsa
       month: initial?.month ?? defaultMonth,
       year: initial?.year ?? defaultYear,
+      date:
+        initial && initial.createdAt
+          ? new Date(initial.createdAt).toISOString().slice(0, 10)
+          : `${defaultYear}-${String(defaultMonth).padStart(2, '0')}-01`,
       status:
         initial?.status === 'Pendente' ||
         initial?.status === 'Cancelado' ||
         initial?.status === 'quitado'
           ? initial.status
           : 'Pendente',
+      // tipo removed from form defaults; will be derived from `initial` or `initialTipo`
     },
   });
+
+  const tipoAtual = initial
+    ? Number(initial.value) < 0
+      ? 'entrada'
+      : 'saida'
+    : initialTipo
+      ? initialTipo
+      : 'saida';
 
   // Registrar o campo description com ref
   const { ref: descriptionRef, ...descriptionRegister } =
@@ -122,7 +138,7 @@ export default function AddFinanceDialog({
     setValue('value', formatted);
   }
 
-  // garante colaborador setado quando a lista chega depois
+  // garante Grupo setado quando a lista chega depois
   useEffect(() => {
     if (!initial) {
       if (initialCollaboratorId) {
@@ -150,11 +166,27 @@ export default function AddFinanceDialog({
     const payload: any = {
       collaboratorId: d.collaboratorId,
       description: String(d.description || '').trim(),
-      value: parsedValue, // já em reais
+      // Ajusta sinal: por convenção, usamos valores positivos para Saídas (despesas)
+      // e negativos para entradas (receitas)
+      value:
+        tipoAtual === 'entrada'
+          ? -Math.abs(parsedValue)
+          : Math.abs(parsedValue),
       month: d.month,
       year: d.year,
       status: d.status as Status,
     };
+
+    // Se o usuário forneceu uma data, usar mês/ano dela
+    if (d.date) {
+      try {
+        const dt = new Date(d.date);
+        if (!isNaN(dt.getTime())) {
+          payload.month = dt.getMonth() + 1;
+          payload.year = dt.getFullYear();
+        }
+      } catch {}
+    }
 
     // Correção na lógica de parcelasTotal:
     // - 'X' (Fixo) = null (conta recorrente em todos os meses)
@@ -178,18 +210,25 @@ export default function AddFinanceDialog({
     <div className="fixed inset-0 bg-black/30 backdrop-blur-sm flex items-center justify-center p-4 z-50">
       <div className="card w-full max-w-lg p-5">
         <h3 className="text-lg font-semibold mb-3">
-          {initial ? 'Editar finança' : 'Adicionar finança'}
+          {initial
+            ? 'Editar finança'
+            : /** show label based on default selected tipo */
+              typeof initialTipo !== 'undefined'
+              ? initialTipo === 'entrada'
+                ? 'Adicionar entrada'
+                : 'Adicionar saída'
+              : 'Adicionar saída'}
         </h3>
 
         {disabled && (
           <div className="mb-3 text-sm text-red-600">
-            Você ainda não tem colaboradores. Crie um colaborador primeiro.
+            Você ainda não tem Grupoes. Crie um Grupo primeiro.
           </div>
         )}
 
         <form className="grid gap-3" onSubmit={handleSubmit(submit)}>
           <label className="grid gap-1">
-            <span className="text-sm font-medium">Colaborador</span>
+            <span className="text-sm font-medium">Grupo</span>
             <select
               className="select select-full"
               {...register('collaboratorId')}
@@ -197,7 +236,7 @@ export default function AddFinanceDialog({
             >
               {collaborators.length > 1 && (
                 <option value="" disabled>
-                  Selecione um Colaborador
+                  Selecione um Grupo
                 </option>
               )}
               {collaborators.map((c) => (
@@ -246,45 +285,57 @@ export default function AddFinanceDialog({
           </label>
 
           <div className="grid grid-cols-2 gap-3">
-            <label className="grid gap-1">
-              <span className="text-sm font-medium">Parcelas</span>
-              <select
-                className="select select-full"
-                {...register('parcelasTotal')}
-                disabled={disabled}
-                defaultValue="-"
-              >
-                <option value="-">Avulsa</option>
-                <option value="X">Fixo</option>
-                {Array.from({ length: 48 }, (_, i) => i + 1).map((n) => (
-                  <option key={n} value={n}>
-                    {n}x
-                  </option>
-                ))}
-              </select>
-            </label>
-
-            <label className="grid gap-1">
-              <span className="text-sm font-medium">Início</span>
-              <div className="grid grid-cols-2 gap-2">
+            {tipoAtual === 'entrada' ? (
+              <label className="grid gap-1">
+                <span className="text-sm font-medium">Tipo de entrada</span>
                 <select
-                  className="select"
-                  {...register('month', { valueAsNumber: true })}
+                  className="select select-full"
+                  {...register('parcelasTotal')}
                   disabled={disabled}
+                  defaultValue={
+                    initial?.parcelasTotal === null
+                      ? 'X'
+                      : initial?.parcelasTotal === 0
+                        ? '-'
+                        : (initial?.parcelasTotal ?? '-')
+                  }
                 >
-                  {MONTHS_PT.map((m, i) => (
-                    <option key={i + 1} value={i + 1}>
-                      {m}
+                  <option value="X">Fixa</option>
+                  <option value="-">Variável</option>
+                </select>
+              </label>
+            ) : (
+              <label className="grid gap-1">
+                <span className="text-sm font-medium">Parcelas</span>
+                <select
+                  className="select select-full"
+                  {...register('parcelasTotal')}
+                  disabled={disabled}
+                  defaultValue="-"
+                >
+                  <option value="-">Avulsa</option>
+                  <option value="X">Fixo</option>
+                  {Array.from({ length: 48 }, (_, i) => i + 1).map((n) => (
+                    <option key={n} value={n}>
+                      {n}x
                     </option>
                   ))}
                 </select>
-                <input
-                  className="input"
-                  type="number"
-                  {...register('year', { valueAsNumber: true })}
-                  disabled={disabled}
-                />
-              </div>
+              </label>
+            )}
+
+            <label className="grid gap-1">
+              <span className="text-sm font-medium">Data</span>
+              <input
+                type="date"
+                className={`input ${
+                  tipoAtual === 'entrada'
+                    ? 'border-green-500 focus:ring-green-300'
+                    : 'border-blue-500 focus:ring-blue-300'
+                }`}
+                {...register('date')}
+                disabled={disabled}
+              />
             </label>
           </div>
 
@@ -300,6 +351,8 @@ export default function AddFinanceDialog({
               <option value="quitado">Quitado</option>
             </select>
           </label>
+
+          {/* tipo removed from form; use context (initialTipo / activeView) to set entrada/saida */}
 
           <div className="mt-2 flex justify-end gap-2">
             <button

@@ -14,23 +14,24 @@ export default function CategorySettings() {
 
   const handleAddCategory = () => {
     if (!newCategory.trim()) return;
-    setCategories([...categories, { name: newCategory, color: newCategoryColor }]);
+    setCategories([
+      ...categories,
+      { name: newCategory, color: newCategoryColor },
+    ]);
     setNewCategory('');
   };
 
   const handleSaveEdit = () => {
     if (!editCategory) return;
     setCategories(
-      categories.map((c) =>
-        c.name === editCategory.name ? editCategory : c
-      )
+      categories.map((c) => (c.name === editCategory.name ? editCategory : c))
     );
     setEditCategory(null);
   };
 
   return (
     <div className="bg-white dark:bg-slate-900 rounded shadow-md p-6 sm:p-8 border border-slate-200 dark:border-slate-800">
-      <h3 className="text-lg font-bold mb-4 flex items-center gap-2">
+      <h3 className="text-lg font-medium mb-4 flex items-center gap-2">
         <Palette size={20} /> Configuração de Categorias
       </h3>
 
@@ -86,7 +87,7 @@ export default function CategorySettings() {
       {editCategory && (
         <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50">
           <div className="bg-white dark:bg-slate-900 p-6 rounded shadow-md w-full max-w-sm">
-            <h4 className="font-bold mb-4">Editar Categoria</h4>
+            <h4 className="font-medium mb-4">Editar Categoria</h4>
             <input
               type="text"
               className="input input-bordered w-full mb-2"

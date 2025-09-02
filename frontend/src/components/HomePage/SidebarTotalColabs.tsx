@@ -30,7 +30,7 @@ export default function SidebarTotalColabs({
   function handleSidebarClick(
     e: React.MouseEvent<HTMLDivElement | HTMLButtonElement>
   ) {
-    // Se for botão de colaborador, não limpa
+    // Se for botão de Grupo, não limpa
     if ((e.target as HTMLElement).tagName === 'BUTTON') return;
     onSelect(null);
   }
@@ -46,29 +46,27 @@ export default function SidebarTotalColabs({
       onClick={handleSidebarClick}
     >
       <div>
-        <div className="text-slate-500 dark:text-slate-400 text-sm font-bold mb-1">
+        <div className="text-slate-500 dark:text-slate-400 text-sm font-medium mb-1">
           Total
         </div>
-        <div className="text-2xl font-bold text-slate-800 dark:text-white">
+        <div className="text-2xl font-medium text-slate-800 dark:text-white">
           {brl(total)}
         </div>
-        <div className="text-slate-500 dark:text-slate-400 text-sm font-bold mt-3 mb-1">
+        <div className="text-slate-500 dark:text-slate-400 text-sm font-medium mt-3 mb-1">
           Total Pendente
         </div>
-        <div className="text-lg font-bold text-yellow-700 dark:text-yellow-300">
+        <div className="text-lg font-medium text-yellow-700 dark:text-yellow-300">
           {brl(totalPendente)}
         </div>
-        <div className="text-slate-500 dark:text-slate-400 text-sm font-bold mt-3 mb-1">
+        <div className="text-slate-500 dark:text-slate-400 text-sm font-medium mt-3 mb-1">
           Total Pago
         </div>
-        <div className="text-lg font-bold text-green-700 dark:text-green-300">
+        <div className="text-lg font-medium text-green-700 dark:text-green-300">
           {brl(totalPago)}
         </div>
       </div>
       <div>
-        <div className="text-slate-500 text-sm font-bold mb-2">
-          Colaboradores
-        </div>
+        <div className="text-slate-500 text-sm font-medium mb-2">Grupoes</div>
         <ul className="flex flex-col gap-1">
           {collaborators.map((c) => (
             <li key={c.id} className="flex items-center gap-2">
@@ -76,7 +74,7 @@ export default function SidebarTotalColabs({
                 className={`w-full text-left px-2 py-1.5 rounded border transition-all text-sm
                   ${
                     selectedId === c.id
-                      ? 'border-blue-500 bg-blue-50 dark:bg-blue-950 font-bold'
+                      ? 'border-blue-500 bg-blue-50 dark:bg-blue-950 font-medium'
                       : 'border-transparent hover:border-slate-300 dark:hover:border-slate-600 hover:bg-slate-100 dark:hover:bg-slate-800'
                   }
                 `}
@@ -86,7 +84,7 @@ export default function SidebarTotalColabs({
               </button>
               <button
                 className="p-1 text-slate-500 hover:text-slate-800 dark:hover:text-slate-200"
-                title="Adicionar finança para este colaborador"
+                title="Adicionar Saída para este Grupo"
                 onClick={() => onAddFinance && onAddFinance(c.id)}
                 style={{ marginLeft: 0 }}
               >

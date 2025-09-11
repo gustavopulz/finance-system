@@ -163,6 +163,7 @@ export default function HomePage() {
   const [showAll, setShowAll] = useState(false);
   const [showCancelled, setShowCancelled] = useState(true);
   const [showFloatingButton, setShowFloatingButton] = useState(false);
+  const [sidebarOpen, setSidebarOpen] = useState(true);
 
   const [dlg, setDlg] = useState<DialogState>({ mode: 'closed' });
   const [collabs, setCollabs] = useState<Collaborator[]>([]);
@@ -486,39 +487,69 @@ export default function HomePage() {
 
   return (
   <div className="flex items-start px-4 sm:px-6 lg:px-20 2xl:px-40 gap-6 mx-auto">
-      <div
-        id="sidebar-total-colabs"
-        className="hidden md:block sticky top-6 h-screen"
-      >
-        <SidebarTotalColabs
-          total={totalSidebar}
-          totalPendente={totalPendenteSidebar}
-          totalPago={totalPagoSidebar}
-          collaborators={collabs}
-          selectedId={selectedCollab}
-          onSelect={(id) => {
-            if (selectedCollab === id) {
-              setSelectedCollab(null);
-              return;
-            }
-            setSelectedCollab(id);
-            setTimeout(() => {
-              if (id !== null) {
-                const el = collabRefs.current[id];
-                if (el) {
-                  el.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                }
+      {sidebarOpen && (
+        <div
+          id="sidebar-total-colabs"
+          className="hidden md:block sticky top-6 h-screen"
+        >
+          <SidebarTotalColabs
+            total={totalSidebar}
+            totalPendente={totalPendenteSidebar}
+            totalPago={totalPagoSidebar}
+            collaborators={collabs}
+            selectedId={selectedCollab}
+            onSelect={(id) => {
+              if (selectedCollab === id) {
+                setSelectedCollab(null);
+                return;
               }
-            }, 100);
-          }}
-          hiddenCollabs={hiddenCollabs}
-          onToggleCollabVisibility={toggleCollabVisibility}
-          onAddFinance={(collabId) => {
-            setDlg({ mode: 'addAccount', initialCollaboratorId: collabId });
-          }}
-        />
+              setSelectedCollab(id);
+              setTimeout(() => {
+                if (id !== null) {
+                  const el = collabRefs.current[id];
+                  if (el) {
+                    el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                  }
+                }
+              }, 100);
+            }}
+            hiddenCollabs={hiddenCollabs}
+            onToggleCollabVisibility={toggleCollabVisibility}
+            onAddFinance={(collabId) => {
+              setDlg({ mode: 'addAccount', initialCollaboratorId: collabId });
+            }}
+          />
+        </div>
+      )}
+      {/* Divider com botão seta */}
+      <div className="hidden md:block sticky top-6 h-screen mx-2">
+        <div className="relative h-full">
+          <div className="absolute left-1/2 top-0 bottom-0 -translate-x-1/2 w-px bg-slate-300 dark:bg-slate-700" />
+          <button
+            aria-label={sidebarOpen ? 'Fechar sidebar' : 'Abrir sidebar'}
+            onClick={() => setSidebarOpen((s) => !s)}
+            className="absolute z-10 p-1 rounded-full bg-slate-100 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 hover:bg-slate-200 dark:hover:bg-slate-700 transition left-1/2 top-3 -translate-x-1/2"
+          >
+            <svg
+              width="18"
+              height="18"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              className="text-slate-700 dark:text-slate-200"
+            >
+              {sidebarOpen ? (
+                <polyline points="15 18 9 12 15 6"></polyline>
+              ) : (
+                <polyline points="9 18 15 12 9 6"></polyline>
+              )}
+            </svg>
+          </button>
+        </div>
       </div>
-      <div className="w-px bg-slate-300 dark:bg-slate-700 mx-2 self-stretch hidden md:block" />
   <div id="main-content" className="flex-1 grid gap-6">
         <div ref={resumoRef}>
           <Summary

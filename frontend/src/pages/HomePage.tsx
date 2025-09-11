@@ -485,7 +485,7 @@ export default function HomePage() {
   }
 
   return (
-    <div className="flex items-start px-4 sm:px-6 lg:px-20 2xl:px-40 gap-6 mx-auto">
+  <div className="flex items-start px-4 sm:px-6 lg:px-20 2xl:px-40 gap-6 mx-auto">
       <div
         id="sidebar-total-colabs"
         className="hidden md:block sticky top-6 h-screen"
@@ -519,7 +519,7 @@ export default function HomePage() {
         />
       </div>
       <div className="w-px bg-slate-300 dark:bg-slate-700 mx-2 self-stretch hidden md:block" />
-      <div id="main-content" className="flex-1 grid gap-6">
+  <div id="main-content" className="flex-1 grid gap-6">
         <div ref={resumoRef}>
           <Summary
             total={total}
@@ -569,7 +569,13 @@ export default function HomePage() {
             items={collabOrder}
             strategy={verticalListSortingStrategy}
           >
-            <div className="flex flex-col gap-6">
+            <div className="flex flex-col gap-6 relative z-10">
+              {/* Local decorative blurred radial backgrounds (only behind tables) */}
+              <div aria-hidden="true" className="pointer-events-none absolute inset-0 overflow-hidden -z-10">
+                <div className="absolute left-1/2 top-[15%] -translate-x-1/2 w-[1000px] h-[1000px] rounded-full bg-gradient-to-br from-blue-400/10 via-blue-500/5 to-transparent dark:from-blue-500/15 dark:via-blue-400/10 dark:to-transparent blur-3xl" />
+                <div className="absolute left-[65%] top-[95%] -translate-x-1/2 w-[800px] h-[800px] rounded-full bg-gradient-to-tr from-blue-400/8 via-blue-500/5 to-transparent dark:from-blue-500/12 dark:via-blue-400/8 dark:to-transparent blur-[160px]" />
+                <div className="absolute left-[30%] top-[175%] -translate-x-1/2 w-[600px] h-[600px] rounded-full bg-gradient-to-tr from-blue-300/5 via-blue-400/4 to-transparent dark:from-blue-500/10 dark:via-blue-400/6 dark:to-transparent blur-[140px]" />
+              </div>
               {collabOrder.map((id) => {
                 const c = collabs.find((cc) => cc.id === id);
                 if (!c) return null;

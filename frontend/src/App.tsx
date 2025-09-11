@@ -23,6 +23,7 @@ import InfoPage from './pages/InfoPage';
 import NotFoundPage from './pages/errors/404';
 import RegisterPage from './pages/auth/RegisterPage';
 import PoliticasPage from './pages/PrivacyPage';
+import DashboardPage from './pages/DashboardPage';
 
 import PrivateRoute from './PrivateRoute';
 import PublicRoute from './PublicRoute';
@@ -99,7 +100,7 @@ function AppWithHeader() {
               path="/dashboard"
               element={
                 <PrivateRoute>
-                  <InfoPage />
+                  <DashboardPage />
                 </PrivateRoute>
               }
             />

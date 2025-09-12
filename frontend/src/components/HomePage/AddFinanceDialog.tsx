@@ -176,7 +176,15 @@ export default function AddFinanceDialog({
 
   return (
     <div className="fixed inset-0 bg-black/30 backdrop-blur-sm flex items-center justify-center p-4 z-50">
-      <div className="card w-full max-w-lg p-5">
+      <div className="w-full max-w-lg p-5 rounded-xl shadow-lg bg-white dark:bg-slate-900 relative">
+        <button
+          type="button"
+          onClick={onClose}
+          className="absolute top-3 right-3 text-slate-500 hover:text-red-500 text-xl font-bold rounded-full w-8 h-8 flex items-center justify-center focus:outline-none"
+          aria-label="Fechar"
+        >
+          &times;
+        </button>
         <h3 className="text-lg font-semibold mb-3">
           {initial ? 'Editar finança' : 'Adicionar finança'}
         </h3>
@@ -216,7 +224,7 @@ export default function AddFinanceDialog({
                 descriptionRef(e);
                 descriptionInputRef.current = e;
               }}
-              className="input input-full"
+              className="input input-full bg-slate-900 text-white border border-slate-300 dark:bg-slate-900 dark:text-white dark:border-slate-700"
               placeholder="Ex.: Uber"
               disabled={disabled}
             />
@@ -230,7 +238,7 @@ export default function AddFinanceDialog({
           <label className="grid gap-1">
             <span className="text-sm font-medium">Valor (R$)</span>
             <input
-              className="input input-full"
+              className="input input-full bg-slate-900 text-white border border-slate-300 dark:bg-slate-900 dark:text-white dark:border-slate-700"
               {...register('value')}
               placeholder="Ex.: 119,00"
               inputMode="decimal"
@@ -279,7 +287,7 @@ export default function AddFinanceDialog({
                   ))}
                 </select>
                 <input
-                  className="input"
+                  className="input bg-slate-900 text-white border border-slate-300 dark:bg-slate-900 dark:text-white dark:border-slate-700"
                   type="number"
                   {...register('year', { valueAsNumber: true })}
                   disabled={disabled}
@@ -297,7 +305,7 @@ export default function AddFinanceDialog({
             >
               <option value="Pendente">Pendente</option>
               <option value="Cancelado">Cancelado</option>
-              <option value="quitado">Quitado</option>
+              {/* <option value="quitado">Quitado</option> */}
             </select>
           </label>
 

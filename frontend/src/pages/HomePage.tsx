@@ -602,11 +602,11 @@ export default function HomePage() {
           >
             <div className="flex flex-col gap-6 relative z-10">
               {/* Local decorative blurred radial backgrounds (only behind tables) */}
-              <div aria-hidden="true" className="pointer-events-none absolute inset-0 overflow-hidden -z-10">
-                <div className="absolute left-1/2 top-[15%] -translate-x-1/2 w-[1000px] h-[1000px] rounded-full bg-gradient-to-br from-blue-400/10 via-blue-500/5 to-transparent dark:from-blue-500/15 dark:via-blue-400/10 dark:to-transparent blur-3xl" />
-                <div className="absolute left-[65%] top-[95%] -translate-x-1/2 w-[800px] h-[800px] rounded-full bg-gradient-to-tr from-blue-400/8 via-blue-500/5 to-transparent dark:from-blue-500/12 dark:via-blue-400/8 dark:to-transparent blur-[160px]" />
-                <div className="absolute left-[30%] top-[175%] -translate-x-1/2 w-[600px] h-[600px] rounded-full bg-gradient-to-tr from-blue-300/5 via-blue-400/4 to-transparent dark:from-blue-500/10 dark:via-blue-400/6 dark:to-transparent blur-[140px]" />
-              </div>
+                <div aria-hidden="true" className="pointer-events-none absolute inset-0 overflow-hidden -z-10">
+                <div className="absolute left-1/2 top-[15%] -translate-x-1/2 w-[1000px] h-[1000px] rounded-full bg-gradient-to-br from-blue-700/20 via-blue-800/10 to-transparent dark:from-blue-900/30 dark:via-blue-800/20 dark:to-transparent blur-3xl" />
+                <div className="absolute left-[65%] top-[95%] -translate-x-1/2 w-[800px] h-[800px] rounded-full bg-gradient-to-tr from-blue-700/16 via-blue-800/10 to-transparent dark:from-blue-900/24 dark:via-blue-800/16 dark:to-transparent blur-[160px]" />
+                <div className="absolute left-[30%] top-[175%] -translate-x-1/2 w-[600px] h-[600px] rounded-full bg-gradient-to-tr from-blue-600/10 via-blue-700/8 to-transparent dark:from-blue-900/20 dark:via-blue-800/12 dark:to-transparent blur-[140px]" />
+                </div>
               {collabOrder.map((id) => {
                 const c = collabs.find((cc) => cc.id === id);
                 if (!c) return null;

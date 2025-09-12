@@ -21,7 +21,7 @@ import {
 import Footer from './components/Footer';
 import InfoPage from './pages/InfoPage';
 import NotFoundPage from './pages/errors/404';
-import MaintenancePage from './pages/MaintenancePage';
+import MaintenancePage from './pages/errors/MaintenancePage';
 import RegisterPage from './pages/auth/RegisterPage';
 import PoliticasPage from './pages/PrivacyPage';
 import DashboardPage from './pages/DashboardPage';

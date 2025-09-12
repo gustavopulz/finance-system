@@ -25,6 +25,7 @@ export default function PrivateRoute({ children }: { children: JSX.Element }) {
   // if (auth.user.role !== 'admin') {
   //   return <Navigate to="/manutencao" replace />;
   // }
+  
   // ✅ Senão, renderiza a rota protegida
   return children;
 }

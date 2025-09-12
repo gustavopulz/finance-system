@@ -43,7 +43,11 @@ export default function Header() {
   // Links do menu
   const menuLinks = [
     { to: '/summary', label: 'Resumo', icon: <PieChart size={16} /> },
-    { to: '/dashboard', label: 'Dashboard', icon: <LayoutDashboard size={16} /> },
+    {
+      to: '/dashboard',
+      label: 'Dashboard',
+      icon: <LayoutDashboard size={16} />,
+    },
     { to: '/info', label: 'Ajuda', icon: <HelpCircle size={16} /> },
   ];
 
@@ -55,24 +59,29 @@ export default function Header() {
         setUserMenuOpen(false);
       }
     }
-    if (userMenuOpen) document.addEventListener('mousedown', handleClickOutside);
+    if (userMenuOpen)
+      document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, [userMenuOpen]);
 
   return (
     <header className="header-blur">
-  <div className="mx-auto px-4 lg:px-20 2xl:px-40 flex items-center justify-between h-[68px]">
+      <div className="mx-auto px-4 lg:px-20 2xl:px-40 flex items-center justify-between h-[68px]">
         <div className="flex items-center gap-6">
-      <NavLink to="/summary" className="flex items-center gap-2 group">
+          <NavLink to="/summary" className="flex items-center gap-2 group">
             <img
-              src={theme === 'dark' ? '/finance-system-logo.png' : '/finance-system-logo-light.png'}
+              src={
+                theme === 'dark'
+                  ? '/finance-system-logo.png'
+                  : '/finance-system-logo-light.png'
+              }
               alt="Finance System Logo"
-        className="h-9 md:h-10 w-auto transition-opacity group-hover:opacity-90"
+              className="h-9 md:h-10 w-auto transition-opacity group-hover:opacity-90"
             />
             {/* Tagline removida */}
           </NavLink>
           <nav className="hidden md:flex items-stretch gap-1">
-            {menuLinks.map(link => (
+            {menuLinks.map((link) => (
               <NavLink
                 key={link.to}
                 to={link.to}
@@ -81,7 +90,14 @@ export default function Header() {
                 }
               >
                 {link.icon}
-                <span className={"nav-link-label " + (location.pathname === link.to ? 'gradient-nav-text' : '')}>{link.label}</span>
+                <span
+                  className={
+                    'nav-link-label ' +
+                    (location.pathname === link.to ? 'gradient-nav-text' : '')
+                  }
+                >
+                  {link.label}
+                </span>
               </NavLink>
             ))}
           </nav>
@@ -106,20 +122,25 @@ export default function Header() {
             <span className="hidden xl:inline">Pro</span>
           </button>
           {/* User dropdown */}
-          <div className="relative" ref={userMenuRef} onMouseEnter={() => setUserMenuOpen(true)} onMouseLeave={() => setUserMenuOpen(false)}>
+          <div
+            className="relative"
+            ref={userMenuRef}
+            onMouseEnter={() => setUserMenuOpen(true)}
+            onMouseLeave={() => setUserMenuOpen(false)}
+          >
             <button
-              onClick={() => setUserMenuOpen(o => !o)}
+              onClick={() => setUserMenuOpen((o) => !o)}
               className="avatar-initials"
               title={auth?.user?.name || 'Usuário'}
             >
               {(auth?.user?.name || 'U')
                 .split(/\s+/)
                 .slice(0, 2)
-                .map(s => s[0]?.toUpperCase())
+                .map((s) => s[0]?.toUpperCase())
                 .join('')}
             </button>
             {userMenuOpen && (
-              <div className="absolute right-0 mt-0.5 -translate-y-1 w-56 rounded-xl border border-slate-200/70 dark:border-slate-700/60 bg-white/90 dark:bg-slate-900/90 backdrop-blur-xl shadow-xl py-2 px-2 z-50">
+              <div className="absolute right-0 mt-0.5 -translate-y-1 w-56 rounded-xl border border-slate-200/70 dark:border-slate-700/60 bg-white dark:bg-slate-900 backdrop-blur-xl shadow-xl py-2 px-2 z-50">
                 <div className="px-2 pb-2 border-b border-slate-200/60 dark:border-slate-700/60 mb-2">
                   <p className="text-sm font-medium text-slate-800 dark:text-slate-100 truncate">
                     {auth?.user?.name || 'Usuário'}
@@ -145,7 +166,10 @@ export default function Header() {
                   </NavLink>
                 )}
                 <button
-                  onClick={() => { auth?.logout(); setUserMenuOpen(false); }}
+                  onClick={() => {
+                    auth?.logout();
+                    setUserMenuOpen(false);
+                  }}
                   className="flex w-full items-center gap-2 px-3 py-2 text-sm text-red-500 hover:bg-red-50/80 dark:hover:bg-red-500/20 rounded-md"
                 >
                   <LogOut size={16} /> Sair
@@ -156,10 +180,17 @@ export default function Header() {
           {/* Mobile burger */}
           <button
             className="md:hidden rounded-md p-2 text-slate-600 dark:text-slate-300 hover:bg-slate-200/50 dark:hover:bg-slate-700/50"
-            onClick={() => setMobileMenuOpen(v => !v)}
+            onClick={() => setMobileMenuOpen((v) => !v)}
             aria-label="Menu"
           >
-            <svg width="24" height="24" stroke="currentColor" fill="none" strokeWidth="2" viewBox="0 0 24 24">
+            <svg
+              width="24"
+              height="24"
+              stroke="currentColor"
+              fill="none"
+              strokeWidth="2"
+              viewBox="0 0 24 24"
+            >
               <line x1="4" y1="6" x2="20" y2="6" />
               <line x1="4" y1="12" x2="20" y2="12" />
               <line x1="4" y1="18" x2="20" y2="18" />
@@ -169,7 +200,7 @@ export default function Header() {
       </div>
       {mobileMenuOpen && (
         <nav className="md:hidden px-4 pb-4 flex flex-col gap-1 bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl border-t border-slate-200/60 dark:border-slate-700/60 animate-fade-in">
-          {menuLinks.map(link => (
+          {menuLinks.map((link) => (
             <NavLink
               key={link.to}
               to={link.to}

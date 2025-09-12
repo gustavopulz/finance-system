@@ -21,6 +21,10 @@ export default function PrivateRoute({ children }: { children: JSX.Element }) {
     return <Navigate to="/login" replace />;
   }
 
+  // 🚧 Se for membro, redireciona para manutenção
+  if (auth.user.role !== 'admin') {
+    return <Navigate to="/manutencao" replace />;
+  }
   // ✅ Senão, renderiza a rota protegida
   return children;
 }

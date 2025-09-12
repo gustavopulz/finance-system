@@ -21,6 +21,7 @@ import {
 import Footer from './components/Footer';
 import InfoPage from './pages/InfoPage';
 import NotFoundPage from './pages/errors/404';
+import MaintenancePage from './pages/MaintenancePage';
 import RegisterPage from './pages/auth/RegisterPage';
 import PoliticasPage from './pages/PrivacyPage';
 import DashboardPage from './pages/DashboardPage';
@@ -41,7 +42,8 @@ function AppWithHeader() {
   const hideHeader =
     location.pathname === '/login' ||
     location.pathname === '/404' ||
-    location.pathname === '/register';
+    location.pathname === '/register' ||
+    location.pathname === '/manutencao';
 
   const auth = useAuth();
   const { notifications, remove } = useNotification();
@@ -53,6 +55,8 @@ function AppWithHeader() {
       <div className="flex flex-col min-h-screen">
         <main className="flex-1 py-6">
           <Routes>
+            {/* Página de manutenção */}
+            <Route path="/manutencao" element={<MaintenancePage />} />
             {/* Rotas públicas */}
             <Route
               path="/login"

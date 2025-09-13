@@ -11,7 +11,8 @@ import HomePage from './pages/HomePage';
 import LoginPage from './pages/auth/LoginPage';
 import UserPanelPage from './pages/UserPanelPage';
 import { useAuth } from './context/AuthContext';
-import AdminPage from './pages/AdminPage';
+import AdminPage from './pages/admin/AdminPage';
+import AdminNotificationsPage from './pages/admin/AdminNotificationsPage';
 import Header from './components/Header';
 import NotificationBar from './components/NotificationBar';
 import {
@@ -117,12 +118,20 @@ function AppWithHeader() {
               }
             />
 
-            {/* Rota admin */}
+            {/* Rotas admin */}
             <Route
               path="/admin"
               element={
                 <AdminRoute>
                   <AdminPage />
+                </AdminRoute>
+              }
+            />
+            <Route
+              path="/admin/notificacoes"
+              element={
+                <AdminRoute>
+                  <AdminNotificationsPage />
                 </AdminRoute>
               }
             />

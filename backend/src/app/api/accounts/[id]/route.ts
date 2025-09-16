@@ -2,7 +2,10 @@ import { NextRequest, NextResponse } from 'next/server';
 import { initFirestore, firestore } from '@/lib/firestore';
 import { verifyToken } from '@/lib/jwt';
 
-export async function PUT(req: NextRequest, context: { params: Promise<{ id: string }> }) {
+export async function PUT(
+  req: NextRequest,
+  context: { params: Promise<{ id: string }> }
+) {
   await initFirestore();
   const cookie = req.cookies.get('auth_token');
   const authToken = typeof cookie === 'string' ? cookie : cookie?.value;
@@ -16,7 +19,12 @@ export async function PUT(req: NextRequest, context: { params: Promise<{ id: str
       if (Object.prototype.hasOwnProperty.call(payload, key)) {
         if (key === 'description' && typeof payload[key] === 'string') {
           updateData[key] = payload[key].trim();
-        } else if ((key === 'origem' || key === 'responsavel') && payload[key] === '') {
+        } else if (
+          (key === 'origem' || key === 'responsavel') &&
+          payload[key] === ''
+        ) {
+          updateData[key] = null;
+        } else if (key === 'recebimentoPrevisto' && payload[key] === '') {
           updateData[key] = null;
         } else {
           updateData[key] = payload[key];

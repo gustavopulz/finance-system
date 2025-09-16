@@ -26,10 +26,25 @@ export async function GET(req: NextRequest) {
         .where('month', '>=', Number(month))
         .get();
     }
-    const accounts = accountsSnap.docs.map((doc) => ({
-      id: doc.id,
-      ...doc.data(),
-    }));
+    const now = new Date();
+    const batch = firestore.batch();
+    const accounts = accountsSnap.docs.map((doc) => {
+      const data = doc.data();
+      // Atualiza status automaticamente se for entrada "A receber" e data passou
+      if (
+        data.status === 'Pendente' &&
+        data.recebimentoPrevisto &&
+        new Date(data.recebimentoPrevisto) <= now
+      ) {
+        data.status = 'quitado';
+        batch.update(doc.ref, { status: 'quitado' });
+      }
+      return { id: doc.id, ...data };
+    });
+    // Aplica updates em lote se necessário
+    if (!accountsSnap.empty) {
+      await batch.commit();
+    }
     return NextResponse.json(accounts);
   } catch (err: any) {
     return NextResponse.json({ error: err.message }, { status: 403 });
@@ -54,6 +69,7 @@ export async function POST(req: NextRequest) {
       userId,
       origem,
       responsavel,
+      recebimentoPrevisto,
     } = await req.json();
     const uid = userId || user.id;
     if (!collaboratorId || !description || !value || !month || !year) {
@@ -75,6 +91,7 @@ export async function POST(req: NextRequest) {
       origem: origem || null,
       responsavel: responsavel || null,
       paid: false, // Adiciona coluna paid com valor False
+      recebimentoPrevisto: recebimentoPrevisto || null,
     };
     // Remove any undefined values
     Object.keys(accountData).forEach((key) => {

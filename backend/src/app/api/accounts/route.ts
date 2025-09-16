@@ -54,6 +54,7 @@ export async function POST(req: NextRequest) {
       userId,
       origem,
       responsavel,
+      dataRecebimento,
     } = await req.json();
     const uid = userId || user.id;
     if (!collaboratorId || !description || !value || !month || !year) {
@@ -74,7 +75,9 @@ export async function POST(req: NextRequest) {
       userId: uid,
       origem: origem || null,
       responsavel: responsavel || null,
-      paid: false, // Adiciona coluna paid com valor False
+      paid: status === 'quitado',
+      dtPaid: status === 'quitado' ? new Date().toISOString() : null,
+      dataRecebimento: dataRecebimento || null,
     };
     // Remove any undefined values
     Object.keys(accountData).forEach((key) => {

@@ -23,6 +23,14 @@ export async function PUT(req: NextRequest, context: { params: Promise<{ id: str
         }
       }
     }
+    // Se status for quitado, atualiza paid e dtPaid
+    if (payload.status === 'quitado') {
+      updateData.paid = true;
+      updateData.dtPaid = new Date().toISOString();
+    } else if (payload.status === 'Pendente') {
+      updateData.paid = false;
+      updateData.dtPaid = null;
+    }
     await firestore.collection('accounts').doc(id).update(updateData);
     return NextResponse.json({ success: true });
   } catch (err: any) {

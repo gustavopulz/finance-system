@@ -12,20 +12,12 @@ export async function GET(req: NextRequest) {
     const month = req.nextUrl.searchParams.get('month');
     const year = req.nextUrl.searchParams.get('year');
     const userId = req.nextUrl.searchParams.get('userId') || user.id;
-    let accountsSnap;
-    if (!month || !year) {
-      accountsSnap = await firestore
-        .collection('accounts')
-        .where('userId', '==', userId)
-        .get();
-    } else {
-      accountsSnap = await firestore
-        .collection('accounts')
-        .where('userId', '==', userId)
-        .where('year', '>=', Number(year))
-        .where('month', '>=', Number(month))
-        .get();
+    const tipo = req.nextUrl.searchParams.get('tipo') || 'saida';
+    let query = firestore.collection('accounts').where('userId', '==', userId).where('tipo', '==', tipo);
+    if (month && year) {
+      query = query.where('year', '>=', Number(year)).where('month', '>=', Number(month));
     }
+    const accountsSnap = await query.get();
     const now = new Date();
     const batch = firestore.batch();
     const accounts = accountsSnap.docs.map((doc) => {
@@ -70,6 +62,7 @@ export async function POST(req: NextRequest) {
       origem,
       responsavel,
       recebimentoPrevisto,
+      tipo,
     } = await req.json();
     const uid = userId || user.id;
     if (!collaboratorId || !description || !value || !month || !year) {
@@ -92,6 +85,7 @@ export async function POST(req: NextRequest) {
       responsavel: responsavel || null,
       paid: false, // Adiciona coluna paid com valor False
       recebimentoPrevisto: recebimentoPrevisto || null,
+      tipo: tipo || 'saida', // padrão: saida
     };
     // Remove any undefined values
     Object.keys(accountData).forEach((key) => {

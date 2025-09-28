@@ -2,9 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { initFirestore, firestore } from '@/lib/firestore';
 import { verifyToken } from '@/lib/jwt';
 
-export async function PATCH(
-  req: NextRequest
-) {
+export async function PATCH(req: NextRequest) {
   await initFirestore();
   const cookie = req.cookies.get('auth_token');
   const authToken = typeof cookie === 'string' ? cookie : cookie?.value;
@@ -22,14 +20,26 @@ export async function PATCH(
       );
     }
 
-    if (!payload || !Array.isArray(payload.accounts) || typeof payload.paid !== 'boolean') {
+    if (
+      !payload ||
+      !Array.isArray(payload.accounts) ||
+      typeof payload.paid !== 'boolean'
+    ) {
       return NextResponse.json(
-        { error: 'Campos "accounts" (array) e "paid" (boolean) são obrigatórios.' },
+        {
+          error:
+            'Campos "accounts" (array) e "paid" (boolean) são obrigatórios.',
+        },
         { status: 400 }
       );
     }
 
-    const dtPaid = payload.paid ? new Date() : null;
+    // Permite receber dtPaid customizado do frontend
+    const dtPaid = payload.paid
+      ? payload.dtPaid
+        ? new Date(payload.dtPaid)
+        : new Date()
+      : null;
     const batch = firestore.batch();
     const results = [];
     for (const id of payload.accounts) {
@@ -43,7 +53,6 @@ export async function PATCH(
     } catch (err: any) {
       return NextResponse.json({ error: err.message }, { status: 500 });
     }
-
   } catch (err: any) {
     return NextResponse.json({ error: err.message }, { status: 500 });
   }

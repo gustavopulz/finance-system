@@ -14,21 +14,8 @@ services:
       - "traefik.http.routers.finance-system-api.tls.certresolver=letsencrypt"
       - "traefik.http.routers.finance-system-api.service=finance-system-api"
 
-      # Router HTTP (fallback)
-      - "traefik.http.routers.finance-system-api-http.rule=Host(`finance-system-api.prxlab.app`)"
-      - "traefik.http.routers.finance-system-api-http.entrypoints=web"
-      - "traefik.http.routers.finance-system-api-http.service=finance-system-api"
-
       # Service
       - "traefik.http.services.finance-system-api.loadbalancer.server.port=3000"
-
-      # Middlewares
-      - "traefik.http.routers.finance-system-api.middlewares=finance-cors"
-      - "traefik.http.middlewares.finance-cors.headers.accessControlAllowOriginList=https://finance-system.prxlab.app,http://localhost:5173"
-      - "traefik.http.middlewares.finance-cors.headers.accessControlAllowMethods=GET,POST,PUT,PATCH,DELETE,OPTIONS"
-      - "traefik.http.middlewares.finance-cors.headers.accessControlAllowHeaders=*"
-      - "traefik.http.middlewares.finance-cors.headers.accessControlAllowCredentials=true"
-      - "traefik.http.middlewares.finance-cors.headers.accessControlMaxAge=100"
 
     networks:
       - proxy

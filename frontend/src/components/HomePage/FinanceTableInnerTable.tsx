@@ -101,9 +101,6 @@ const FinanceTableInnerTable: React.FC<FinanceTableInnerTableProps> = ({
             <th className="px-4 py-3 font-medium text-center w-[8%] hidden sm:table-cell">
               Pago
             </th>
-            <th className="px-4 py-3 font-medium text-center w-[12%] hidden sm:table-cell">
-              Cancelado em
-            </th>
             <th className="px-2 py-3 font-medium text-center w-[8%]">Ações</th>
           </tr>
         </thead>
@@ -122,11 +119,7 @@ const FinanceTableInnerTable: React.FC<FinanceTableInnerTableProps> = ({
                 <input
                   type="checkbox"
                   checked={selectedItems.has(f.id)}
-                  onChange={() => {
-                    // Função de toggleItemSelection não está disponível diretamente, então use workaround
-                    // O componente pai deve garantir que toggleItemSelection está disponível
-                    // Aqui, apenas previna erro
-                  }}
+                  onChange={() => {}}
                   className="custom-checkbox"
                   readOnly
                 />
@@ -143,7 +136,34 @@ const FinanceTableInnerTable: React.FC<FinanceTableInnerTableProps> = ({
 
               {/* STATUS */}
               <td className="break-words px-4 py-3 text-center">
-                <div className="hidden sm:block">{getStatusBadge(f)}</div>
+                <div className="hidden sm:block">
+                  {f.status === 'Cancelado' ? (
+                    <>
+                      <button
+                        onClick={() =>
+                          setExpandedCancel(
+                            expandedCancel === f.id ? null : f.id
+                          )
+                        }
+                        className="text-red-500 underline"
+                      >
+                        {getStatusBadge(f)}
+                      </button>
+                      {f.cancelledAt && expandedCancel === f.id && (
+                        <div className="text-xs text-slate-400 mt-1">
+                          Cancelado em:{' '}
+                          {new Date(f.cancelledAt).toLocaleDateString('pt-BR', {
+                            year: 'numeric',
+                            month: '2-digit',
+                          })}
+                        </div>
+                      )}
+                    </>
+                  ) : (
+                    getStatusBadge(f)
+                  )}
+                </div>
+
                 <div className="sm:hidden flex items-center justify-center">
                   {isAccountPaidInMonth(f, currentComp) ? (
                     <CheckCircle className="text-green-500" size={18} />
@@ -185,18 +205,8 @@ const FinanceTableInnerTable: React.FC<FinanceTableInnerTableProps> = ({
                 />
               </td>
 
-              {/* cancelado em - escondido no mobile */}
-              <td className="px-4 py-3 text-center text-xs text-slate-500 dark:text-slate-400 hidden sm:table-cell">
-                {f.cancelledAt
-                  ? new Date(f.cancelledAt).toLocaleDateString('pt-BR', {
-                      year: 'numeric',
-                      month: '2-digit',
-                    })
-                  : ''}
-              </td>
-
               {/* AÇÕES */}
-              <td className="break-wordspx-2 py-3 text-center">
+              <td className="px-2 py-3 text-center">
                 <div className="flex items-center justify-center">
                   <div className="hidden sm:flex items-center gap-2">
                     <button

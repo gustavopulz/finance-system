@@ -52,7 +52,7 @@ export interface FinanceTableProps {
 
 type SortKey = 'description' | 'value' | 'parcelas' | 'status';
 
-export default function FinanceTable({
+export default function oldFinanceTable({
   collaboratorId,
   title,
   items,

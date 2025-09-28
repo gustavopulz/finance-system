@@ -196,8 +196,14 @@ export async function updateAccount(id: string, payload: any) {
   return res.data;
 }
 
-export async function markAccountPaid(accounts: string[], paid: boolean) {
-  const res = await api.patch('/accounts/mark-paid', { accounts, paid });
+export async function markAccountPaid(
+  accounts: string[],
+  paid: boolean,
+  dtPaid?: string
+) {
+  const payload: any = { accounts, paid };
+  if (typeof dtPaid === 'string') payload.dtPaid = dtPaid;
+  const res = await api.patch('/accounts/mark-paid', payload);
   return res.data;
 }
 

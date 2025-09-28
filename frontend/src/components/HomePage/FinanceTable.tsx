@@ -209,8 +209,11 @@ export default function FinanceTable({
     try {
       const currentPaid = isAccountPaidInMonth(account, currentComp);
       const newPaid = !currentPaid;
+      const dtPaidStr = newPaid
+        ? new Date(currentComp.year, currentComp.month - 1, 1).toISOString()
+        : undefined;
 
-      await markAccountPaid([account.id], newPaid);
+      await markAccountPaid([account.id], newPaid, dtPaidStr);
 
       setLocalItems((prev) =>
         prev.map((item) =>
@@ -218,7 +221,7 @@ export default function FinanceTable({
             ? {
                 ...item,
                 paid: newPaid,
-                dtPaid: newPaid ? new Date().toISOString() : undefined,
+                dtPaid: dtPaidStr,
               }
             : item
         )

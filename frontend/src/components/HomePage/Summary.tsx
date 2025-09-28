@@ -48,7 +48,6 @@ const Summary: React.FC<SummaryProps> = ({
 
   return (
     <div className="border border-slate-300 dark:border-slate-700 shadow-sm rounded-lg bg-white dark:bg-slate-900 p-4">
-      {/* Barra de ações única */}
       <div className="flex flex-wrap items-center justify-between gap-2">
         <h1 className="text-xl font-semibold flex items-center gap-2">
           <BarChart2 size={18} className="text-slate-500" /> Resumo
@@ -81,7 +80,6 @@ const Summary: React.FC<SummaryProps> = ({
         </div>
       </div>
 
-      {/* Modal de Filtros */}
       {showFilterModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60">
           <div className="bg-white dark:bg-slate-900 rounded-xl shadow-2xl w-full max-w-2xl p-6 relative animate-fade-in">

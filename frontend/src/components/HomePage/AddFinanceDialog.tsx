@@ -1,4 +1,3 @@
-// src/components/AddFinanceDialog.tsx
 import { useEffect, useRef } from 'react';
 import { useForm } from 'react-hook-form';
 import type { SubmitHandler } from 'react-hook-form';
@@ -28,8 +27,6 @@ type Props = {
   onClose: () => void;
 };
 
-// ⚡ Schema do form
-// (corrigido: converte "3" -> 3 antes de validar; mantém "X" como string)
 const schema = z.object({
   collaboratorId: z.string().min(1, 'Selecione um colaborador'),
   description: z.string().min(1, 'Informe uma descrição'),
@@ -47,7 +44,6 @@ const schema = z.object({
   status: z.enum(['Pendente', 'Cancelado', 'quitado']),
 });
 
-// Use the input type for FormData to match the raw form values before Zod preprocessing
 type FormData = z.input<typeof schema>;
 
 export default function AddFinanceDialog({
@@ -63,7 +59,6 @@ export default function AddFinanceDialog({
   const defaultMonth = filteredMonth ?? now.getMonth() + 1;
   const defaultYear = filteredYear ?? now.getFullYear();
 
-  // Ref para focar no input de descrição
   const descriptionInputRef = useRef<HTMLInputElement>(null);
 
   const {
@@ -72,7 +67,7 @@ export default function AddFinanceDialog({
     setValue,
     formState: { errors },
   } = useForm<FormData>({
-    resolver: zodResolver(schema), // Voltamos a usar o zodResolver
+    resolver: zodResolver(schema),
     defaultValues: {
       collaboratorId: initial?.collaboratorId
         ? String(initial.collaboratorId)
@@ -86,11 +81,11 @@ export default function AddFinanceDialog({
         initial?.value != null ? String(initial.value).replace('.', ',') : '',
       parcelasTotal: initial
         ? initial.parcelasTotal === null || initial.parcelasTotal === undefined
-          ? 'X' // Conta fixa/recorrente
+          ? 'X'
           : initial.parcelasTotal === 0
-            ? '-' // Conta avulsa
-            : initial.parcelasTotal // Número de parcelas
-        : '-', // NOVO: padrão é Avulsa
+            ? '-'
+            : initial.parcelasTotal
+        : '-',
       month: initial?.month ?? defaultMonth,
       year: initial?.year ?? defaultYear,
       status:
@@ -102,17 +97,14 @@ export default function AddFinanceDialog({
     },
   });
 
-  // Registrar o campo description com ref
   const { ref: descriptionRef, ...descriptionRegister } =
     register('description');
-  // Formata o valor como moeda brasileira ao digitar
   function handleValueChange(e: React.ChangeEvent<HTMLInputElement>) {
-    let value = e.target.value.replace(/\D/g, ''); // remove não dígitos
+    let value = e.target.value.replace(/\D/g, '');
     if (!value) {
       setValue('value', '');
       return;
     }
-    // Garante pelo menos dois dígitos para centavos
     if (value.length < 3) {
       value = value.padStart(3, '0');
     }
@@ -122,23 +114,21 @@ export default function AddFinanceDialog({
     setValue('value', formatted);
   }
 
-  // garante colaborador setado quando a lista chega depois
   useEffect(() => {
     if (!initial) {
       if (initialCollaboratorId) {
         setValue('collaboratorId', String(initialCollaboratorId));
       } else if (collaborators.length === 1) {
         setValue('collaboratorId', String(collaborators[0].id));
-      } // Se houver mais de um, não faz nada, deixa vazio
+      }
     }
   }, [collaborators, initial, initialCollaboratorId, setValue]);
 
-  // Foca no input de descrição ao abrir o dialog
   useEffect(() => {
     if (descriptionInputRef.current) {
       descriptionInputRef.current.focus();
     }
-  }, []); // executa apenas uma vez ao montar o componente
+  }, []);
 
   const submit: SubmitHandler<FormData> = (d) => {
     const parsedValue = parseBRL(d.value);
@@ -150,25 +140,21 @@ export default function AddFinanceDialog({
     const payload: any = {
       collaboratorId: d.collaboratorId,
       description: String(d.description || '').trim(),
-      value: parsedValue, // já em reais
+      value: parsedValue,
       month: d.month,
       year: d.year,
       status: d.status as Status,
     };
 
-    // Correção na lógica de parcelasTotal:
-    // - 'X' (Fixo) = null (conta recorrente em todos os meses)
-    // - '-' (Avulsa) = 0 (conta apenas no mês específico)
-    // - número (1-48) = número de parcelas
     if (d.parcelasTotal === 'X') {
-      payload.parcelasTotal = null; // Conta fixa/recorrente
+      payload.parcelasTotal = null;
     } else if (d.parcelasTotal === '-') {
-      payload.parcelasTotal = 0; // Conta avulsa
+      payload.parcelasTotal = 0;
     } else if (typeof d.parcelasTotal === 'number') {
-      payload.parcelasTotal = d.parcelasTotal; // Número específico de parcelas
+      payload.parcelasTotal = d.parcelasTotal;
     }
 
-    onSave(payload, initial?.id); // edita se houver id; senão, cria
+    onSave(payload, initial?.id);
     onClose();
   };
 

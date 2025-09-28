@@ -5,11 +5,8 @@ export default function Footer() {
   return (
     <footer className="border-t bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800">
       <div className="mx-auto px-4 lg:px-20 2xl:px-96">
-        {/* Esquerda = descrição+devs | Direita = links */}
         <div className="flex flex-col md:flex-row justify-between gap-16 py-10">
-          {/* Coluna Esquerda */}
           <div className="max-w-md">
-            {/* Logo */}
             <NavLink
               to="/"
               className="flex items-center text-lg font-bold text-brand-700 dark:text-brand-400"
@@ -26,12 +23,10 @@ export default function Footer() {
               />
             </NavLink>
 
-            {/* Descrição */}
             <p className="mt-4 text-sm text-gray-600 dark:text-gray-400">
               Gerencie suas finanças com clareza, segurança e praticidade.
             </p>
 
-            {/* Desenvolvedores */}
             <h3 className="font-semibold text-gray-900 dark:text-gray-100 mt-8 mb-3">
               Desenvolvedores
             </h3>
@@ -55,7 +50,6 @@ export default function Footer() {
             </div>
           </div>
 
-          {/* Coluna Direita */}
           <div>
             <h3 className="font-semibold text-gray-900 dark:text-gray-100 mb-3">
               Navegação
@@ -85,7 +79,6 @@ export default function Footer() {
           </div>
         </div>
 
-        {/* Bottom bar */}
         <div className="border-t border-gray-200 dark:border-gray-700 mt-6 py-4 text-sm text-gray-600 dark:text-gray-400 flex justify-center">
           © {new Date().getFullYear()} Finance System. Todos os direitos
           reservados.

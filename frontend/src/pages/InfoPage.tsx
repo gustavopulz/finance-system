@@ -5,7 +5,6 @@ export default function InfoPage() {
   const [view, setView] = useState<'geral' | 'conta'>('geral');
   return (
     <div className="container-app mx-auto px-4 sm:px-6 lg:px-20 2xl:px-40 py-6 grid gap-6">
-      {/* Hero */}
       <section className="rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 p-6">
         <h1 className="text-2xl font-bold mb-2">Como usar o Finance System</h1>
         <p className="text-slate-600 dark:text-slate-400">
@@ -40,7 +39,6 @@ export default function InfoPage() {
       </section>
       {view === 'geral' ? (
         <>
-          {/* Card: Painel (atalho no guia do painel) */}
           <section className="rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 p-6">
             <h2 className="text-xl font-semibold mb-2">Painel</h2>
             <p className="text-slate-700 dark:text-slate-300">
@@ -58,7 +56,6 @@ export default function InfoPage() {
             </div>
           </section>
 
-          {/* Sumário */}
           <section className="rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 p-6">
             <h2 className="text-xl font-semibold mb-3">Sumário</h2>
             <ol className="list-decimal pl-5 space-y-1 text-slate-700 dark:text-slate-300">
@@ -121,7 +118,6 @@ export default function InfoPage() {
             </ol>
           </section>
 
-          {/* Acesso */}
           <section
             id="acesso"
             className="rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 p-6"
@@ -165,7 +161,6 @@ export default function InfoPage() {
             </ul>
           </section>
 
-          {/* Resumo e filtros */}
           <section
             id="resumo"
             className="rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 p-6"
@@ -249,7 +244,6 @@ export default function InfoPage() {
             </ul>
           </section>
 
-          {/* Sidebar */}
           <section
             id="sidebar"
             className="rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 p-6"
@@ -295,7 +289,6 @@ export default function InfoPage() {
             </ul>
           </section>
 
-          {/* Tabelas */}
           <section
             id="tabelas"
             className="rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 p-6"
@@ -412,7 +405,6 @@ export default function InfoPage() {
             </ul>
           </section>
 
-          {/* Dialogs */}
           <section
             id="dialogs"
             className="rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 p-6"
@@ -488,7 +480,6 @@ export default function InfoPage() {
             </div>
           </section>
 
-          {/* Atalhos */}
           <section
             id="atalhos"
             className="rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 p-6"
@@ -531,7 +522,6 @@ export default function InfoPage() {
             </ul>
           </section>
 
-          {/* FAQ */}
           <section
             id="faq"
             className="rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 p-6"
@@ -589,7 +579,6 @@ export default function InfoPage() {
         </>
       ) : (
         <>
-          {/* Guia: Configurações da Conta */}
           <section className="rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 p-6">
             <h2 className="text-xl font-semibold mb-2">
               Configurações da Conta

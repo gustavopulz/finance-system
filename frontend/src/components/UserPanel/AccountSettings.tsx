@@ -63,7 +63,6 @@ export default function AccountSettings() {
         <Settings size={20} /> Configuração de Conta
       </h3>
 
-      {/* Nome */}
       <div className="mb-4">
         <label className="block font-semibold mb-2">Nome</label>
         <div className="flex gap-2">
@@ -96,7 +95,6 @@ export default function AccountSettings() {
         </div>
       </div>
 
-      {/* E-mail */}
       <div className="mb-4">
         <label className="block font-semibold mb-2">E-mail</label>
         <div className="flex gap-2">
@@ -129,7 +127,6 @@ export default function AccountSettings() {
         </div>
       </div>
 
-      {/* Senha */}
       <div className="mb-4">
         <label className="block font-semibold mb-2">Senha</label>
         {!editingPassword ? (

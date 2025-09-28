@@ -14,16 +14,17 @@ export default function CategorySettings() {
 
   const handleAddCategory = () => {
     if (!newCategory.trim()) return;
-    setCategories([...categories, { name: newCategory, color: newCategoryColor }]);
+    setCategories([
+      ...categories,
+      { name: newCategory, color: newCategoryColor },
+    ]);
     setNewCategory('');
   };
 
   const handleSaveEdit = () => {
     if (!editCategory) return;
     setCategories(
-      categories.map((c) =>
-        c.name === editCategory.name ? editCategory : c
-      )
+      categories.map((c) => (c.name === editCategory.name ? editCategory : c))
     );
     setEditCategory(null);
   };
@@ -55,7 +56,6 @@ export default function CategorySettings() {
         </button>
       </div>
 
-      {/* Lista */}
       {categories.length === 0 ? (
         <p className="text-slate-500">Nenhuma categoria criada.</p>
       ) : (

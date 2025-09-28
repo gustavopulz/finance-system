@@ -78,7 +78,6 @@ export default function Header() {
               alt="Finance System Logo"
               className="h-9 md:h-10 w-auto transition-opacity group-hover:opacity-90"
             />
-            {/* Tagline removida */}
           </NavLink>
           <nav className="hidden md:flex items-stretch gap-1">
             {menuLinks.map((link) => (
@@ -103,7 +102,6 @@ export default function Header() {
           </nav>
         </div>
         <div className="flex items-center gap-3">
-          {/* Theme toggle first */}
           <button
             onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
             className="rounded-md p-2 text-slate-500 hover:text-slate-800 dark:text-slate-300 dark:hover:text-white hover:bg-slate-200/50 dark:hover:bg-slate-700/50 transition"
@@ -111,7 +109,6 @@ export default function Header() {
           >
             {theme === 'dark' ? <Sun size={18} /> : <Moon size={18} />}
           </button>
-          {/* Pro button after theme toggle */}
           <button
             type="button"
             onClick={() => setProOpen(true)}
@@ -121,7 +118,6 @@ export default function Header() {
             <Crown size={16} className="drop-shadow" />
             <span className="hidden xl:inline">Pro</span>
           </button>
-          {/* User dropdown */}
           <div
             className="relative"
             ref={userMenuRef}
@@ -177,7 +173,6 @@ export default function Header() {
               </div>
             )}
           </div>
-          {/* Mobile burger */}
           <button
             className="md:hidden rounded-md p-2 text-slate-600 dark:text-slate-300 hover:bg-slate-200/50 dark:hover:bg-slate-700/50"
             onClick={() => setMobileMenuOpen((v) => !v)}

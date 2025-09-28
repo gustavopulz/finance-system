@@ -14,7 +14,6 @@ import {
 } from 'lucide-react';
 import React from 'react';
 
-// Funções para persistir a ordenação no localStorage
 const getSortState = (collaboratorId: string) => {
   const saved = localStorage.getItem(`sort_${collaboratorId}`);
   if (saved) {
@@ -47,7 +46,7 @@ export interface FinanceTableProps {
   onEdit: (a: Account) => void;
   onCancelToggle: (id: string) => void;
   onCollabDeleted: (id: string) => void;
-  onPaidUpdate?: (id: string, paid: boolean) => void; // Nova callback
+  onPaidUpdate?: (id: string, paid: boolean) => void;
   dragHandleProps?: React.HTMLAttributes<HTMLElement>;
 }
 
@@ -83,7 +82,6 @@ export default function FinanceTable({
     let newSortOrder: 'asc' | 'desc' = 'asc';
 
     if (sortKey === newSortKey) {
-      // Se clicou na mesma coluna, inverte a ordem
       newSortOrder = sortOrder === 'asc' ? 'desc' : 'asc';
     }
 
@@ -95,6 +93,7 @@ export default function FinanceTable({
     open: boolean;
     financa: Account | null;
   }>({ open: false, financa: null });
+
   // Estado de colapso persistido no localStorage
   const getCollapseState = (collaboratorId: string) => {
     const saved = localStorage.getItem(`collapse_${collaboratorId}`);
@@ -302,7 +301,7 @@ export default function FinanceTable({
   }
 
   function getStatusBadge(account: Account): React.JSX.Element {
-    // Verifica se está pago com base na nova lógica
+    // Verifica se está pago
     if (isAccountPaidInMonth(account, currentComp)) {
       return (
         <span className="badge bg-green-500 text-white dark:bg-green-500/30 dark:text-green-300">
@@ -311,7 +310,6 @@ export default function FinanceTable({
       );
     }
 
-    // Se tem dtPaid mas não está pago na competência atual, significa que foi pago em mês futuro
     if (account.dtPaid) {
       const paidDate = new Date(account.dtPaid);
       const paidYear = paidDate.getFullYear();
@@ -404,8 +402,6 @@ export default function FinanceTable({
     return isCollapsed ? sortedData.slice(0, 1) : sortedData;
   }, [sortedData, isCollapsed]);
 
-  // Drag só é permitido se não estiver colapsado
-
   // Bloqueia qualquer drag/pointer/mouse quando colapsado
   const blockEventsIfCollapsed = isCollapsed
     ? {
@@ -479,7 +475,6 @@ export default function FinanceTable({
             </button>
           </div>
 
-          {/* Ações em lote */}
           {selectedItems.size > 0 && (
             <div className="flex items-center gap-2 mr-4">
               <span className="text-sm text-slate-600 dark:text-slate-400">
@@ -589,7 +584,6 @@ export default function FinanceTable({
 
         {/* Cabeçalho MOBILE */}
         <div className="md:hidden p-4 pb-2 border border-slate-300 dark:border-slate-700 border-b-0 rounded-t-md">
-          {/* Linha 1: Nome + Collapse */}
           <div
             className="flex items-center justify-between mb-2 cursor-grab"
             {...dragProps}
@@ -620,7 +614,6 @@ export default function FinanceTable({
             </button>
           </div>
 
-          {/* Linha 2: Totais + Excluir */}
           <div className="flex flex-col gap-2 items-start w-full">
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 w-full">
               <div className="badge bg-slate-500 text-white dark:bg-slate-800 dark:text-slate-100 w-full text-center font-semibold">
@@ -728,7 +721,6 @@ export default function FinanceTable({
                       {parcelaLabel(f, currentComp)}
                     </td>
 
-                    {/* STATUS */}
                     <td className="break-words px-2 sm:px-6 py-3 sm:py-4 text-center">
                       <div className="hidden sm:block">
                         {f.status === 'Cancelado' ? (
@@ -804,7 +796,6 @@ export default function FinanceTable({
                       />
                     </td>
 
-                    {/* AÇÕES */}
                     <td className="px-2 sm:px-6 py-3 sm:py-4 text-center">
                       <div className="flex items-center justify-center">
                         <div className="hidden sm:flex items-center gap-2">
@@ -861,7 +852,6 @@ export default function FinanceTable({
         {selectedAction && (
           <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
             <div className="bg-white dark:bg-slate-800 rounded-xl shadow-2xl w-80 p-0 relative">
-              {/* Botão X para fechar */}
               <button
                 onClick={() => setSelectedAction(null)}
                 className="absolute top-3 right-3 text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 transition-colors p-1 rounded-full focus:outline-none focus:ring-2 focus:ring-slate-400 z-10"
@@ -928,7 +918,7 @@ export default function FinanceTable({
           </div>
         )}
 
-        {/* Modais permanecem iguais abaixo */}
+        {/* Modais */}
         {showBulkDeleteConfirm && (
           <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
             <div className="bg-white dark:bg-slate-800 rounded p-6 shadow-lg max-w-sm w-full">

@@ -34,7 +34,6 @@ export default function TokenSettings({ active }: { active: boolean }) {
     seeMe: [],
   });
   const [loadingLinks, setLoadingLinks] = useState(false);
-  // Token config modal state
   const [tokenModalOpen, setTokenModalOpen] = useState(false);
   const [collabs, setCollabs] = useState<any[]>([]);
   const [selectedCollabId, setSelectedCollabId] = useState('');
@@ -42,7 +41,6 @@ export default function TokenSettings({ active }: { active: boolean }) {
     []
   );
   const [savingTokenConfig, setSavingTokenConfig] = useState(false);
-  // Per-link config
   const [linkConfigOpen, setLinkConfigOpen] = useState<{
     open: boolean;
     otherUserId: string | null;
@@ -92,7 +90,6 @@ export default function TokenSettings({ active }: { active: boolean }) {
         setCollabs(cl);
       }
       const cfg = await getTokenConfig();
-      // Não exibir token automaticamente ao abrir a tela; exibição é apenas após gerar
       setTokenAllowedCollabIds(cfg?.allowedCollabIds || []);
     } catch {}
   }
@@ -151,7 +148,6 @@ export default function TokenSettings({ active }: { active: boolean }) {
     try {
       let res = await getLinkConfig(otherUserId, direction);
       let ids = res?.allowedCollabIds || [];
-      // Fallback: if nothing returned (legacy/inverted saves), try opposite direction
       if (!ids.length) {
         const fallbackDir = direction === 'see-me' ? 'i-see' : 'see-me';
         try {
@@ -169,8 +165,6 @@ export default function TokenSettings({ active }: { active: boolean }) {
     } finally {
       setLinkConfigLoading(false);
     }
-    // For now, only 'see-me' configuration is available in the UI, so we keep using
-    // the current user's collaborators already loaded into `collabs`.
   }
 
   function addSelectedCollabToLink() {
@@ -276,7 +270,6 @@ export default function TokenSettings({ active }: { active: boolean }) {
           <SkeletonCard />
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {/* Você vê */}
             <div>
               <h5 className="font-semibold mb-2">Você vê:</h5>
               <div className="flex flex-col gap-2">
@@ -374,7 +367,6 @@ export default function TokenSettings({ active }: { active: boolean }) {
                 </button>
               </div>
             </div>
-            {/* Selected list */}
             <div className="max-h-48 overflow-auto border border-slate-300 dark:border-slate-700 rounded p-3 mb-4">
               {tokenAllowedCollabIds.length === 0 ? (
                 <p className="text-sm text-slate-500">
@@ -426,7 +418,6 @@ export default function TokenSettings({ active }: { active: boolean }) {
         </div>
       )}
 
-      {/* Link Config Modal */}
       {linkConfigOpen.open && (
         <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50">
           <div className="bg-white dark:bg-slate-900 p-6 rounded shadow-md w-full max-w-lg">

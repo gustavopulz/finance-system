@@ -31,7 +31,6 @@ type DialogState =
   | { mode: 'addCollab' };
 
 function normalizeAccount(a: any): Account {
-  // parcelasTotal: normaliza 'X', 'null', vazio e NaN como fixo (null)
   const rawPt = a.parcelasTotal;
   let parcelasTotal: number | null;
   if (
@@ -49,7 +48,6 @@ function normalizeAccount(a: any): Account {
     parcelasTotal = Number.isFinite(n) ? n : null;
   }
 
-  // dtPaid: garante string ISO quando vier como Timestamp/Date/objeto
   let dtPaid: string | undefined = undefined;
   const v = (a as any).dtPaid;
   if (v) {
@@ -92,7 +90,6 @@ function normalizeAccount(a: any): Account {
     createdAt: a.createdAt ?? '',
     updatedAt: a.updatedAt ?? '',
     cancelledAt: a.cancelledAt ?? undefined,
-    // paidByMonth removido
   };
 }
 export default function HomePage() {
@@ -178,7 +175,6 @@ export default function HomePage() {
   const visibleSnapshotRef = useRef<Account[]>([]);
   const resumoRef = useRef<HTMLDivElement>(null);
 
-  // Colaboradores ocultos (centralizado)
   const [hiddenCollabs, setHiddenCollabs] = useState<string[]>(() => {
     try {
       const saved = localStorage.getItem('hiddenCollabs');
@@ -200,7 +196,6 @@ export default function HomePage() {
     });
   }
 
-  // Atualiza ao mudar no localStorage
   useEffect(() => {
     function syncHiddenCollabs() {
       try {
@@ -243,7 +238,6 @@ export default function HomePage() {
     load();
   }, [month, year]);
 
-  // Atalho de teclado para adicionar finança (Alt+N)
   useEffect(() => {
     function handleKeyDown(e: KeyboardEvent) {
       if (e.altKey && e.key === 'n') {
@@ -256,12 +250,10 @@ export default function HomePage() {
     return () => document.removeEventListener('keydown', handleKeyDown);
   }, []);
 
-  // Detecta quando o resumo sair da tela para mostrar botão flutuante
   useEffect(() => {
     const handleScroll = () => {
       if (resumoRef.current) {
         const rect = resumoRef.current.getBoundingClientRect();
-        // Se o resumo saiu completamente da tela (top + height < 0)
         const isResumoVisible = rect.bottom > 0;
         setShowFloatingButton(!isResumoVisible);
       }
@@ -313,22 +305,23 @@ export default function HomePage() {
         }
       });
     }
+
     if (!showCancelled) {
       result = result.filter((acc) => acc.status !== 'Cancelado');
     }
-    // Filtro de descrição
+
     if (filterDesc.trim()) {
       result = result.filter((acc) =>
         acc.description.toLowerCase().includes(filterDesc.trim().toLowerCase())
       );
     }
-    // Filtro de valor
+
     if (filterValor.trim()) {
       result = result.filter(
         (acc) => Number(acc.value) === Number(filterValor)
       );
     }
-    // Filtro de parcela
+
     if (filterParcela) {
       if (filterParcela === 'avulso') {
         result = result.filter(
@@ -374,13 +367,12 @@ export default function HomePage() {
     .filter(
       (a) =>
         !isAccountPaidInMonth(a, { year, month }) && a.status !== 'Cancelado'
-    ) // Exclui itens cancelados
+    )
     .reduce((s, a) => s + Number(a.value), 0);
   const totalPago = stableVisible
     .filter((a) => isAccountPaidInMonth(a, { year, month }))
     .reduce((s, a) => s + Number(a.value), 0);
 
-  // Filtra contas dos colaboradores visíveis
   const visibleCollabIds = collabs
     .map((c) => c.id)
     .filter((id) => !hiddenCollabs.includes(id));
@@ -423,7 +415,7 @@ export default function HomePage() {
 
   async function removeAccount(id: string | string[]) {
     const ids = Array.isArray(id) ? id : [id];
-    // Busca descrição da(s) finança(s)
+
     let desc = '';
     if (ids.length === 1) {
       const acc = accounts.find((a) => a.id === ids[0]);
@@ -461,7 +453,6 @@ export default function HomePage() {
     setAccounts((prev) =>
       prev.map((account) => {
         if (account.id === accountId) {
-          // Atualiza o campo dtPaid para contas não-recorrentes
           return {
             ...account,
             dtPaid: paid ? new Date().toISOString() : undefined,
@@ -473,7 +464,6 @@ export default function HomePage() {
     );
   }
 
-  // Notificação melhorada para colaborador removido
   async function handleCollabDeleted(collabId: string) {
     const collab = collabs.find((c) => c.id === collabId);
     notify(
@@ -521,7 +511,7 @@ export default function HomePage() {
           />
         </div>
       )}
-      {/* Divider com botão seta */}
+
       <div className="hidden md:block sticky top-6 h-screen mx-2">
         <div className="relative h-full">
           <div className="absolute left-1/2 top-0 bottom-0 -translate-x-1/2 w-px bg-slate-300 dark:bg-slate-700" />
@@ -601,7 +591,6 @@ export default function HomePage() {
             strategy={verticalListSortingStrategy}
           >
             <div className="flex flex-col gap-6 relative z-10">
-              {/* Local decorative blurred radial backgrounds (only behind tables) */}
               <div
                 aria-hidden="true"
                 className="pointer-events-none absolute inset-0 overflow-hidden -z-10"
@@ -662,9 +651,7 @@ export default function HomePage() {
       {/* Botões flutuantes */}
       {showFloatingButton && (
         <div className="fixed bottom-6 right-6 flex flex-col items-end gap-2 z-50">
-          {/* Wrapper para posicionar o up na diagonal */}
           <div className="relative">
-            {/* Botão de adicionar finança */}
             <button
               onClick={() => setDlg({ mode: 'addAccount' })}
               className="w-14 h-14 bg-blue-600 hover:bg-blue-700 text-white rounded-full shadow-lg hover:shadow-xl transition-all duration-300 flex items-center justify-center"
@@ -673,7 +660,6 @@ export default function HomePage() {
               <Plus size={24} />
             </button>
 
-            {/* Botão de voltar ao topo (menor e na diagonal) */}
             <button
               onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
               className="absolute -top-3 -left-3 w-8 h-8 bg-slate-200 hover:bg-slate-300 text-blue-700 rounded-full shadow-md transition-all duration-300 flex items-center justify-center border border-blue-400"

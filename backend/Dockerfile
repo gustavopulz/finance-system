@@ -16,7 +16,12 @@ FROM node:20-alpine AS runner
 WORKDIR /app
 ENV NODE_ENV=production
 ENV PORT=3000
+ENV HOST=0.0.0.0   # 👉 garante que o Next.js escute em todas as interfaces
 
+# 👉 precisa copiar node_modules também
+COPY --from=deps /app/node_modules ./node_modules
+
+COPY --from=builder /app/prisma ./prisma
 COPY --from=builder /app/.next/standalone ./
 COPY --from=builder /app/.next/static ./.next/static
 COPY --from=builder /app/package*.json ./

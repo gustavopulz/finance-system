@@ -8,23 +8,6 @@ export const config = {
 };
 
 export function middleware(request: NextRequest) {
-  const origin = request.headers.get('origin') || '';
-  const allowedOrigins = [
-    'https://finance-system.prxlab.app',
-    'http://localhost:5173',
-  ];
-  const allowedOrigin = allowedOrigins.includes(origin)
-    ? origin
-    : allowedOrigins[0];
-
-  // ✅ Preflight (CORS)
-  if (request.method === 'OPTIONS') {
-    return new NextResponse(null, {
-      status: 204,
-      headers: corsHeaders(allowedOrigin),
-    });
-  }
-
   const isApiRoute = request.nextUrl.pathname.startsWith('/api');
   const pathname = request.nextUrl.pathname.replace(/\/$/, '');
 
@@ -41,10 +24,10 @@ export function middleware(request: NextRequest) {
 
     if (!token) {
       // 🚨 Sem token nenhum → usuário não autenticado
-      return new NextResponse(JSON.stringify({ error: 'not_authenticated' }), {
-        status: 401,
-        headers: corsHeaders(allowedOrigin),
-      });
+      return new NextResponse(
+        JSON.stringify({ error: 'not_authenticated' }),
+        { status: 401 }
+      );
     }
 
     try {
@@ -52,34 +35,20 @@ export function middleware(request: NextRequest) {
     } catch (err: any) {
       if (err.message === 'Token expirado') {
         // 🚨 Token existe mas expirou → front deve chamar /user/refresh
-        return new NextResponse(JSON.stringify({ error: 'token_expired' }), {
-          status: 401,
-          headers: corsHeaders(allowedOrigin),
-        });
+        return new NextResponse(
+          JSON.stringify({ error: 'token_expired' }),
+          { status: 401 }
+        );
       }
 
       // 🚨 Qualquer outro erro → token inválido
-      return new NextResponse(JSON.stringify({ error: 'invalid_token' }), {
-        status: 403,
-        headers: corsHeaders(allowedOrigin),
-      });
+      return new NextResponse(
+        JSON.stringify({ error: 'invalid_token' }),
+        { status: 403 }
+      );
     }
   }
 
   // ✅ Resposta padrão
-  const response = NextResponse.next();
-  Object.entries(corsHeaders(allowedOrigin)).forEach(([k, v]) =>
-    response.headers.set(k, v)
-  );
-  return response;
-}
-
-// 🔧 Função utilitária para headers CORS
-function corsHeaders(origin: string, req?: NextRequest) {
-  return {
-    'Access-Control-Allow-Origin': origin,
-    'Access-Control-Allow-Methods': 'GET,POST,PATCH,PUT,DELETE,OPTIONS',
-    'Access-Control-Allow-Headers': req?.headers.get("Access-Control-Request-Headers") || "Content-Type, Authorization",
-    'Access-Control-Allow-Credentials': 'true',
-  };
+  return NextResponse.next();
 }

@@ -22,6 +22,9 @@ services:
       - "traefik.http.middlewares.finance-cors.headers.accessControlAllowCredentials=true"
       - "traefik.http.middlewares.finance-cors.headers.accessControlMaxAge=100"
 
+    ports:
+      - "3000:3000"
+
     networks:
       - proxy
       - internal

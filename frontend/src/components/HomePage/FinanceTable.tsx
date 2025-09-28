@@ -441,7 +441,7 @@ export default function FinanceTable({
         </div>
 
         {/* Cabeçalho MOBILE */}
-        <div className="md:hidden p-4 pb-2">
+        <div className="md:hidden p-4 pb-2 border border-slate-300 dark:border-slate-700 border-b-0 rounded-t-md">
           {/* Linha 1: Nome + Collapse */}
           <div
             className="flex items-center justify-between mb-2 cursor-grab"
@@ -476,7 +476,7 @@ export default function FinanceTable({
           {/* Linha 2: Totais + Excluir */}
           <div className="flex flex-col gap-2 items-start w-full">
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 w-full">
-              <div className="badge bg-slate-100 dark:bg-slate-900/60 text-slate-700 dark:text-slate-100 w-full text-center">
+              <div className="badge bg-slate-200 dark:bg-slate-800 text-slate-700 dark:text-slate-100 w-full text-center">
                 Total: {brl(Number(total))}
               </div>
               <div className="badge bg-yellow-100 dark:bg-yellow-500/30 text-yellow-700 dark:text-yellow-300 w-full text-center">
@@ -522,44 +522,70 @@ export default function FinanceTable({
         {/* Modal de ações - Mobile */}
         {selectedAction && (
           <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-            <div className="bg-white dark:bg-slate-800 rounded-lg shadow-lg w-72 p-4">
-              <h3 className="text-lg font-bold mb-4 text-slate-800 dark:text-slate-100">
-                Ações para {selectedAction.description}
-              </h3>
-              <div className="space-y-2">
-                <button
-                  onClick={() => handlePaidToggle(selectedAction)}
-                  className="w-full py-2 rounded bg-green-600 text-white"
-                >
-                  Pagar
-                </button>
-                <button
-                  onClick={() => onEdit(selectedAction)}
-                  className="w-full py-2 rounded bg-yellow-500 text-white"
-                >
-                  Editar
-                </button>
-                <button
-                  onClick={() => onCancelToggle(selectedAction.id)}
-                  className="w-full py-2 rounded bg-red-500 text-white"
-                >
-                  {selectedAction.status === 'Pendente'
-                    ? 'Cancelar'
-                    : 'Reabrir'}
-                </button>
-                <button
-                  onClick={() => setFinancaToDelete(selectedAction)}
-                  className="w-full py-2 rounded bg-red-700 text-white"
-                >
-                  Excluir
-                </button>
-              </div>
+            <div className="bg-white dark:bg-slate-800 rounded-xl shadow-2xl w-80 p-0 relative">
+              {/* Botão X para fechar */}
               <button
                 onClick={() => setSelectedAction(null)}
-                className="mt-4 text-sm text-slate-500 hover:text-slate-700"
+                className="absolute top-3 right-3 text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 transition-colors p-1 rounded-full focus:outline-none focus:ring-2 focus:ring-slate-400 z-10"
+                aria-label="Fechar modal"
               >
-                Fechar
+                <svg
+                  width="22"
+                  height="22"
+                  viewBox="0 0 20 20"
+                  fill="none"
+                  xmlns="http://www.w3.org/2000/svg"
+                >
+                  <path
+                    d="M6 6L14 14M14 6L6 14"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                  />
+                </svg>
               </button>
+              <div className="p-6 pb-4">
+                <h3 className="text-lg font-normal mb-6 text-slate-800 dark:text-slate-100 text-center">
+                  Ações para{' '}
+                  <b className="text-primary font-bold">
+                    {selectedAction.description}
+                  </b>
+                </h3>
+                <div className="flex flex-col gap-3">
+                  <button
+                    onClick={() => handlePaidToggle(selectedAction)}
+                    className="w-full py-2 rounded-lg font-semibold bg-green-600 hover:bg-green-700 text-white shadow-sm transition-colors"
+                  >
+                    Pagar
+                  </button>
+                  <button
+                    onClick={() => onEdit(selectedAction)}
+                    className="w-full py-2 rounded-lg font-semibold bg-yellow-500 hover:bg-yellow-600 text-white shadow-sm transition-colors"
+                  >
+                    Editar
+                  </button>
+                  <button
+                    onClick={() => onCancelToggle(selectedAction.id)}
+                    className="w-full py-2 rounded-lg font-semibold bg-red-500 hover:bg-red-600 text-white shadow-sm transition-colors"
+                  >
+                    {selectedAction.status === 'Pendente'
+                      ? 'Cancelar'
+                      : 'Reabrir'}
+                  </button>
+                  <button
+                    onClick={() => setFinancaToDelete(selectedAction)}
+                    className="w-full py-2 rounded-lg font-semibold bg-red-700 hover:bg-red-800 text-white shadow-sm transition-colors"
+                  >
+                    Excluir
+                  </button>
+                </div>
+                <button
+                  onClick={() => setSelectedAction(null)}
+                  className="mt-6 w-full py-2 rounded-lg font-semibold border border-slate-300 dark:border-slate-600 text-slate-600 dark:text-slate-200 bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 dark:hover:bg-slate-600 transition-colors shadow-sm"
+                >
+                  Fechar
+                </button>
+              </div>
             </div>
           </div>
         )}

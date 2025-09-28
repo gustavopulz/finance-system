@@ -51,4 +51,4 @@ jobs:
             cd /opt/apps/finance-system/backend
             git pull origin master
             docker compose pull && docker compose up -d
-            npx prisma migrate deploy
+            docker compose exec -T finance-system-api npx prisma migrate deploy

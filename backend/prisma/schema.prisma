@@ -12,7 +12,7 @@ model Users {
   email      String        @unique @db.VarChar(255)
   name       String        @db.VarChar(150)
   password   String        @db.VarChar(255)
-  role       Role          @default(USER)
+  role       Role          @default(user)
   createdAt  DateTime      @default(now())
   updatedAt  DateTime      @updatedAt
   bills      Bills[]
@@ -43,7 +43,7 @@ model Bills {
   value         Decimal    @db.Decimal(12, 2)
   month         Int
   year          Int
-  status        BillStatus @default(PENDING)
+  status        BillStatus @default(pending)
   paid          Boolean    @default(false)
   dtPaid        DateTime?
   cancelledAt   DateTime?
@@ -79,12 +79,12 @@ model ShareTokens {
 }
 
 enum Role {
-  USER
-  ADMIN
+  user
+  admin
 }
 
 enum BillStatus {
-  PENDING
-  PAID
-  CANCELLED
+  pending
+  paid
+  cancelled
 }

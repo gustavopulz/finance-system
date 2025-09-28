@@ -4,7 +4,15 @@ import type { Account } from '../../lib/types';
 import { Trash2, GripVertical, ChevronDown, ChevronUp } from 'lucide-react';
 import { useMemo, useState, useEffect } from 'react';
 import { deleteCollab } from '../../lib/api';
-import FinanceTableInnerTable from './FinanceTableInnerTable';
+import {
+  CheckCircle,
+  Ban,
+  Pencil,
+  MoreVertical,
+  PlayCircle,
+  Clock,
+} from 'lucide-react';
+import React from 'react';
 
 // Funções para persistir a ordenação no localStorage
 const getSortState = (collaboratorId: string) => {
@@ -115,6 +123,19 @@ export default function FinanceTable({
   // Estado para expandir/collapse do cancelado em (mobile)
   const [expandedCancel, setExpandedCancel] = useState<string | null>(null);
 
+  // Seleção múltipla
+  const toggleItemSelection = (itemId: string) => {
+    setSelectedItems((prev) => {
+      const newSet = new Set(prev);
+      if (newSet.has(itemId)) {
+        newSet.delete(itemId);
+      } else {
+        newSet.add(itemId);
+      }
+      return newSet;
+    });
+  };
+
   const toggleSelectAll = () => {
     if (selectedItems.size === localItems.length) {
       setSelectedItems(new Set());
@@ -127,11 +148,39 @@ export default function FinanceTable({
     setSelectedItems(new Set());
   };
 
+  const handleBulkPaidToggle = async (markAsPaid: boolean) => {
+    const selectedAccounts = localItems.filter((item) =>
+      selectedItems.has(item.id)
+    );
+    const accountIds = selectedAccounts.map((a) => a.id);
+    try {
+      await markAccountPaid(accountIds, markAsPaid);
+      setLocalItems((prev) =>
+        prev.map((item) =>
+          accountIds.includes(item.id)
+            ? {
+                ...item,
+                paid: markAsPaid,
+                dtPaid: markAsPaid ? new Date().toISOString() : undefined,
+              }
+            : item
+        )
+      );
+      accountIds.forEach((id) => onPaidUpdate?.(id, markAsPaid));
+      setToast(
+        `${accountIds.length} finança(s) marcada(s) como ${markAsPaid ? 'paga(s)' : 'não paga(s)'} ✅`
+      );
+    } catch (error) {
+      setToast('Erro ao marcar contas');
+    }
+    clearSelection();
+    setTimeout(() => setToast(null), 3000);
+  };
+
   const handleBulkDelete = async () => {
     const selectedAccounts = localItems.filter((item) =>
       selectedItems.has(item.id)
     );
-
     const accountIds = selectedAccounts.map((a) => a.id);
     try {
       await onDelete(accountIds);
@@ -404,7 +453,16 @@ export default function FinanceTable({
                 e.stopPropagation();
                 setIsCollapsed(!isCollapsed);
               }}
+              onMouseDown={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+              }}
+              onPointerDown={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+              }}
               className="p-1 hover:bg-slate-200 dark:hover:bg-slate-600 rounded transition-colors relative z-10"
+              style={{ pointerEvents: 'auto', cursor: 'pointer' }}
               title={isCollapsed ? 'Expandir tabela' : 'Colapsar tabela'}
             >
               {isCollapsed ? (
@@ -420,6 +478,95 @@ export default function FinanceTable({
               )}
             </button>
           </div>
+
+          {/* Ações em lote */}
+          {selectedItems.size > 0 && (
+            <div className="flex items-center gap-2 mr-4">
+              <span className="text-sm text-slate-600 dark:text-slate-400">
+                {selectedItems.size} selecionado(s)
+              </span>
+              <button
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  handleBulkPaidToggle(true);
+                }}
+                onMouseDown={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                }}
+                onPointerDown={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                }}
+                className="px-3 py-1 text-xs bg-green-600 text-white rounded hover:bg-green-700"
+                title="Marcar selecionados como pagos"
+                style={{ pointerEvents: 'auto', cursor: 'pointer' }}
+              >
+                Marcar Pago
+              </button>
+              <button
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  handleBulkPaidToggle(false);
+                }}
+                onMouseDown={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                }}
+                onPointerDown={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                }}
+                className="px-3 py-1 text-xs bg-yellow-600 text-white rounded hover:bg-yellow-700"
+                title="Marcar selecionados como não pagos"
+                style={{ pointerEvents: 'auto', cursor: 'pointer' }}
+              >
+                Marcar Pendente
+              </button>
+              <button
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  setShowBulkDeleteConfirm(true);
+                }}
+                onMouseDown={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                }}
+                onPointerDown={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                }}
+                className="px-3 py-1 text-xs bg-red-600 text-white rounded hover:bg-red-700"
+                title="Excluir selecionados"
+                style={{ pointerEvents: 'auto', cursor: 'pointer' }}
+              >
+                Excluir
+              </button>
+              <button
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  clearSelection();
+                }}
+                onMouseDown={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                }}
+                onPointerDown={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                }}
+                className="px-2 py-1 text-xs text-slate-600 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200"
+                title="Limpar seleção"
+                style={{ pointerEvents: 'auto', cursor: 'pointer' }}
+              >
+                ✕
+              </button>
+            </div>
+          )}
 
           <div className="flex items-center gap-2">
             <div className="badge bg-slate-200 dark:bg-slate-800 text-slate-700 dark:text-slate-100">
@@ -497,26 +644,217 @@ export default function FinanceTable({
         </div>
 
         <div className="border border-slate-300 dark:border-slate-700 shadow-sm rounded-b-md">
-          <FinanceTableInnerTable
-            displayData={displayData}
-            selectedItems={selectedItems}
-            toggleSelectAll={toggleSelectAll}
-            handleSortChange={handleSortChange}
-            sortKey={sortKey}
-            sortOrder={sortOrder}
-            onEdit={onEdit}
-            onCancelToggle={onCancelToggle}
-            setFinancaToDelete={setFinancaToDelete}
-            setSelectedAction={setSelectedAction}
-            expandedCancel={expandedCancel}
-            setExpandedCancel={setExpandedCancel}
-            currentComp={currentComp}
-            getStatusBadge={getStatusBadge}
-            isAccountPaidInMonth={isAccountPaidInMonth}
-            handlePaidToggle={handlePaidToggle}
-            parcelaLabel={parcelaLabel}
-            brl={brl}
-          />
+          <div className="w-full px-0">
+            <table className="text-xs sm:text-sm text-left border-collapse w-full table-auto">
+              <thead className="bg-slate-100 dark:bg-slate-700/60 text-slate-700 dark:text-slate-300">
+                <tr>
+                  {/* Checkbox oculto no mobile */}
+                  <th className="px-2 sm:px-6 py-3 sm:py-4 font-medium text-center hidden sm:table-cell">
+                    <input
+                      type="checkbox"
+                      checked={
+                        selectedItems.size === displayData.length &&
+                        displayData.length > 0
+                      }
+                      onChange={toggleSelectAll}
+                      className="custom-checkbox"
+                      title="Selecionar todos"
+                    />
+                  </th>
+                  <th
+                    className="px-2 sm:px-6 py-3 sm:py-4 font-medium text-left cursor-pointer break-words"
+                    onClick={() => handleSortChange('description')}
+                  >
+                    Descrição{' '}
+                    {sortKey === 'description' &&
+                      (sortOrder === 'asc' ? '↑' : '↓')}
+                  </th>
+                  <th
+                    className="px-2 sm:px-6 py-3 sm:py-4 font-medium text-left cursor-pointer break-words"
+                    onClick={() => handleSortChange('value')}
+                  >
+                    Valor{' '}
+                    {sortKey === 'value' && (sortOrder === 'asc' ? '↑' : '↓')}
+                  </th>
+                  <th
+                    className="px-2 sm:px-6 py-3 sm:py-4 font-medium text-center cursor-pointer break-words"
+                    onClick={() => handleSortChange('parcelas')}
+                  >
+                    Parcela{' '}
+                    {sortKey === 'parcelas' &&
+                      (sortOrder === 'asc' ? '↑' : '↓')}
+                  </th>
+                  <th
+                    className="px-2 sm:px-6 py-3 sm:py-4 font-medium text-center cursor-pointer break-words"
+                    onClick={() => handleSortChange('status')}
+                  >
+                    Status{' '}
+                    {sortKey === 'status' && (sortOrder === 'asc' ? '↑' : '↓')}
+                  </th>
+                  <th className="px-2 sm:px-6 py-3 sm:py-4 font-medium text-center hidden sm:table-cell">
+                    Pago
+                  </th>
+                  <th className="px-2 sm:px-6 py-3 sm:py-4 font-medium text-center break-words">
+                    Ações
+                  </th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-200 dark:divide-slate-700">
+                {displayData.map((f: Account, idx: number) => (
+                  <tr
+                    key={f.id}
+                    className={`hover:bg-slate-50 dark:hover:bg-slate-700/30 transition ${
+                      idx % 2 === 0
+                        ? 'bg-white dark:bg-slate-800/40'
+                        : 'bg-slate-50 dark:bg-slate-900/40'
+                    }`}
+                  >
+                    {/* Checkbox oculto no mobile */}
+                    <td className="px-2 sm:px-6 py-3 sm:py-4 text-center hidden sm:table-cell">
+                      <input
+                        type="checkbox"
+                        checked={selectedItems.has(f.id)}
+                        onChange={() => toggleItemSelection(f.id)}
+                        className="custom-checkbox"
+                      />
+                    </td>
+                    <td className="break-words px-2 sm:px-6 py-3 sm:py-4 font-medium text-slate-800 dark:text-slate-100">
+                      {f.description}
+                    </td>
+                    <td className="break-words px-2 sm:px-6 py-3 sm:py-4 text-slate-600 dark:text-slate-400">
+                      {brl(Number(f.value))}
+                    </td>
+                    <td className="break-words px-2 sm:px-6 py-3 sm:py-4 text-center text-slate-600 dark:text-slate-400">
+                      {parcelaLabel(f, currentComp)}
+                    </td>
+
+                    {/* STATUS */}
+                    <td className="break-words px-2 sm:px-6 py-3 sm:py-4 text-center">
+                      <div className="hidden sm:block">
+                        {f.status === 'Cancelado' ? (
+                          <>
+                            <button
+                              onClick={() =>
+                                setExpandedCancel(
+                                  expandedCancel === f.id ? null : f.id
+                                )
+                              }
+                              className="text-red-500 underline"
+                            >
+                              {getStatusBadge(f)}
+                            </button>
+                            {f.cancelledAt && expandedCancel === f.id && (
+                              <div className="text-xs text-slate-400 mt-1">
+                                Cancelado em:{' '}
+                                {new Date(f.cancelledAt).toLocaleDateString(
+                                  'pt-BR',
+                                  {
+                                    year: 'numeric',
+                                    month: '2-digit',
+                                  }
+                                )}
+                              </div>
+                            )}
+                          </>
+                        ) : (
+                          getStatusBadge(f)
+                        )}
+                      </div>
+
+                      <div className="sm:hidden flex items-center justify-center">
+                        {isAccountPaidInMonth(f, currentComp) ? (
+                          <CheckCircle className="text-green-500" size={18} />
+                        ) : f.status === 'Pendente' ? (
+                          <Clock className="text-yellow-500" size={18} />
+                        ) : f.status === 'Cancelado' ? (
+                          <button
+                            onClick={() =>
+                              setExpandedCancel(
+                                expandedCancel === f.id ? null : f.id
+                              )
+                            }
+                            className="text-red-500"
+                          >
+                            <Ban size={18} />
+                          </button>
+                        ) : f.status === 'ativo' ? (
+                          <PlayCircle className="text-blue-500" size={18} />
+                        ) : null}
+                      </div>
+
+                      {f.cancelledAt && expandedCancel === f.id && (
+                        <div className="sm:hidden text-xs text-slate-400 mt-1">
+                          Cancelado em:{' '}
+                          {new Date(f.cancelledAt).toLocaleDateString('pt-BR', {
+                            year: 'numeric',
+                            month: '2-digit',
+                          })}
+                        </div>
+                      )}
+                    </td>
+
+                    {/* pago - escondido no mobile */}
+                    <td className="px-2 sm:px-6 py-3 sm:py-4 text-center hidden sm:table-cell">
+                      <input
+                        type="checkbox"
+                        checked={isAccountPaidInMonth(f, currentComp)}
+                        onChange={() => handlePaidToggle(f)}
+                        aria-label="Marcar como pago"
+                        className="custom-checkbox"
+                      />
+                    </td>
+
+                    {/* AÇÕES */}
+                    <td className="px-2 sm:px-6 py-3 sm:py-4 text-center">
+                      <div className="flex items-center justify-center">
+                        <div className="hidden sm:flex items-center gap-2">
+                          <button
+                            className="p-2 text-slate-500 hover:text-yellow-500"
+                            onClick={() => onEdit(f)}
+                            aria-label="Editar"
+                          >
+                            <Pencil size={16} />
+                          </button>
+                          <button
+                            className="p-2 text-slate-500 hover:text-red-400"
+                            onClick={() => onCancelToggle(f.id)}
+                            aria-label={
+                              f.status === 'Pendente' || f.status === 'ativo'
+                                ? 'Cancelar lançamento'
+                                : 'Reabrir como pendente'
+                            }
+                          >
+                            {f.status === 'Pendente' || f.status === 'ativo' ? (
+                              <Ban size={16} />
+                            ) : (
+                              <CheckCircle size={16} />
+                            )}
+                          </button>
+                          <button
+                            className="p-2 text-slate-500 hover:text-red-600"
+                            onClick={() => setFinancaToDelete(f)}
+                            aria-label="Excluir"
+                          >
+                            <Trash2 size={16} />
+                          </button>
+                        </div>
+
+                        {/* Mobile: menu */}
+                        <div className="sm:hidden">
+                          <button
+                            className="p-2 text-slate-500 hover:text-slate-300"
+                            onClick={() => setSelectedAction(f)}
+                          >
+                            <MoreVertical size={18} />
+                          </button>
+                        </div>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         </div>
 
         {/* Modal de ações - Mobile */}

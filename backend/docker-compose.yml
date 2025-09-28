@@ -7,22 +7,17 @@ services:
       - .env
     labels:
       - "traefik.enable=true"
-
-      # Router HTTPS
       - "traefik.http.routers.finance-system-api.rule=Host(`finance-system-api.prxlab.app`)"
       - "traefik.http.routers.finance-system-api.entrypoints=websecure"
       - "traefik.http.routers.finance-system-api.tls.certresolver=letsencrypt"
       - "traefik.http.routers.finance-system-api.service=finance-system-api"
-
-      # Service
       - "traefik.http.services.finance-system-api.loadbalancer.server.port=3000"
 
-      # disable middlewares
-      - "traefik.http.routers.finance-system-api.middlewares="
     networks:
-      - proxy
-      - internal
-
+      proxy:
+        aliases:
+          - finance-system-api
+      internal:
 
   postgres:
     image: postgres:16

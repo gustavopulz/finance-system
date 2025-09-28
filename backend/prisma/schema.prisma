@@ -17,7 +17,7 @@ model Users {
   updatedAt  DateTime      @updatedAt
   bills      Bills[]
   cards      Cards[]
-  
+
   tokens     ShareTokens[] @relation("TokensCreatedBy")
   claimedTokens ShareTokens[] @relation("TokenClaimedBy")
   sharesWith CardShares[]  @relation("SharesWith")
@@ -43,20 +43,37 @@ model Bills {
   userId        String     @db.Uuid
   description   String?    @db.VarChar(255)
   value         Decimal    @db.Decimal(12, 2)
-  dueDate       DateTime
-  status        BillStatus @default(pending)
-  paid          Boolean    @default(false)
-  dtPaid        DateTime?
-  cancelledAt   DateTime?
-  parcelado     Boolean    @default(false)
-  parcelasNum   Int?
+  type          BillType   @default(one_time)
+  parcelasNum   Int?       // usado se for installment
   category      String?    @db.VarChar(100)
+  startDate     DateTime   // data da primeira ocorrência
+  endDate       DateTime?  // opcional (ex: até terminar parcelas ou cancelada)
   createdAt     DateTime   @default(now())
   updatedAt     DateTime   @updatedAt
 
+  // relações
   card          Cards      @relation(fields: [cardId], references: [id])
   user          Users      @relation(fields: [userId], references: [id])
+  occurrences   BillOccurrences[]
 }
+
+model BillOccurrences {
+  id          String     @id @default(uuid()) @db.Uuid
+  billId      String     @db.Uuid
+  month       Int        // 1-12
+  year        Int
+  dueDate     DateTime   // vencimento real
+  status      BillStatus @default(pending)
+  paidAt      DateTime?
+  cancelledAt DateTime?
+  createdAt   DateTime   @default(now())
+
+  bill        Bills      @relation(fields: [billId], references: [id])
+
+  @@unique([billId, month, year]) // garante 1 ocorrência por mês
+  @@index([year, month])
+}
+
 
 model CardShares {
   id               String   @id @default(uuid()) @db.Uuid
@@ -100,4 +117,10 @@ enum BillStatus {
   pending
   paid
   cancelled
+}
+
+enum BillType {
+  fixed       // recorrente
+  one_time    // avulsa
+  installment // parcelada
 }

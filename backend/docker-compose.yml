@@ -19,7 +19,6 @@ services:
 
       # disable middlewares
       - "traefik.http.routers.finance-system-api.middlewares="
-
     networks:
       - proxy
       - internal

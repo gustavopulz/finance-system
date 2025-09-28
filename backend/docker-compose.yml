@@ -10,6 +10,17 @@ services:
       - "traefik.http.routers.finance-system-api.rule=Host(`finance-system-api.prxlab.app`)"
       - "traefik.http.routers.finance-system-api.entrypoints=websecure"
       - "traefik.http.routers.finance-system-api.tls.certresolver=letsencrypt"
+
+      # 👇 Ativa middleware de CORS
+      - "traefik.http.routers.finance-system-api.middlewares=finance-cors"
+
+      # 👇 Define o middleware de CORS
+      - "traefik.http.middlewares.finance-cors.headers.accessControlAllowOriginList=https://finance-system.prxlab.app,http://localhost:5173"
+      - "traefik.http.middlewares.finance-cors.headers.accessControlAllowMethods=GET,POST,PUT,PATCH,DELETE,OPTIONS"
+      - "traefik.http.middlewares.finance-cors.headers.accessControlAllowHeaders=*"
+      - "traefik.http.middlewares.finance-cors.headers.accessControlAllowCredentials=true"
+      - "traefik.http.middlewares.finance-cors.headers.accessControlMaxAge=100"
+
     networks:
       - proxy
       - internal
@@ -25,7 +36,7 @@ services:
     networks:
       - internal
     ports:
-      - "${POSTGRES_PORT}:5432"  # porta definida no .env
+      - "${POSTGRES_PORT}:5432"
 
 networks:
   proxy:

@@ -11,6 +11,7 @@ services:
       - "traefik.http.routers.finance-system-api.entrypoints=websecure"
       - "traefik.http.routers.finance-system-api.tls.certresolver=letsencrypt"
       - "traefik.http.routers.finance-system-api.service=finance-system-api"
+      - "traefik.docker.network=proxy"
       - "traefik.http.services.finance-system-api.loadbalancer.server.port=3000"
 
     networks:

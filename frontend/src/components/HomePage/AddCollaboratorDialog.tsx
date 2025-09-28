@@ -24,9 +24,8 @@ export default function AddCollaboratorDialog({
 
   return (
     <div className="fixed inset-0 bg-black/30 backdrop-blur-sm flex items-center justify-center p-4 z-50">
-      <div className="card w-full max-w-md p-5">
+      <div className="w-full max-w-md p-5 rounded-xl shadow-lg bg-white dark:bg-slate-900 relative">
         <h3 className="text-lg font-semibold mb-3">Novo colaborador</h3>
-
         <form onSubmit={handleSubmit(submit)} className="grid gap-3">
           <label className="grid gap-1">
             <span className="text-sm font-medium">Nome</span>
@@ -42,11 +41,10 @@ export default function AddCollaboratorDialog({
               </span>
             )}
           </label>
-
           <div className="mt-2 flex justify-end gap-2">
             <button
               type="button"
-              className="border border-slate-300 dark:border-slate-700 flex items-center gap-2 bg-transparent hover:bg-slate-700 text-white px-4 py-2 rounded-md transition"
+              className="border border-slate-300 dark:border-slate-700 flex items-center gap-2 bg-transparent hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-700 dark:text-white px-4 py-2 rounded-md transition"
               onClick={onClose}
             >
               Cancelar

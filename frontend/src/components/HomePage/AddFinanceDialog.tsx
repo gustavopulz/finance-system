@@ -312,7 +312,7 @@ export default function AddFinanceDialog({
           <div className="mt-2 flex justify-end gap-2">
             <button
               type="button"
-              className="border border-slate-300 dark:border-slate-700 flex items-center gap-2 bg-transparent hover:bg-slate-700 text-white px-4 py-2 rounded-md transition"
+              className="border border-slate-300 dark:border-slate-700 flex items-center gap-2 bg-transparent hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-700 dark:text-white px-4 py-2 rounded-md transition"
               onClick={onClose}
             >
               Cancelar

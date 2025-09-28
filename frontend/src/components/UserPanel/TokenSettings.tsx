@@ -214,7 +214,7 @@ export default function TokenSettings({ active }: { active: boolean }) {
         </h3>
         <div className="ml-auto flex items-center gap-2">
           <button
-            className="border border-slate-300 dark:border-slate-700 flex items-center gap-2 bg-transparent hover:bg-slate-700 text-white px-4 py-2 rounded-md transition"
+            className="border border-slate-300 dark:border-slate-700 flex items-center gap-2 bg-transparent hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-700 dark:text-white px-4 py-2 rounded-md transition"
             onClick={() => setTokenModalOpen(true)}
           >
             <SlidersHorizontal size={16} /> Configurar token
@@ -237,7 +237,7 @@ export default function TokenSettings({ active }: { active: boolean }) {
             readOnly
           />
           <button
-            className="border border-slate-300 dark:border-slate-700 flex items-center gap-2 bg-transparent hover:bg-slate-700 text-white px-4 py-2 rounded-md transition"
+            className="border border-slate-300 dark:border-slate-700 flex items-center gap-2 bg-transparent hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-700 dark:text-white px-4 py-2 rounded-md transition"
             onClick={() => {
               navigator.clipboard.writeText(token);
               setCopied(true);
@@ -409,7 +409,7 @@ export default function TokenSettings({ active }: { active: boolean }) {
             </div>
             <div className="flex justify-end gap-2">
               <button
-                className="border border-slate-300 dark:border-slate-700 flex items-center gap-2 bg-transparent hover:bg-slate-700 text-white px-4 py-2 rounded-md transition"
+                className="border border-slate-300 dark:border-slate-700 flex items-center gap-2 bg-transparent hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-700 dark:text-white px-4 py-2 rounded-md transition"
                 onClick={() => setTokenModalOpen(false)}
               >
                 Cancelar
@@ -496,7 +496,7 @@ export default function TokenSettings({ active }: { active: boolean }) {
             </div>
             <div className="flex justify-end gap-2">
               <button
-                className="border border-slate-300 dark:border-slate-700 flex items-center gap-2 bg-transparent hover:bg-slate-700 text-white px-4 py-2 rounded-md transition"
+                className="border border-slate-300 dark:border-slate-700 flex items-center gap-2 bg-transparent hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-700 dark:text-white px-4 py-2 rounded-md transition"
                 onClick={() =>
                   setLinkConfigOpen({ open: false, otherUserId: null })
                 }

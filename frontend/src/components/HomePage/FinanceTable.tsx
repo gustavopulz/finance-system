@@ -305,7 +305,7 @@ export default function FinanceTable({
     // Verifica se está pago com base na nova lógica
     if (isAccountPaidInMonth(account, currentComp)) {
       return (
-        <span className="badge bg-green-100 dark:bg-green-500/30 text-green-700 dark:text-green-300">
+        <span className="badge bg-green-500 text-white dark:bg-green-500/30 dark:text-green-300">
           Pago
         </span>
       );
@@ -322,7 +322,7 @@ export default function FinanceTable({
         (paidYear === currentComp.year && paidMonth > currentComp.month)
       ) {
         return (
-          <span className="badge bg-blue-100 dark:bg-blue-500/30 text-blue-700 dark:text-blue-300">
+          <span className="badge bg-blue-500 text-white dark:bg-blue-500/30 dark:text-blue-300">
             Pago Futuramente
           </span>
         );
@@ -331,7 +331,7 @@ export default function FinanceTable({
 
     if (account.status === 'Cancelado') {
       return (
-        <span className="badge bg-red-100 dark:bg-red-500/30 text-red-700 dark:text-red-300">
+        <span className="badge bg-red-500 text-white dark:bg-red-500/30 dark:text-red-300">
           Cancelado
         </span>
       );
@@ -339,7 +339,7 @@ export default function FinanceTable({
 
     // Se não está pago e não está cancelado, está pendente
     return (
-      <span className="badge bg-yellow-100 dark:bg-yellow-500/30 text-yellow-700 dark:text-yellow-300">
+      <span className="badge bg-yellow-400 text-yellow-900 dark:bg-yellow-500/30 dark:text-yellow-300">
         Pendente
       </span>
     );
@@ -569,13 +569,13 @@ export default function FinanceTable({
           )}
 
           <div className="flex items-center gap-2">
-            <div className="badge bg-slate-200 dark:bg-slate-800 text-slate-700 dark:text-slate-100">
+            <div className="badge bg-slate-500 text-white dark:bg-slate-800 dark:text-slate-100 font-semibold">
               Total: {brl(Number(total))}
             </div>
-            <div className="badge bg-yellow-100 dark:bg-yellow-500/30 text-yellow-700 dark:text-yellow-300">
+            <div className="badge bg-yellow-400 text-yellow-900 dark:bg-yellow-500/30 dark:text-yellow-300 font-semibold">
               Total pendente: {brl(Number(totalPendente))}
             </div>
-            <div className="badge bg-green-100 dark:bg-green-500/30 text-green-700 dark:text-green-300">
+            <div className="badge bg-green-500 text-white dark:bg-green-500/30 dark:text-green-300 font-semibold">
               Total pago: {brl(Number(totalPago))}
             </div>
             <button
@@ -623,13 +623,13 @@ export default function FinanceTable({
           {/* Linha 2: Totais + Excluir */}
           <div className="flex flex-col gap-2 items-start w-full">
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 w-full">
-              <div className="badge bg-slate-200 dark:bg-slate-800 text-slate-700 dark:text-slate-100 w-full text-center">
+              <div className="badge bg-slate-500 text-white dark:bg-slate-800 dark:text-slate-100 w-full text-center font-semibold">
                 Total: {brl(Number(total))}
               </div>
-              <div className="badge bg-yellow-100 dark:bg-yellow-500/30 text-yellow-700 dark:text-yellow-300 w-full text-center">
+              <div className="badge bg-yellow-400 text-yellow-900 dark:bg-yellow-500/30 dark:text-yellow-300 w-full text-center font-semibold">
                 Total pendente: {brl(Number(totalPendente))}
               </div>
-              <div className="badge bg-green-100 dark:bg-green-500/30 text-green-700 dark:text-green-300 w-full text-center">
+              <div className="badge bg-green-500 text-white dark:bg-green-500/30 dark:text-green-300 w-full text-center font-semibold">
                 Total pago: {brl(Number(totalPago))}
               </div>
             </div>

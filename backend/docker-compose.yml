@@ -8,11 +8,16 @@ services:
     labels:
       - "traefik.enable=true"
 
-      # Router
+      # Router HTTPS
       - "traefik.http.routers.finance-system-api.rule=Host(`finance-system-api.prxlab.app`)"
       - "traefik.http.routers.finance-system-api.entrypoints=websecure"
       - "traefik.http.routers.finance-system-api.tls.certresolver=letsencrypt"
       - "traefik.http.routers.finance-system-api.service=finance-system-api"
+
+      # Router HTTP (fallback)
+      - "traefik.http.routers.finance-system-api-http.rule=Host(`finance-system-api.prxlab.app`)"
+      - "traefik.http.routers.finance-system-api-http.entrypoints=web"
+      - "traefik.http.routers.finance-system-api-http.service=finance-system-api"
 
       # Service
       - "traefik.http.services.finance-system-api.loadbalancer.server.port=3000"
@@ -25,12 +30,10 @@ services:
       - "traefik.http.middlewares.finance-cors.headers.accessControlAllowCredentials=true"
       - "traefik.http.middlewares.finance-cors.headers.accessControlMaxAge=100"
 
-    ports:
-      - "3000:3000"
-
     networks:
       - proxy
       - internal
+
 
   postgres:
     image: postgres:16

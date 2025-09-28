@@ -17,6 +17,9 @@ services:
       # Service
       - "traefik.http.services.finance-system-api.loadbalancer.server.port=3000"
 
+      # disable middlewares
+      - "traefik.http.routers.finance-system-api.middlewares="
+
     networks:
       - proxy
       - internal

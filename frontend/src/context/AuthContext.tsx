@@ -19,7 +19,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
 
-  // 🔒 Handlers globais
   useEffect(() => {
     api.setAuthFailureHandler(() => {
       logout();
@@ -30,7 +29,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     });
   }, []);
 
-  // 🔄 Puxa usuário inicial
   useEffect(() => {
     async function fetchUser() {
       try {

@@ -4,7 +4,7 @@ services:
     container_name: finance-system-api
     restart: always
     env_file:
-      - .env   # esse arquivo fica apenas na VM
+      - .env
     labels:
       - "traefik.enable=true"
       - "traefik.http.routers.finance-system-api.rule=Host(`finance-system-api.prxlab.app`)"
@@ -12,7 +12,26 @@ services:
       - "traefik.http.routers.finance-system-api.tls.certresolver=letsencrypt"
     networks:
       - proxy
+      - internal
+
+  postgres:
+    image: postgres:16
+    container_name: finance-system-db
+    restart: always
+    env_file:
+      - .env
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - internal
+    ports:
+      - "${POSTGRES_PORT}:5432"  # porta definida no .env
 
 networks:
   proxy:
     external: true
+  internal:
+    driver: bridge
+
+volumes:
+  postgres_data:

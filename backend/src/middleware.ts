@@ -5,7 +5,7 @@ import { verifyToken } from '@/lib/jwt'
 
 export const config = {
   matcher: '/api/:path*',
-  runtime: 'nodejs', // 🚀 força runtime Node em vez de Edge
+  runtime: 'nodejs',
 }
 
 // 🔧 Função utilitária para headers CORS

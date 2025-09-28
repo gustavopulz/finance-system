@@ -55,12 +55,12 @@ const FinanceTableInnerTable: React.FC<FinanceTableInnerTableProps> = ({
   brl,
 }) => {
   return (
-    <div className="overflow-x-auto">
-      <table className="text-sm text-left border-collapse">
+    <div className="w-full px-0">
+      <table className="text-xs sm:text-sm text-left border-collapse w-full table-auto">
         <thead className="bg-slate-100 dark:bg-slate-700/60 text-slate-700 dark:text-slate-300">
           <tr>
             {/* Checkbox oculto no mobile */}
-            <th className="px-4 py-3 font-medium text-center w-[5%] hidden sm:table-cell">
+            <th className="px-1 sm:px-2 py-2 sm:py-3 font-medium text-center hidden sm:table-cell">
               <input
                 type="checkbox"
                 checked={
@@ -73,35 +73,37 @@ const FinanceTableInnerTable: React.FC<FinanceTableInnerTableProps> = ({
               />
             </th>
             <th
-              className="px-6 py-3 font-medium text-left w-[28%] cursor-pointer"
+              className="px-1 sm:px-4 py-2 sm:py-3 font-medium text-left cursor-pointer break-words"
               onClick={() => handleSortChange('description')}
             >
               Descrição{' '}
               {sortKey === 'description' && (sortOrder === 'asc' ? '↑' : '↓')}
             </th>
             <th
-              className="px-4 py-3 font-medium text-left w-[10%] cursor-pointer"
+              className="px-1 sm:px-2 py-2 sm:py-3 font-medium text-left cursor-pointer break-words"
               onClick={() => handleSortChange('value')}
             >
               Valor {sortKey === 'value' && (sortOrder === 'asc' ? '↑' : '↓')}
             </th>
             <th
-              className="px-4 py-3 font-medium text-center w-[10%] cursor-pointer"
+              className="px-1 sm:px-2 py-2 sm:py-3 font-medium text-center cursor-pointer break-words"
               onClick={() => handleSortChange('parcelas')}
             >
               Parcela{' '}
               {sortKey === 'parcelas' && (sortOrder === 'asc' ? '↑' : '↓')}
             </th>
             <th
-              className="px-4 py-3 font-medium text-center w-[12%] cursor-pointer"
+              className="px-1 sm:px-2 py-2 sm:py-3 font-medium text-center cursor-pointer break-words"
               onClick={() => handleSortChange('status')}
             >
               Status {sortKey === 'status' && (sortOrder === 'asc' ? '↑' : '↓')}
             </th>
-            <th className="px-4 py-3 font-medium text-center w-[8%] hidden sm:table-cell">
+            <th className="px-1 sm:px-2 py-2 sm:py-3 font-medium text-center hidden sm:table-cell">
               Pago
             </th>
-            <th className="px-2 py-3 font-medium text-center w-[8%]">Ações</th>
+            <th className="px-1 sm:px-2 py-2 sm:py-3 font-medium text-center break-words">
+              Ações
+            </th>
           </tr>
         </thead>
         <tbody className="divide-y divide-slate-200 dark:divide-slate-700">
@@ -115,7 +117,7 @@ const FinanceTableInnerTable: React.FC<FinanceTableInnerTableProps> = ({
               }`}
             >
               {/* Checkbox oculto no mobile */}
-              <td className="px-4 py-3 text-center hidden sm:table-cell">
+              <td className="px-1 sm:px-2 py-2 sm:py-3 text-center hidden sm:table-cell">
                 <input
                   type="checkbox"
                   checked={selectedItems.has(f.id)}
@@ -124,18 +126,18 @@ const FinanceTableInnerTable: React.FC<FinanceTableInnerTableProps> = ({
                   readOnly
                 />
               </td>
-              <td className="break-words px-6 py-3 font-medium text-slate-800 dark:text-slate-100">
+              <td className="break-words px-1 sm:px-4 py-2 sm:py-3 font-medium text-slate-800 dark:text-slate-100">
                 {f.description}
               </td>
-              <td className="break-words px-4 py-3 text-slate-600 dark:text-slate-400">
+              <td className="break-words px-1 sm:px-2 py-2 sm:py-3 text-slate-600 dark:text-slate-400">
                 {brl(Number(f.value))}
               </td>
-              <td className="break-words px-4 py-3 text-center text-slate-600 dark:text-slate-400">
+              <td className="break-words px-1 sm:px-2 py-2 sm:py-3 text-center text-slate-600 dark:text-slate-400">
                 {parcelaLabel(f, currentComp)}
               </td>
 
               {/* STATUS */}
-              <td className="break-words px-4 py-3 text-center">
+              <td className="break-words px-1 sm:px-2 py-2 sm:py-3 text-center">
                 <div className="hidden sm:block">
                   {f.status === 'Cancelado' ? (
                     <>
@@ -195,7 +197,7 @@ const FinanceTableInnerTable: React.FC<FinanceTableInnerTableProps> = ({
               </td>
 
               {/* pago - escondido no mobile */}
-              <td className="px-4 py-3 text-center hidden sm:table-cell">
+              <td className="px-1 sm:px-2 py-2 sm:py-3 text-center hidden sm:table-cell">
                 <input
                   type="checkbox"
                   checked={isAccountPaidInMonth(f, currentComp)}
@@ -206,7 +208,7 @@ const FinanceTableInnerTable: React.FC<FinanceTableInnerTableProps> = ({
               </td>
 
               {/* AÇÕES */}
-              <td className="px-2 py-3 text-center">
+              <td className="px-1 sm:px-2 py-2 sm:py-3 text-center">
                 <div className="flex items-center justify-center">
                   <div className="hidden sm:flex items-center gap-2">
                     <button

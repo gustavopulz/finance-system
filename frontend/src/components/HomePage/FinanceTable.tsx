@@ -384,7 +384,7 @@ export default function FinanceTable({
 
   return (
     <>
-      <section className="relative max-w-full w-full">
+      <section className="relative">
         {/* Cabeçalho DESKTOP */}
         <div
           className="hidden md:flex items-center justify-between px-6 py-2 border border-b-0 border-slate-300 dark:border-slate-700 rounded-t-md cursor-grab"
@@ -496,29 +496,27 @@ export default function FinanceTable({
           </div>
         </div>
 
-        <div className="border border-slate-300 dark:border-slate-700 shadow-sm rounded-b-md w-full">
-          <div className="overflow-x-auto w-full">
-            <FinanceTableInnerTable
-              displayData={displayData}
-              selectedItems={selectedItems}
-              toggleSelectAll={toggleSelectAll}
-              handleSortChange={handleSortChange}
-              sortKey={sortKey}
-              sortOrder={sortOrder}
-              onEdit={onEdit}
-              onCancelToggle={onCancelToggle}
-              setFinancaToDelete={setFinancaToDelete}
-              setSelectedAction={setSelectedAction}
-              expandedCancel={expandedCancel}
-              setExpandedCancel={setExpandedCancel}
-              currentComp={currentComp}
-              getStatusBadge={getStatusBadge}
-              isAccountPaidInMonth={isAccountPaidInMonth}
-              handlePaidToggle={handlePaidToggle}
-              parcelaLabel={parcelaLabel}
-              brl={brl}
-            />
-          </div>
+        <div className="border border-slate-300 dark:border-slate-700 shadow-sm rounded-b-md">
+          <FinanceTableInnerTable
+            displayData={displayData}
+            selectedItems={selectedItems}
+            toggleSelectAll={toggleSelectAll}
+            handleSortChange={handleSortChange}
+            sortKey={sortKey}
+            sortOrder={sortOrder}
+            onEdit={onEdit}
+            onCancelToggle={onCancelToggle}
+            setFinancaToDelete={setFinancaToDelete}
+            setSelectedAction={setSelectedAction}
+            expandedCancel={expandedCancel}
+            setExpandedCancel={setExpandedCancel}
+            currentComp={currentComp}
+            getStatusBadge={getStatusBadge}
+            isAccountPaidInMonth={isAccountPaidInMonth}
+            handlePaidToggle={handlePaidToggle}
+            parcelaLabel={parcelaLabel}
+            brl={brl}
+          />
         </div>
 
         {/* Modal de ações - Mobile */}

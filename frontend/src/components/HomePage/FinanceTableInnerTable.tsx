@@ -145,13 +145,11 @@ const FinanceTableInnerTable: React.FC<FinanceTableInnerTableProps> = ({
               <td className="break-words px-4 py-3 text-center">
                 <div className="hidden sm:block">{getStatusBadge(f)}</div>
                 <div className="sm:hidden flex items-center justify-center">
-                  {f.status === 'Pendente' && (
-                    <Clock className="text-yellow-500" size={18} />
-                  )}
-                  {isAccountPaidInMonth(f, currentComp) && (
+                  {isAccountPaidInMonth(f, currentComp) ? (
                     <CheckCircle className="text-green-500" size={18} />
-                  )}
-                  {f.status === 'Cancelado' && (
+                  ) : f.status === 'Pendente' ? (
+                    <Clock className="text-yellow-500" size={18} />
+                  ) : f.status === 'Cancelado' ? (
                     <button
                       onClick={() =>
                         setExpandedCancel(expandedCancel === f.id ? null : f.id)
@@ -160,11 +158,11 @@ const FinanceTableInnerTable: React.FC<FinanceTableInnerTableProps> = ({
                     >
                       <Ban size={18} />
                     </button>
-                  )}
-                  {f.status === 'ativo' && (
+                  ) : f.status === 'ativo' ? (
                     <PlayCircle className="text-blue-500" size={18} />
-                  )}
+                  ) : null}
                 </div>
+
                 {f.cancelledAt && expandedCancel === f.id && (
                   <div className="sm:hidden text-xs text-slate-400 mt-1">
                     Cancelado em:{' '}

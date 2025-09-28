@@ -1,82 +1,85 @@
-import { NextResponse } from 'next/server'
-import type { NextRequest } from 'next/server'
-import { verifyToken } from '@/lib/jwt'
+import { NextResponse } from 'next/server';
+import type { NextRequest } from 'next/server';
+import { verifyToken } from '@/lib/jwt';
 
 export const config = {
   matcher: '/api/:path*',
-  runtime: 'nodejs',
-}
+  runtime: 'nodejs', // 🚀 força runtime Node em vez de Edge
+};
 
 export function middleware(request: NextRequest) {
-  const origin = request.headers.get('origin') || ''
+  const origin = request.headers.get('origin') || '';
   const allowedOrigins = [
     'https://finance-system.prxlab.app',
     'http://localhost:5173',
-  ]
+  ];
   const allowedOrigin = allowedOrigins.includes(origin)
     ? origin
-    : allowedOrigins[0]
+    : allowedOrigins[0];
 
-  // 🔥 Preflight (OPTIONS)
+  // ✅ Preflight (CORS)
   if (request.method === 'OPTIONS') {
     return new NextResponse(null, {
       status: 204,
-      headers: corsHeaders(request, allowedOrigin),
-    })
+      headers: corsHeaders(allowedOrigin),
+    });
   }
 
-  const isApiRoute = request.nextUrl.pathname.startsWith('/api')
-  const pathname = request.nextUrl.pathname.replace(/\/$/, '')
+  const isApiRoute = request.nextUrl.pathname.startsWith('/api');
+  const pathname = request.nextUrl.pathname.replace(/\/$/, '');
 
-  // Rotas públicas
-  const unprotectedRoutes = [
+  // ✅ Rotas públicas
+  const unprotectedRoutes: string[] = [
     '/api/hello',
     '/api/user/login',
     '/api/user/register',
     '/api/user/refresh',
-  ]
+  ];
 
   if (isApiRoute && !unprotectedRoutes.includes(pathname)) {
-    const token = request.cookies.get('auth_token')?.value
+    const token = request.cookies.get('auth_token')?.value;
+
     if (!token) {
-      return jsonResponse({ error: 'not_authenticated' }, 401, request, allowedOrigin)
+      // 🚨 Sem token nenhum → usuário não autenticado
+      return new NextResponse(JSON.stringify({ error: 'not_authenticated' }), {
+        status: 401,
+        headers: corsHeaders(allowedOrigin),
+      });
     }
 
     try {
-      verifyToken(token)
+      verifyToken(token); // usa função do /lib/jwt
     } catch (err: any) {
       if (err.message === 'Token expirado') {
-        return jsonResponse({ error: 'token_expired' }, 401, request, allowedOrigin)
+        // 🚨 Token existe mas expirou → front deve chamar /user/refresh
+        return new NextResponse(JSON.stringify({ error: 'token_expired' }), {
+          status: 401,
+          headers: corsHeaders(allowedOrigin),
+        });
       }
-      return jsonResponse({ error: 'invalid_token' }, 403, request, allowedOrigin)
+
+      // 🚨 Qualquer outro erro → token inválido
+      return new NextResponse(JSON.stringify({ error: 'invalid_token' }), {
+        status: 403,
+        headers: corsHeaders(allowedOrigin),
+      });
     }
   }
 
-  // ✅ Passa adiante
-  const response = NextResponse.next()
-  Object.entries(corsHeaders(request, allowedOrigin)).forEach(([k, v]) =>
+  // ✅ Resposta padrão
+  const response = NextResponse.next();
+  Object.entries(corsHeaders(allowedOrigin)).forEach(([k, v]) =>
     response.headers.set(k, v)
-  )
-  return response
+  );
+  return response;
 }
 
-// Helpers
-function corsHeaders(request: NextRequest, origin: string) {
+// 🔧 Função utilitária para headers CORS
+function corsHeaders(origin: string, req?: NextRequest) {
   return {
     'Access-Control-Allow-Origin': origin,
     'Access-Control-Allow-Methods': 'GET,POST,PATCH,PUT,DELETE,OPTIONS',
-    'Access-Control-Allow-Headers':
-      request.headers.get('access-control-request-headers') || '*',
+    'Access-Control-Allow-Headers': req?.headers.get("Access-Control-Request-Headers") || "Content-Type, Authorization",
     'Access-Control-Allow-Credentials': 'true',
-  }
-}
-
-function jsonResponse(body: any, status: number, request: NextRequest, origin: string) {
-  return new NextResponse(JSON.stringify(body), {
-    status,
-    headers: {
-      'Content-Type': 'application/json',
-      ...corsHeaders(request, origin),
-    },
-  })
+  };
 }

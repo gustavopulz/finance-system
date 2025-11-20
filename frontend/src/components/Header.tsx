@@ -1,4 +1,4 @@
-import { NavLink } from 'react-router-dom';
+import { NavLink } from "react-router-dom";
 import {
   Moon,
   Sun,
@@ -8,26 +8,26 @@ import {
   PieChart,
   HelpCircle,
   Crown,
-} from 'lucide-react';
-import { useAuth } from '../context/AuthContext';
-import { useEffect, useRef, useState } from 'react';
-import { ProModal } from './ProModal';
+} from "lucide-react";
+import { useAuth } from "../context/AuthContext";
+import { useEffect, useRef, useState } from "react";
+import { ProModal } from "./ProModal";
 
 function useTheme() {
-  const [theme, setTheme] = useState<'light' | 'dark'>(() => {
-    const saved = localStorage.getItem('theme');
-    if (saved === 'light' || saved === 'dark') return saved;
-    return window.matchMedia?.('(prefers-color-scheme: dark)').matches
-      ? 'dark'
-      : 'light';
+  const [theme, setTheme] = useState<"light" | "dark">(() => {
+    const saved = localStorage.getItem("theme");
+    if (saved === "light" || saved === "dark") return saved;
+    return window.matchMedia?.("(prefers-color-scheme: dark)").matches
+      ? "dark"
+      : "light";
   });
 
   useEffect(() => {
     const root = document.documentElement;
-    theme === 'dark'
-      ? root.classList.add('dark')
-      : root.classList.remove('dark');
-    localStorage.setItem('theme', theme);
+    theme === "dark"
+      ? root.classList.add("dark")
+      : root.classList.remove("dark");
+    localStorage.setItem("theme", theme);
   }, [theme]);
 
   return { theme, setTheme };
@@ -42,13 +42,13 @@ export default function Header() {
 
   // Links do menu
   const menuLinks = [
-    { to: '/summary', label: 'Resumo', icon: <PieChart size={16} /> },
+    { to: "/summary", label: "Resumo", icon: <PieChart size={16} /> },
     {
-      to: '/dashboard',
-      label: 'Dashboard',
+      to: "/dashboard",
+      label: "Dashboard",
       icon: <LayoutDashboard size={16} />,
     },
-    { to: '/info', label: 'Ajuda', icon: <HelpCircle size={16} /> },
+    { to: "/info", label: "Ajuda", icon: <HelpCircle size={16} /> },
   ];
 
   const userMenuRef = useRef<HTMLDivElement | null>(null);
@@ -60,20 +60,20 @@ export default function Header() {
       }
     }
     if (userMenuOpen)
-      document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
+      document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
   }, [userMenuOpen]);
 
   return (
     <header className="header-blur">
-      <div className="mx-auto px-4 lg:px-20 2xl:px-40 flex items-center justify-between h-[68px]">
+      <div className="mx-auto px-4 lg:px-20 flex items-center justify-between h-[68px]">
         <div className="flex items-center gap-6">
           <NavLink to="/summary" className="flex items-center gap-2 group">
             <img
               src={
-                theme === 'dark'
-                  ? '/finance-system-logo.png'
-                  : '/finance-system-logo-light.png'
+                theme === "dark"
+                  ? "/finance-system-logo.png"
+                  : "/finance-system-logo-light.png"
               }
               alt="Finance System Logo"
               className="h-9 md:h-10 w-auto transition-opacity group-hover:opacity-90"
@@ -85,14 +85,16 @@ export default function Header() {
                 key={link.to}
                 to={link.to}
                 className={({ isActive }) =>
-                  `nav-link flex items-center gap-1 ${isActive ? 'nav-link-active' : ''}`
+                  `nav-link flex items-center gap-1 ${
+                    isActive ? "nav-link-active" : ""
+                  }`
                 }
               >
                 {link.icon}
                 <span
                   className={
-                    'nav-link-label ' +
-                    (location.pathname === link.to ? 'gradient-nav-text' : '')
+                    "nav-link-label " +
+                    (location.pathname === link.to ? "gradient-nav-text" : "")
                   }
                 >
                   {link.label}
@@ -103,11 +105,11 @@ export default function Header() {
         </div>
         <div className="flex items-center gap-3">
           <button
-            onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
+            onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
             className="rounded-md p-2 text-slate-500 hover:text-slate-800 dark:text-slate-300 dark:hover:text-white hover:bg-slate-200/50 dark:hover:bg-slate-700/50 transition"
-            title={theme === 'dark' ? 'Tema claro' : 'Tema escuro'}
+            title={theme === "dark" ? "Tema claro" : "Tema escuro"}
           >
-            {theme === 'dark' ? <Sun size={18} /> : <Moon size={18} />}
+            {theme === "dark" ? <Sun size={18} /> : <Moon size={18} />}
           </button>
           <button
             type="button"
@@ -127,22 +129,22 @@ export default function Header() {
             <button
               onClick={() => setUserMenuOpen((o) => !o)}
               className="avatar-initials"
-              title={auth?.user?.name || 'Usuário'}
+              title={auth?.user?.name || "Usuário"}
             >
-              {(auth?.user?.name || 'U')
+              {(auth?.user?.name || "U")
                 .split(/\s+/)
                 .slice(0, 2)
                 .map((s) => s[0]?.toUpperCase())
-                .join('')}
+                .join("")}
             </button>
             {userMenuOpen && (
               <div className="absolute right-0 mt-0.5 -translate-y-1 w-56 rounded-xl border border-slate-200/70 dark:border-slate-700/60 bg-white dark:bg-slate-900 backdrop-blur-xl shadow-xl py-2 px-2 z-50">
                 <div className="px-2 pb-2 border-b border-slate-200/60 dark:border-slate-700/60 mb-2">
                   <p className="text-sm font-medium text-slate-800 dark:text-slate-100 truncate">
-                    {auth?.user?.name || 'Usuário'}
+                    {auth?.user?.name || "Usuário"}
                   </p>
                   <p className="text-[10px] uppercase tracking-wide font-semibold text-blue-600 dark:text-blue-400">
-                    {auth?.user?.role === 'admin' ? 'Admin' : 'Usuário'}
+                    {auth?.user?.role === "admin" ? "Admin" : "Usuário"}
                   </p>
                 </div>
                 <NavLink
@@ -152,7 +154,7 @@ export default function Header() {
                 >
                   <Settings size={16} /> Configurações
                 </NavLink>
-                {auth?.user?.role === 'admin' && (
+                {auth?.user?.role === "admin" && (
                   <NavLink
                     to="/admin"
                     className="flex w-full items-center gap-2 px-3 py-2 text-sm text-slate-600 dark:text-slate-300 hover:bg-blue-50/70 dark:hover:bg-slate-700/60 rounded-md"
@@ -200,7 +202,11 @@ export default function Header() {
               key={link.to}
               to={link.to}
               className={({ isActive }) =>
-                `flex items-center gap-2 px-3 py-3 rounded-md text-sm font-medium transition-colors ${isActive ? 'bg-blue-600 text-white shadow' : 'text-slate-600 dark:text-slate-300 hover:bg-blue-50 dark:hover:bg-slate-700/60 hover:text-slate-900 dark:hover:text-white'}`
+                `flex items-center gap-2 px-3 py-3 rounded-md text-sm font-medium transition-colors ${
+                  isActive
+                    ? "bg-blue-600 text-white shadow"
+                    : "text-slate-600 dark:text-slate-300 hover:bg-blue-50 dark:hover:bg-slate-700/60 hover:text-slate-900 dark:hover:text-white"
+                }`
               }
               onClick={() => setMobileMenuOpen(false)}
             >
@@ -209,12 +215,12 @@ export default function Header() {
           ))}
           <button
             onClick={() => {
-              setTheme(theme === 'dark' ? 'light' : 'dark');
+              setTheme(theme === "dark" ? "light" : "dark");
               setMobileMenuOpen(false);
             }}
             className="flex items-center gap-2 px-3 py-3 rounded-md text-sm font-medium text-slate-600 dark:text-slate-300 hover:bg-blue-50 dark:hover:bg-slate-700/60"
           >
-            {theme === 'dark' ? <Sun size={16} /> : <Moon size={16} />} Tema
+            {theme === "dark" ? <Sun size={16} /> : <Moon size={16} />} Tema
           </button>
           <button
             onClick={() => {

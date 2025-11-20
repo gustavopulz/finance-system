@@ -1,10 +1,10 @@
-import { useState } from 'react';
-import { NavLink } from 'react-router-dom';
+import { useState } from "react";
+import { NavLink } from "react-router-dom";
 
 export default function InfoPage() {
-  const [view, setView] = useState<'geral' | 'conta'>('geral');
+  const [view, setView] = useState<"geral" | "conta">("geral");
   return (
-    <div className="container-app mx-auto px-4 sm:px-6 lg:px-20 2xl:px-40 py-6 grid gap-6">
+    <div className="container-app mx-auto px-4 sm:px-6 lg:px-20 py-6 grid gap-6">
       <section className="rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 p-6">
         <h1 className="text-2xl font-bold mb-2">Como usar o Finance System</h1>
         <p className="text-slate-600 dark:text-slate-400">
@@ -16,33 +16,33 @@ export default function InfoPage() {
           <div className="inline-flex rounded border border-slate-300 dark:border-slate-700 overflow-hidden">
             <button
               className={`px-3 py-2 text-sm ${
-                view === 'geral'
-                  ? 'bg-blue-600 text-white'
-                  : 'bg-transparent text-slate-800 dark:text-slate-200'
+                view === "geral"
+                  ? "bg-blue-600 text-white"
+                  : "bg-transparent text-slate-800 dark:text-slate-200"
               }`}
-              onClick={() => setView('geral')}
+              onClick={() => setView("geral")}
             >
               Guia do painel
             </button>
             <button
               className={`px-3 py-2 text-sm ${
-                view === 'conta'
-                  ? 'bg-blue-600 text-white'
-                  : 'bg-transparent text-slate-800 dark:text-slate-200'
+                view === "conta"
+                  ? "bg-blue-600 text-white"
+                  : "bg-transparent text-slate-800 dark:text-slate-200"
               }`}
-              onClick={() => setView('conta')}
+              onClick={() => setView("conta")}
             >
               Configurações da conta
             </button>
           </div>
         </div>
       </section>
-      {view === 'geral' ? (
+      {view === "geral" ? (
         <>
           <section className="rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 p-6">
             <h2 className="text-xl font-semibold mb-2">Painel</h2>
             <p className="text-slate-700 dark:text-slate-300">
-              Acesse em{' '}
+              Acesse em{" "}
               <code className="px-1 py-0.5 rounded bg-slate-100 dark:bg-slate-800">
                 /summary
               </code>
@@ -126,7 +126,7 @@ export default function InfoPage() {
             <ul className="list-disc pl-5 space-y-1 text-slate-700 dark:text-slate-300">
               <li>
                 As rotas principais são protegidas: você precisa se autenticar
-                em{' '}
+                em{" "}
                 <code className="px-1 py-0.5 rounded bg-slate-100 dark:bg-slate-800">
                   /login
                 </code>
@@ -136,23 +136,23 @@ export default function InfoPage() {
                 Após logar, você cai no painel principal (
                 <code className="px-1 py-0.5 rounded bg-slate-100 dark:bg-slate-800">
                   /
-                </code>{' '}
-                ou{' '}
+                </code>{" "}
+                ou{" "}
                 <code className="px-1 py-0.5 rounded bg-slate-100 dark:bg-slate-800">
                   /summary
                 </code>
                 ).
               </li>
               <li>
-                No topo, use o botão de tema para alternar entre{' '}
+                No topo, use o botão de tema para alternar entre{" "}
                 <code className="px-1 py-0.5 rounded bg-slate-100 dark:bg-slate-800">
                   Claro
                 </code>
                 /
                 <code className="px-1 py-0.5 rounded bg-slate-100 dark:bg-slate-800">
                   Escuro
-                </code>{' '}
-                e o menu do usuário para{' '}
+                </code>{" "}
+                e o menu do usuário para{" "}
                 <code className="px-1 py-0.5 rounded bg-slate-100 dark:bg-slate-800">
                   Sair
                 </code>
@@ -174,71 +174,71 @@ export default function InfoPage() {
             </p>
             <ul className="list-disc pl-5 space-y-2 text-slate-700 dark:text-slate-300">
               <li>
-                Ações rápidas:{' '}
+                Ações rápidas:{" "}
                 <code className="px-1 py-0.5 rounded bg-slate-100 dark:bg-slate-800">
                   Adicionar colaborador
-                </code>{' '}
-                e{' '}
+                </code>{" "}
+                e{" "}
                 <code className="px-1 py-0.5 rounded bg-slate-100 dark:bg-slate-800">
                   Adicionar finança
-                </code>{' '}
-                (atalho{' '}
+                </code>{" "}
+                (atalho{" "}
                 <code className="px-1 py-0.5 rounded bg-slate-100 dark:bg-slate-800">
                   Alt+N
                 </code>
-                ). Quando o resumo sai da tela, aparece um botão flutuante de{' '}
+                ). Quando o resumo sai da tela, aparece um botão flutuante de{" "}
                 <code className="px-1 py-0.5 rounded bg-slate-100 dark:bg-slate-800">
                   +
-                </code>{' '}
-                e outro de{' '}
+                </code>{" "}
+                e outro de{" "}
                 <code className="px-1 py-0.5 rounded bg-slate-100 dark:bg-slate-800">
                   Voltar ao topo
                 </code>
                 .
               </li>
               <li>
-                Filtros:{' '}
+                Filtros:{" "}
                 <code className="px-1 py-0.5 rounded bg-slate-100 dark:bg-slate-800">
                   Descrição
                 </code>
-                ,{' '}
+                ,{" "}
                 <code className="px-1 py-0.5 rounded bg-slate-100 dark:bg-slate-800">
                   Valor
-                </code>{' '}
-                (exato),{' '}
+                </code>{" "}
+                (exato),{" "}
                 <code className="px-1 py-0.5 rounded bg-slate-100 dark:bg-slate-800">
                   Parcela
-                </code>{' '}
+                </code>{" "}
                 (
                 <code className="px-1 py-0.5 rounded bg-slate-100 dark:bg-slate-800">
                   Avulso
                 </code>
-                ,{' '}
+                ,{" "}
                 <code className="px-1 py-0.5 rounded bg-slate-100 dark:bg-slate-800">
                   Fixo
-                </code>{' '}
-                ou{' '}
+                </code>{" "}
+                ou{" "}
                 <code className="px-1 py-0.5 rounded bg-slate-100 dark:bg-slate-800">
                   1–48
                 </code>
-                ),{' '}
+                ),{" "}
                 <code className="px-1 py-0.5 rounded bg-slate-100 dark:bg-slate-800">
                   Mês
-                </code>{' '}
+                </code>{" "}
                 (
                 <code className="px-1 py-0.5 rounded bg-slate-100 dark:bg-slate-800">
                   Todos os meses
                 </code>
-                ) e{' '}
+                ) e{" "}
                 <code className="px-1 py-0.5 rounded bg-slate-100 dark:bg-slate-800">
                   Ano
-                </code>{' '}
+                </code>{" "}
                 (desativado quando “Todos os meses” está selecionado).
               </li>
               <li>
                 <code className="px-1 py-0.5 rounded bg-slate-100 dark:bg-slate-800">
                   Ver Cancelados
-                </code>{' '}
+                </code>{" "}
                 alterna a exibição de lançamentos cancelados.
               </li>
             </ul>
@@ -253,18 +253,18 @@ export default function InfoPage() {
             </h2>
             <ul className="list-disc pl-5 space-y-2 text-slate-700 dark:text-slate-300">
               <li>
-                Mostra{' '}
+                Mostra{" "}
                 <code className="px-1 py-0.5 rounded bg-slate-100 dark:bg-slate-800">
                   Total
                 </code>
-                ,{' '}
+                ,{" "}
                 <code className="px-1 py-0.5 rounded bg-slate-100 dark:bg-slate-800">
                   Total Pendente
-                </code>{' '}
-                e{' '}
+                </code>{" "}
+                e{" "}
                 <code className="px-1 py-0.5 rounded bg-slate-100 dark:bg-slate-800">
                   Total Pago
-                </code>{' '}
+                </code>{" "}
                 apenas dos colaboradores visíveis.
               </li>
               <li>
@@ -272,18 +272,18 @@ export default function InfoPage() {
                 colaborador. Clique novamente para desfazer a seleção.
               </li>
               <li>
-                Use o botão{' '}
+                Use o botão{" "}
                 <code className="px-1 py-0.5 rounded bg-slate-100 dark:bg-slate-800">
                   +
-                </code>{' '}
+                </code>{" "}
                 ao lado do nome para adicionar uma finança já associada ao
                 colaborador.
               </li>
               <li>
-                O ícone de{' '}
+                O ícone de{" "}
                 <code className="px-1 py-0.5 rounded bg-slate-100 dark:bg-slate-800">
                   olho
-                </code>{' '}
+                </code>{" "}
                 oculta/exibe a tabela do colaborador (salvo no navegador).
               </li>
             </ul>
@@ -298,17 +298,17 @@ export default function InfoPage() {
             </h2>
             <ul className="list-disc pl-5 space-y-2 text-slate-700 dark:text-slate-300">
               <li>
-                Reordenar colaboradores: arraste pelo cabeçalho (ícone de{' '}
+                Reordenar colaboradores: arraste pelo cabeçalho (ícone de{" "}
                 <code className="px-1 py-0.5 rounded bg-slate-100 dark:bg-slate-800">
                   grip
                 </code>
                 ). A nova ordem é salva automaticamente.
               </li>
               <li>
-                Colapsar/Expandir: use a{' '}
+                Colapsar/Expandir: use a{" "}
                 <code className="px-1 py-0.5 rounded bg-slate-100 dark:bg-slate-800">
                   seta
-                </code>{' '}
+                </code>{" "}
                 no cabeçalho.
               </li>
               <li>
@@ -316,90 +316,90 @@ export default function InfoPage() {
                 <code className="px-1 py-0.5 rounded bg-slate-100 dark:bg-slate-800">
                   Descrição
                 </code>
-                ,{' '}
+                ,{" "}
                 <code className="px-1 py-0.5 rounded bg-slate-100 dark:bg-slate-800">
                   Valor
                 </code>
-                ,{' '}
+                ,{" "}
                 <code className="px-1 py-0.5 rounded bg-slate-100 dark:bg-slate-800">
                   Parcela
                 </code>
-                ,{' '}
+                ,{" "}
                 <code className="px-1 py-0.5 rounded bg-slate-100 dark:bg-slate-800">
                   Status
                 </code>
                 ) e seleção múltipla.
               </li>
               <li>
-                Ações em massa:{' '}
+                Ações em massa:{" "}
                 <code className="px-1 py-0.5 rounded bg-slate-100 dark:bg-slate-800">
                   Marcar Pago
                 </code>
-                ,{' '}
+                ,{" "}
                 <code className="px-1 py-0.5 rounded bg-slate-100 dark:bg-slate-800">
                   Marcar Pendente
-                </code>{' '}
-                e{' '}
+                </code>{" "}
+                e{" "}
                 <code className="px-1 py-0.5 rounded bg-slate-100 dark:bg-slate-800">
                   Excluir
                 </code>
                 .
               </li>
               <li>
-                Ações por linha:{' '}
+                Ações por linha:{" "}
                 <code className="px-1 py-0.5 rounded bg-slate-100 dark:bg-slate-800">
                   Editar
                 </code>
-                ,{' '}
+                ,{" "}
                 <code className="px-1 py-0.5 rounded bg-slate-100 dark:bg-slate-800">
                   Cancelar/Reabrir
-                </code>{' '}
-                e{' '}
+                </code>{" "}
+                e{" "}
                 <code className="px-1 py-0.5 rounded bg-slate-100 dark:bg-slate-800">
                   Excluir
                 </code>
-                . Checkbox{' '}
+                . Checkbox{" "}
                 <code className="px-1 py-0.5 rounded bg-slate-100 dark:bg-slate-800">
                   Pago
-                </code>{' '}
+                </code>{" "}
                 por item.
               </li>
               <li>
-                Badges de status:{' '}
+                Badges de status:{" "}
                 <code className="px-1 py-0.5 rounded bg-slate-100 dark:bg-slate-800">
                   Pago
                 </code>
-                ,{' '}
+                ,{" "}
                 <code className="px-1 py-0.5 rounded bg-slate-100 dark:bg-slate-800">
                   Pendente
                 </code>
-                ,{' '}
+                ,{" "}
                 <code className="px-1 py-0.5 rounded bg-slate-100 dark:bg-slate-800">
                   Cancelado
-                </code>{' '}
-                e{' '}
+                </code>{" "}
+                e{" "}
                 <code className="px-1 py-0.5 rounded bg-slate-100 dark:bg-slate-800">
                   Pago Futuramente
                 </code>
                 .
               </li>
               <li>
-                Parcelas:{' '}
+                Parcelas:{" "}
                 <code className="px-1 py-0.5 rounded bg-slate-100 dark:bg-slate-800">
                   Avulsa
                 </code>
-                ,{' '}
+                ,{" "}
                 <code className="px-1 py-0.5 rounded bg-slate-100 dark:bg-slate-800">
                   Fixo
-                </code>{' '}
-                ou{' '}
+                </code>{" "}
+                ou{" "}
                 <code className="px-1 py-0.5 rounded bg-slate-100 dark:bg-slate-800">
                   1–48
                 </code>
-                . A coluna{' '}
+                . A coluna{" "}
                 <code className="px-1 py-0.5 rounded bg-slate-100 dark:bg-slate-800">
                   Parcela
-                </code>{' '}
+                </code>{" "}
                 reflete o período filtrado.
               </li>
             </ul>
@@ -417,52 +417,52 @@ export default function InfoPage() {
                 <h3 className="font-semibold">Adicionar Finança</h3>
                 <ul className="list-disc pl-5 space-y-1">
                   <li>
-                    Campos:{' '}
+                    Campos:{" "}
                     <code className="px-1 py-0.5 rounded bg-slate-100 dark:bg-slate-800">
                       Colaborador
                     </code>
-                    ,{' '}
+                    ,{" "}
                     <code className="px-1 py-0.5 rounded bg-slate-100 dark:bg-slate-800">
                       Descrição
                     </code>
-                    ,{' '}
+                    ,{" "}
                     <code className="px-1 py-0.5 rounded bg-slate-100 dark:bg-slate-800">
                       Valor
                     </code>
-                    ,{' '}
+                    ,{" "}
                     <code className="px-1 py-0.5 rounded bg-slate-100 dark:bg-slate-800">
                       Parcelas
                     </code>
-                    ,{' '}
+                    ,{" "}
                     <code className="px-1 py-0.5 rounded bg-slate-100 dark:bg-slate-800">
                       Início
-                    </code>{' '}
-                    e{' '}
+                    </code>{" "}
+                    e{" "}
                     <code className="px-1 py-0.5 rounded bg-slate-100 dark:bg-slate-800">
                       Status
                     </code>
                     .
                   </li>
                   <li>
-                    Parcelas:{' '}
+                    Parcelas:{" "}
                     <code className="px-1 py-0.5 rounded bg-slate-100 dark:bg-slate-800">
                       Avulsa
-                    </code>{' '}
-                    (apenas no mês),{' '}
+                    </code>{" "}
+                    (apenas no mês),{" "}
                     <code className="px-1 py-0.5 rounded bg-slate-100 dark:bg-slate-800">
                       Fixo
-                    </code>{' '}
-                    (todo mês) ou um número{' '}
+                    </code>{" "}
+                    (todo mês) ou um número{" "}
                     <code className="px-1 py-0.5 rounded bg-slate-100 dark:bg-slate-800">
                       1–48
                     </code>
                     .
                   </li>
                   <li>
-                    Atalho:{' '}
+                    Atalho:{" "}
                     <code className="px-1 py-0.5 rounded bg-slate-100 dark:bg-slate-800">
                       Alt+N
-                    </code>{' '}
+                    </code>{" "}
                     abre a janela para adicionar rapidamente.
                   </li>
                 </ul>
@@ -487,36 +487,36 @@ export default function InfoPage() {
             <h2 className="text-xl font-semibold mb-3">6) Atalhos e Dicas</h2>
             <ul className="list-disc pl-5 space-y-2 text-slate-700 dark:text-slate-300">
               <li>
-                <b>Alt + N</b>: abrir{' '}
+                <b>Alt + N</b>: abrir{" "}
                 <code className="px-1 py-0.5 rounded bg-slate-100 dark:bg-slate-800">
                   Adicionar finança
                 </code>
                 .
               </li>
               <li>
-                Botões flutuantes:{' '}
+                Botões flutuantes:{" "}
                 <code className="px-1 py-0.5 rounded bg-slate-100 dark:bg-slate-800">
                   +
-                </code>{' '}
-                e{' '}
+                </code>{" "}
+                e{" "}
                 <code className="px-1 py-0.5 rounded bg-slate-100 dark:bg-slate-800">
                   Voltar ao topo
                 </code>
                 .
               </li>
               <li>
-                Preferências locais:{' '}
+                Preferências locais:{" "}
                 <code className="px-1 py-0.5 rounded bg-slate-100 dark:bg-slate-800">
                   ordenação
                 </code>
-                ,{' '}
+                ,{" "}
                 <code className="px-1 py-0.5 rounded bg-slate-100 dark:bg-slate-800">
                   colapso
-                </code>{' '}
-                e{' '}
+                </code>{" "}
+                e{" "}
                 <code className="px-1 py-0.5 rounded bg-slate-100 dark:bg-slate-800">
                   visibilidade
-                </code>{' '}
+                </code>{" "}
                 são salvas no navegador.
               </li>
             </ul>
@@ -533,10 +533,10 @@ export default function InfoPage() {
                   Não vejo a tabela de um colaborador.
                 </p>
                 <p>
-                  Verifique o ícone de{' '}
+                  Verifique o ícone de{" "}
                   <code className="px-1 py-0.5 rounded bg-slate-100 dark:bg-slate-800">
                     olho
-                  </code>{' '}
+                  </code>{" "}
                   na sidebar — ele pode estar oculto.
                 </p>
               </div>
@@ -545,16 +545,16 @@ export default function InfoPage() {
                   A ordem dos colaboradores não está salvando.
                 </p>
                 <p>
-                  Arraste pelo cabeçalho com o ícone de{' '}
+                  Arraste pelo cabeçalho com o ícone de{" "}
                   <code className="px-1 py-0.5 rounded bg-slate-100 dark:bg-slate-800">
                     grip
-                  </code>{' '}
+                  </code>{" "}
                   e aguarde um instante.
                 </p>
               </div>
               <div>
                 <p className="font-semibold">
-                  Por que aparece{' '}
+                  Por que aparece{" "}
                   <code className="px-1 py-0.5 rounded bg-slate-100 dark:bg-slate-800">
                     Pago Futuramente
                   </code>
@@ -584,19 +584,19 @@ export default function InfoPage() {
               Configurações da Conta
             </h2>
             <p className="text-slate-700 dark:text-slate-300">
-              Acesse em{' '}
+              Acesse em{" "}
               <code className="px-1 py-0.5 rounded bg-slate-100 dark:bg-slate-800">
                 /user-settings
               </code>
-              . Use a sidebar para alternar entre as abas:{' '}
+              . Use a sidebar para alternar entre as abas:{" "}
               <code className="px-1 py-0.5 rounded bg-slate-100 dark:bg-slate-800">
                 Configuração de Conta
               </code>
-              ,{' '}
+              ,{" "}
               <code className="px-1 py-0.5 rounded bg-slate-100 dark:bg-slate-800">
                 Configuração de Token
-              </code>{' '}
-              e{' '}
+              </code>{" "}
+              e{" "}
               <code className="px-1 py-0.5 rounded bg-slate-100 dark:bg-slate-800">
                 Configuração de Categorias
               </code>
@@ -615,37 +615,37 @@ export default function InfoPage() {
             </h3>
             <ul className="list-disc pl-5 space-y-2 text-slate-700 dark:text-slate-300">
               <li>
-                <b>Nome</b>: clique no botão{' '}
+                <b>Nome</b>: clique no botão{" "}
                 <code className="px-1 py-0.5 rounded bg-slate-100 dark:bg-slate-800">
                   ✎
-                </code>{' '}
+                </code>{" "}
                 (
                 <code className="px-1 py-0.5 rounded bg-slate-100 dark:bg-slate-800">
                   Editar
                 </code>
-                ), altere o campo e depois{' '}
+                ), altere o campo e depois{" "}
                 <code className="px-1 py-0.5 rounded bg-slate-100 dark:bg-slate-800">
                   Salvar
                 </code>
                 .
               </li>
               <li>
-                <b>E-mail</b>: use o botão{' '}
+                <b>E-mail</b>: use o botão{" "}
                 <code className="px-1 py-0.5 rounded bg-slate-100 dark:bg-slate-800">
                   ✎
-                </code>{' '}
-                para habilitar edição e{' '}
+                </code>{" "}
+                para habilitar edição e{" "}
                 <code className="px-1 py-0.5 rounded bg-slate-100 dark:bg-slate-800">
                   Salvar
-                </code>{' '}
+                </code>{" "}
                 ao final.
               </li>
               <li>
-                <b>Senha</b>: clique no botão com ícone de{' '}
+                <b>Senha</b>: clique no botão com ícone de{" "}
                 <code className="px-1 py-0.5 rounded bg-slate-100 dark:bg-slate-800">
                   cadeado
                 </code>
-                , informe a nova senha e confirme em{' '}
+                , informe a nova senha e confirme em{" "}
                 <code className="px-1 py-0.5 rounded bg-slate-100 dark:bg-slate-800">
                   Salvar
                 </code>
@@ -664,28 +664,28 @@ export default function InfoPage() {
                 <code className="px-1 py-0.5 rounded bg-slate-100 dark:bg-slate-800">
                   Gerar Token
                 </code>
-                : cria um token de compartilhamento; use{' '}
+                : cria um token de compartilhamento; use{" "}
                 <code className="px-1 py-0.5 rounded bg-slate-100 dark:bg-slate-800">
                   Copiar
-                </code>{' '}
+                </code>{" "}
                 para colocar na área de transferência.
               </li>
               <li>
-                <b>Usar Token</b>: cole um token no campo{' '}
+                <b>Usar Token</b>: cole um token no campo{" "}
                 <code className="px-1 py-0.5 rounded bg-slate-100 dark:bg-slate-800">
                   Cole o token aqui...
-                </code>{' '}
-                e clique em{' '}
+                </code>{" "}
+                e clique em{" "}
                 <code className="px-1 py-0.5 rounded bg-slate-100 dark:bg-slate-800">
                   Mesclar
-                </code>{' '}
+                </code>{" "}
                 para vincular contas.
               </li>
               <li>
-                <b>Vínculos</b>: listas “Você vê” e “Vê sua conta”. Use o botão{' '}
+                <b>Vínculos</b>: listas “Você vê” e “Vê sua conta”. Use o botão{" "}
                 <code className="px-1 py-0.5 rounded bg-slate-100 dark:bg-slate-800">
                   X
-                </code>{' '}
+                </code>{" "}
                 para desvincular um usuário.
               </li>
             </ul>
@@ -697,22 +697,22 @@ export default function InfoPage() {
             </h3>
             <ul className="list-disc pl-5 space-y-2 text-slate-700 dark:text-slate-300">
               <li>
-                <b>Adicionar</b>: preencha{' '}
+                <b>Adicionar</b>: preencha{" "}
                 <code className="px-1 py-0.5 rounded bg-slate-100 dark:bg-slate-800">
                   Nome da categoria
                 </code>
-                , escolha uma cor e clique em{' '}
+                , escolha uma cor e clique em{" "}
                 <code className="px-1 py-0.5 rounded bg-slate-100 dark:bg-slate-800">
                   Adicionar
                 </code>
                 .
               </li>
               <li>
-                <b>Editar</b>: na lista, clique em{' '}
+                <b>Editar</b>: na lista, clique em{" "}
                 <code className="px-1 py-0.5 rounded bg-slate-100 dark:bg-slate-800">
                   Editar
                 </code>
-                , ajuste nome/cor e finalize com{' '}
+                , ajuste nome/cor e finalize com{" "}
                 <code className="px-1 py-0.5 rounded bg-slate-100 dark:bg-slate-800">
                   Salvar
                 </code>

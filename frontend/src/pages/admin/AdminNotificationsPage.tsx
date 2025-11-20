@@ -1,19 +1,19 @@
-import { useState } from 'react';
-import AdminSidebar from '../../components/Admin/AdminSidebar';
-import ModalBase from '../../components/ModalBase';
+import { useState } from "react";
+import AdminSidebar from "../../components/Admin/AdminSidebar";
+import ModalBase from "../../components/ModalBase";
 
 // Mock para lista de notificações
 const initialNotifications = [
-  { id: 1, title: 'Bem-vindo!', message: 'Seja bem-vindo ao Finance Systeme.' },
-  { id: 2, title: 'Atualização', message: 'Nova versão disponível em breve.' },
+  { id: 1, title: "Bem-vindo!", message: "Seja bem-vindo ao Finance Systeme." },
+  { id: 2, title: "Atualização", message: "Nova versão disponível em breve." },
 ];
 
 type Notification = { id: number; title: string; message: string };
 
 type NotificationFormProps = {
-  onSave: (data: Omit<Notification, 'id'>) => void;
+  onSave: (data: Omit<Notification, "id">) => void;
   onCancel: () => void;
-  initial?: Omit<Notification, 'id'>;
+  initial?: Omit<Notification, "id">;
 };
 
 function NotificationForm({
@@ -21,8 +21,8 @@ function NotificationForm({
   onCancel,
   initial,
 }: NotificationFormProps) {
-  const [title, setTitle] = useState(initial?.title || '');
-  const [message, setMessage] = useState(initial?.message || '');
+  const [title, setTitle] = useState(initial?.title || "");
+  const [message, setMessage] = useState(initial?.message || "");
 
   return (
     <form
@@ -71,7 +71,7 @@ export default function AdminNotificationsPage() {
   const [deleteId, setDeleteId] = useState<number | null>(null);
   const [sidebarOpen, setSidebarOpen] = useState(true);
 
-  function handleSave(data: Omit<Notification, 'id'>) {
+  function handleSave(data: Omit<Notification, "id">) {
     if (editing) {
       setNotifications((nots) =>
         nots.map((n) => (n.id === editing.id ? { ...n, ...data } : n))
@@ -90,13 +90,13 @@ export default function AdminNotificationsPage() {
   }
 
   return (
-    <div className="flex min-h-screen px-4 sm:px-6 lg:px-20 2xl:px-40 gap-6 mx-auto">
+    <div className="flex min-h-screen px-4 sm:px-6 lg:px-20 gap-6 mx-auto">
       <AdminSidebar sidebarOpen={sidebarOpen} />
       <div className="hidden md:block sticky top-6 h-screen mx-2">
         <div className="relative h-full">
           <div className="absolute left-1/2 top-0 bottom-0 -translate-x-1/2 w-px bg-slate-300 dark:bg-slate-700" />
           <button
-            aria-label={sidebarOpen ? 'Fechar sidebar' : 'Abrir sidebar'}
+            aria-label={sidebarOpen ? "Fechar sidebar" : "Abrir sidebar"}
             onClick={() => setSidebarOpen((s) => !s)}
             className="absolute z-10 p-1 rounded-full bg-slate-100 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 hover:bg-slate-200 dark:hover:bg-slate-700 transition left-1/2 top-3 -translate-x-1/2"
           >
@@ -179,7 +179,7 @@ export default function AdminNotificationsPage() {
         >
           <div className="p-6">
             <h3 className="text-lg font-semibold mb-3">
-              {editing ? 'Editar notificação' : 'Nova notificação'}
+              {editing ? "Editar notificação" : "Nova notificação"}
             </h3>
             <NotificationForm
               onSave={handleSave}

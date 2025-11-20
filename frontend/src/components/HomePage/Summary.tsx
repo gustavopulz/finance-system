@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { Plus, UserPlus, X, BarChart2, SlidersHorizontal } from 'lucide-react';
+import React, { useState } from "react";
+import { Plus, UserPlus, X, BarChart2, SlidersHorizontal } from "lucide-react";
 
 interface SummaryProps {
   total: number;
@@ -21,6 +21,8 @@ interface SummaryProps {
   filterParcela: string;
   setFilterParcela: (parcela: string) => void;
   MONTHS_PT: string[];
+  filterStatus: string;
+  setFilterStatus: (status: string) => void;
 }
 
 const Summary: React.FC<SummaryProps> = ({
@@ -43,6 +45,8 @@ const Summary: React.FC<SummaryProps> = ({
   filterParcela,
   setFilterParcela,
   MONTHS_PT,
+  filterStatus,
+  setFilterStatus,
 }) => {
   const [showFilterModal, setShowFilterModal] = useState(false);
 
@@ -58,23 +62,23 @@ const Summary: React.FC<SummaryProps> = ({
             onClick={() => setShowFilterModal(true)}
             title="Filtros"
           >
-            <SlidersHorizontal size={18} />{' '}
+            <SlidersHorizontal size={18} />{" "}
             <span className="hidden sm:inline">Filtros</span>
           </button>
 
           <button
             className="border border-slate-300 dark:border-slate-700 flex items-center gap-2 bg-transparent hover:bg-slate-700 hover:text-white text-slate-700 dark:text-slate-200 px-4 py-2 rounded-md transition"
-            onClick={() => setDlg({ mode: 'addCollab' })}
+            onClick={() => setDlg({ mode: "addCollab" })}
           >
-            <UserPlus size={18} />{' '}
+            <UserPlus size={18} />{" "}
             <span className="hidden sm:inline">Adicionar colaborador</span>
           </button>
           <button
             className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md transition"
-            onClick={() => setDlg({ mode: 'addAccount' })}
+            onClick={() => setDlg({ mode: "addAccount" })}
             title="Adicionar finança (Alt+N)"
           >
-            <Plus size={18} />{' '}
+            <Plus size={18} />{" "}
             <span className="hidden sm:inline">Adicionar finança</span>
           </button>
         </div>
@@ -127,9 +131,9 @@ const Summary: React.FC<SummaryProps> = ({
               </select>
               <select
                 className="select rounded w-full"
-                value={showAll ? 'all' : month}
+                value={showAll ? "all" : month}
                 onChange={(e) => {
-                  if (e.target.value === 'all') {
+                  if (e.target.value === "all") {
                     setShowAll(true);
                   } else {
                     setShowAll(false);
@@ -152,6 +156,16 @@ const Summary: React.FC<SummaryProps> = ({
                 disabled={showAll}
                 placeholder="Ano"
               />
+              <select
+                className="select rounded w-full"
+                value={filterStatus}
+                onChange={(e) => setFilterStatus(e.target.value)}
+              >
+                <option value="">Todos os status</option>
+                <option value="Pendente">Pendente</option>
+                <option value="Pago">Pago</option>
+                <option value="Cancelado">Cancelado</option>
+              </select>
               <label className="flex items-center gap-2 cursor-pointer text-slate-600 dark:text-slate-300 mt-2">
                 <input
                   type="checkbox"
@@ -166,13 +180,14 @@ const Summary: React.FC<SummaryProps> = ({
               <button
                 className="px-4 py-2 rounded bg-gray-200 dark:bg-slate-700 text-slate-700 dark:text-slate-100 hover:bg-gray-300 dark:hover:bg-slate-600"
                 onClick={() => {
-                  setFilterDesc('');
-                  setFilterValor('');
-                  setFilterParcela('');
+                  setFilterDesc("");
+                  setFilterValor("");
+                  setFilterParcela("");
                   setShowAll(false);
                   setMonth(new Date().getMonth() + 1);
                   setYear(new Date().getFullYear());
                   setShowCancelled(false);
+                  setFilterStatus("");
                 }}
               >
                 Limpar filtros
@@ -195,9 +210,9 @@ const Summary: React.FC<SummaryProps> = ({
             Total
           </span>
           <span className="text-base font-semibold text-slate-800 dark:text-slate-200 leading-tight">
-            {new Intl.NumberFormat('pt-BR', {
-              style: 'currency',
-              currency: 'BRL',
+            {new Intl.NumberFormat("pt-BR", {
+              style: "currency",
+              currency: "BRL",
             }).format(total)}
           </span>
         </div>
@@ -206,9 +221,9 @@ const Summary: React.FC<SummaryProps> = ({
             Pendente
           </span>
           <span className="text-base font-semibold text-yellow-700 dark:text-yellow-300 leading-tight">
-            {new Intl.NumberFormat('pt-BR', {
-              style: 'currency',
-              currency: 'BRL',
+            {new Intl.NumberFormat("pt-BR", {
+              style: "currency",
+              currency: "BRL",
             }).format(totalPendente)}
           </span>
         </div>
@@ -217,9 +232,9 @@ const Summary: React.FC<SummaryProps> = ({
             Pago
           </span>
           <span className="text-base font-semibold text-green-700 dark:text-green-300 leading-tight">
-            {new Intl.NumberFormat('pt-BR', {
-              style: 'currency',
-              currency: 'BRL',
+            {new Intl.NumberFormat("pt-BR", {
+              style: "currency",
+              currency: "BRL",
             }).format(totalPago)}
           </span>
         </div>

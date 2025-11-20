@@ -1,10 +1,10 @@
-import { useEffect, useRef } from 'react';
-import { useForm } from 'react-hook-form';
-import type { SubmitHandler } from 'react-hook-form';
-import { z } from 'zod';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { parseBRL, MONTHS_PT } from '../../lib/format';
-import type { Collaborator, Status, Account } from '../../lib/types';
+import { useEffect, useRef } from "react";
+import { useForm } from "react-hook-form";
+import type { SubmitHandler } from "react-hook-form";
+import { z } from "zod";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { parseBRL, MONTHS_PT } from "../../lib/format";
+import type { Collaborator, Status, Account } from "../../lib/types";
 
 type Props = {
   initial?: Account;
@@ -12,6 +12,7 @@ type Props = {
   filteredMonth?: number;
   filteredYear?: number;
   initialCollaboratorId?: string;
+  mode?: "addAccount" | "editAccount" | "duplicate";
   onSave: (
     data: {
       collaboratorId: string;
@@ -28,20 +29,17 @@ type Props = {
 };
 
 const schema = z.object({
-  collaboratorId: z.string().min(1, 'Selecione um colaborador'),
-  description: z.string().min(1, 'Informe uma descrição'),
-  value: z.string().min(1, 'Informe um valor'),
-  parcelasTotal: z.preprocess(
-    (val) => {
-      if (val === 'X') return 'X';
-      if (val === '-') return '-';
-      return Number(val);
-    },
-    z.union([z.literal('X'), z.literal('-'), z.number().min(1).max(48)])
-  ),
+  collaboratorId: z.string().min(1, "Selecione um colaborador"),
+  description: z.string().min(1, "Informe uma descrição"),
+  value: z.string().min(1, "Informe um valor"),
+  parcelasTotal: z.preprocess((val) => {
+    if (val === "X") return "X";
+    if (val === "-") return "-";
+    return Number(val);
+  }, z.union([z.literal("X"), z.literal("-"), z.number().min(1).max(48)])),
   month: z.number().min(1).max(12),
   year: z.number().min(2000).max(2100),
-  status: z.enum(['Pendente', 'Cancelado', 'quitado']),
+  status: z.enum(["Pendente", "Cancelado", "quitado"]),
 });
 
 type FormData = z.input<typeof schema>;
@@ -52,6 +50,7 @@ export default function AddFinanceDialog({
   filteredMonth,
   filteredYear,
   initialCollaboratorId,
+  mode,
   onSave,
   onClose,
 }: Props) {
@@ -72,54 +71,54 @@ export default function AddFinanceDialog({
       collaboratorId: initial?.collaboratorId
         ? String(initial.collaboratorId)
         : initialCollaboratorId
-          ? String(initialCollaboratorId)
-          : collaborators.length === 1
-            ? String(collaborators[0].id)
-            : '',
-      description: initial?.description || '',
+        ? String(initialCollaboratorId)
+        : collaborators.length === 1
+        ? String(collaborators[0].id)
+        : "",
+      description: initial?.description || "",
       value:
-        initial?.value != null ? String(initial.value).replace('.', ',') : '',
+        initial?.value != null ? String(initial.value).replace(".", ",") : "",
       parcelasTotal: initial
         ? initial.parcelasTotal === null || initial.parcelasTotal === undefined
-          ? 'X'
+          ? "X"
           : initial.parcelasTotal === 0
-            ? '-'
-            : initial.parcelasTotal
-        : '-',
+          ? "-"
+          : initial.parcelasTotal
+        : "-",
       month: initial?.month ?? defaultMonth,
       year: initial?.year ?? defaultYear,
       status:
-        initial?.status === 'Pendente' ||
-        initial?.status === 'Cancelado' ||
-        initial?.status === 'quitado'
+        initial?.status === "Pendente" ||
+        initial?.status === "Cancelado" ||
+        initial?.status === "quitado"
           ? initial.status
-          : 'Pendente',
+          : "Pendente",
     },
   });
 
   const { ref: descriptionRef, ...descriptionRegister } =
-    register('description');
+    register("description");
   function handleValueChange(e: React.ChangeEvent<HTMLInputElement>) {
-    let value = e.target.value.replace(/\D/g, '');
+    let value = e.target.value.replace(/\D/g, "");
     if (!value) {
-      setValue('value', '');
+      setValue("value", "");
       return;
     }
     if (value.length < 3) {
-      value = value.padStart(3, '0');
+      value = value.padStart(3, "0");
     }
     const reais = value.slice(0, -2);
     const centavos = value.slice(-2);
-    const formatted = `${Number(reais)}${reais ? '' : '0'},${centavos}`;
-    setValue('value', formatted);
+    const formatted = `${Number(reais)}${reais ? "" : "0"},${centavos}`;
+    setValue("value", formatted);
   }
 
   useEffect(() => {
     if (!initial) {
       if (initialCollaboratorId) {
-        setValue('collaboratorId', String(initialCollaboratorId));
+        setValue("collaboratorId", String(initialCollaboratorId));
       } else if (collaborators.length === 1) {
-        setValue('collaboratorId', String(collaborators[0].id));
+        setValue("collaboratorId", String(collaborators[0].id));
       }
     }
   }, [collaborators, initial, initialCollaboratorId, setValue]);
@@ -133,24 +132,24 @@ export default function AddFinanceDialog({
   const submit: SubmitHandler<FormData> = (d) => {
     const parsedValue = parseBRL(d.value);
     if (isNaN(parsedValue)) {
-      alert('Valor inválido. Por favor, informe um valor numérico.');
+      alert("Valor inválido. Por favor, informe um valor numérico.");
       return;
     }
 
     const payload: any = {
       collaboratorId: d.collaboratorId,
-      description: String(d.description || '').trim(),
+      description: String(d.description || "").trim(),
       value: parsedValue,
       month: d.month,
       year: d.year,
       status: d.status as Status,
     };
 
-    if (d.parcelasTotal === 'X') {
+    if (d.parcelasTotal === "X") {
       payload.parcelasTotal = null;
-    } else if (d.parcelasTotal === '-') {
+    } else if (d.parcelasTotal === "-") {
       payload.parcelasTotal = 0;
-    } else if (typeof d.parcelasTotal === 'number') {
+    } else if (typeof d.parcelasTotal === "number") {
       payload.parcelasTotal = d.parcelasTotal;
     }
 
@@ -172,7 +171,11 @@ export default function AddFinanceDialog({
           &times;
         </button>
         <h3 className="text-lg font-semibold mb-3">
-          {initial ? 'Editar finança' : 'Adicionar finança'}
+          {mode === "duplicate"
+            ? "Duplicar finança"
+            : mode === "editAccount"
+            ? "Editar finança"
+            : "Adicionar finança"}
         </h3>
 
         {disabled && (
@@ -186,7 +189,7 @@ export default function AddFinanceDialog({
             <span className="text-sm font-medium">Colaborador</span>
             <select
               className="select select-full"
-              {...register('collaboratorId')}
+              {...register("collaboratorId")}
               disabled={disabled}
             >
               {collaborators.length > 1 && (
@@ -225,7 +228,7 @@ export default function AddFinanceDialog({
             <span className="text-sm font-medium">Valor (R$)</span>
             <input
               className="input input-full bg-slate-900 text-white border border-slate-300 dark:bg-slate-900 dark:text-white dark:border-slate-700"
-              {...register('value')}
+              {...register("value")}
               placeholder="Ex.: 119,00"
               inputMode="decimal"
               disabled={disabled}
@@ -244,7 +247,7 @@ export default function AddFinanceDialog({
               <span className="text-sm font-medium">Parcelas</span>
               <select
                 className="select select-full"
-                {...register('parcelasTotal')}
+                {...register("parcelasTotal")}
                 disabled={disabled}
                 defaultValue="-"
               >
@@ -263,7 +266,7 @@ export default function AddFinanceDialog({
               <div className="grid grid-cols-2 gap-2">
                 <select
                   className="select"
-                  {...register('month', { valueAsNumber: true })}
+                  {...register("month", { valueAsNumber: true })}
                   disabled={disabled}
                 >
                   {MONTHS_PT.map((m, i) => (
@@ -275,7 +278,7 @@ export default function AddFinanceDialog({
                 <input
                   className="input bg-slate-900 text-white border border-slate-300 dark:bg-slate-900 dark:text-white dark:border-slate-700"
                   type="number"
-                  {...register('year', { valueAsNumber: true })}
+                  {...register("year", { valueAsNumber: true })}
                   disabled={disabled}
                 />
               </div>
@@ -286,7 +289,7 @@ export default function AddFinanceDialog({
             <span className="text-sm font-medium">Status</span>
             <select
               className="select select-full"
-              {...register('status')}
+              {...register("status")}
               disabled={disabled}
             >
               <option value="Pendente">Pendente</option>
@@ -308,7 +311,11 @@ export default function AddFinanceDialog({
               type="submit"
               disabled={disabled}
             >
-              {initial ? 'Salvar alterações' : 'Salvar'}
+              {mode === "duplicate"
+                ? "Duplicar"
+                : initial
+                ? "Salvar alterações"
+                : "Salvar"}
             </button>
           </div>
         </form>

@@ -1,46 +1,50 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
-import SidebarTotalColabs from '../components/HomePage/SidebarTotalColabs';
-import SkeletonCard from '../components/SkeletonCard';
-import React from 'react';
-import { useNotification } from '../context/NotificationContext';
-import { DndContext, closestCenter } from '@dnd-kit/core';
+import { useEffect, useMemo, useRef, useState } from "react";
+import SidebarTotalColabs from "../components/HomePage/SidebarTotalColabs";
+import SkeletonCard from "../components/SkeletonCard";
+import React from "react";
+import { useNotification } from "../context/NotificationContext";
+import { DndContext, closestCenter } from "@dnd-kit/core";
 import {
   arrayMove,
   SortableContext,
   verticalListSortingStrategy,
   useSortable,
-} from '@dnd-kit/sortable';
-import { CSS } from '@dnd-kit/utilities';
-import type { Account, Collaborator } from '../lib/types';
-import { MONTHS_PT, isAccountPaidInMonth } from '../lib/format';
-import { todayComp, monthsDiff } from '../lib/date';
-import type { ReactElement } from 'react';
-import type { FinanceTableProps } from '../components/HomePage/FinanceTable';
-import FinanceTable from '../components/HomePage/FinanceTable';
-import FinanceDialog from '../components/HomePage/AddFinanceDialog';
-import AddCollaboratorDialog from '../components/HomePage/AddCollaboratorDialog';
-import { Plus } from 'lucide-react';
-import Summary from '../components/HomePage/Summary';
-import { isVisibleInMonth } from '../lib/storage';
-import * as api from '../lib/api';
+} from "@dnd-kit/sortable";
+import { CSS } from "@dnd-kit/utilities";
+import type { Account, Collaborator } from "../lib/types";
+import { MONTHS_PT, isAccountPaidInMonth } from "../lib/format";
+import { todayComp, monthsDiff } from "../lib/date";
+import type { ReactElement } from "react";
+import type { FinanceTableProps } from "../components/HomePage/FinanceTable";
+import FinanceTable from "../components/HomePage/FinanceTable";
+import FinanceDialog from "../components/HomePage/AddFinanceDialog";
+import AddCollaboratorDialog from "../components/HomePage/AddCollaboratorDialog";
+import { Plus } from "lucide-react";
+import Summary from "../components/HomePage/Summary";
+import { isVisibleInMonth } from "../lib/storage";
+import * as api from "../lib/api";
 
 type DialogState =
-  | { mode: 'closed' }
-  | { mode: 'addAccount'; initialCollaboratorId?: string }
-  | { mode: 'editAccount'; account: Account }
-  | { mode: 'addCollab' };
+  | { mode: "closed" }
+  | {
+      mode: "addAccount";
+      initialCollaboratorId?: string;
+      account?: Partial<Account>;
+    }
+  | { mode: "editAccount"; account: Account }
+  | { mode: "addCollab" };
 
 function normalizeAccount(a: any): Account {
   const rawPt = a.parcelasTotal;
   let parcelasTotal: number | null;
   if (
-    rawPt === '' ||
+    rawPt === "" ||
     rawPt === null ||
     rawPt === undefined ||
-    (typeof rawPt === 'string' &&
-      rawPt.toString().trim().toUpperCase() === 'X') ||
-    (typeof rawPt === 'string' &&
-      rawPt.toString().trim().toLowerCase() === 'null')
+    (typeof rawPt === "string" &&
+      rawPt.toString().trim().toUpperCase() === "X") ||
+    (typeof rawPt === "string" &&
+      rawPt.toString().trim().toLowerCase() === "null")
   ) {
     parcelasTotal = null;
   } else {
@@ -51,23 +55,23 @@ function normalizeAccount(a: any): Account {
   let dtPaid: string | undefined = undefined;
   const v = (a as any).dtPaid;
   if (v) {
-    if (typeof v === 'string') {
+    if (typeof v === "string") {
       dtPaid = v;
     } else if (v instanceof Date) {
       try {
         dtPaid = v.toISOString();
       } catch {}
-    } else if (v && typeof (v as any).toDate === 'function') {
+    } else if (v && typeof (v as any).toDate === "function") {
       try {
         dtPaid = (v as any).toDate().toISOString();
       } catch {}
-    } else if (typeof v === 'object') {
+    } else if (typeof v === "object") {
       const secs = (v as any)._seconds ?? (v as any).seconds;
       const nanos = (v as any)._nanoseconds ?? (v as any).nanoseconds;
-      if (typeof secs === 'number') {
+      if (typeof secs === "number") {
         const ms =
           secs * 1000 +
-          (typeof nanos === 'number' ? Math.floor(nanos / 1e6) : 0);
+          (typeof nanos === "number" ? Math.floor(nanos / 1e6) : 0);
         try {
           dtPaid = new Date(ms).toISOString();
         } catch {}
@@ -78,17 +82,17 @@ function normalizeAccount(a: any): Account {
   return {
     id: String(a.id),
     collaboratorId: String(a.collaboratorId),
-    collaboratorName: a.collaboratorName ?? '',
-    description: String(a.description ?? ''),
+    collaboratorName: a.collaboratorName ?? "",
+    description: String(a.description ?? ""),
     value: Number(a.value),
     parcelasTotal,
     month: Math.min(12, Math.max(1, Number(a.month ?? 1))),
     year: Math.max(1900, Number(a.year ?? new Date().getFullYear())),
-    status: (a.status as Account['status']) ?? 'Pendente',
+    status: (a.status as Account["status"]) ?? "Pendente",
     paid: Boolean(a.paid),
     dtPaid,
-    createdAt: a.createdAt ?? '',
-    updatedAt: a.updatedAt ?? '',
+    createdAt: a.createdAt ?? "",
+    updatedAt: a.updatedAt ?? "",
     cancelledAt: a.cancelledAt ?? undefined,
   };
 }
@@ -98,8 +102,8 @@ export default function HomePage() {
   const [selectedCollab, setSelectedCollab] = useState<string | null>(null);
   useEffect(() => {
     function handleClick(e: MouseEvent) {
-      const sidebar = document.getElementById('sidebar-total-colabs');
-      const mainContent = document.getElementById('main-content');
+      const sidebar = document.getElementById("sidebar-total-colabs");
+      const mainContent = document.getElementById("main-content");
       if (!sidebar || !mainContent) return;
       if (
         !sidebar.contains(e.target as Node) &&
@@ -108,8 +112,8 @@ export default function HomePage() {
         setSelectedCollab(null);
       }
     }
-    document.addEventListener('mousedown', handleClick);
-    return () => document.removeEventListener('mousedown', handleClick);
+    document.addEventListener("mousedown", handleClick);
+    return () => document.removeEventListener("mousedown", handleClick);
   }, [selectedCollab]);
   const now = todayComp();
   const [month, setMonth] = useState(now.month);
@@ -118,7 +122,7 @@ export default function HomePage() {
     try {
       await api.saveCollabOrder(newOrder);
     } catch (err) {
-      console.error('Erro ao salvar ordem dos colaboradores:', err);
+      console.error("Erro ao salvar ordem dos colaboradores:", err);
     }
   }
 
@@ -151,7 +155,7 @@ export default function HomePage() {
           dragHandleProps: {
             ...attributes,
             ...listeners,
-            style: { cursor: isDragging ? 'grabbing' : 'grab' },
+            style: { cursor: isDragging ? "grabbing" : "grab" },
           },
         })}
       </div>
@@ -162,22 +166,23 @@ export default function HomePage() {
   const [showFloatingButton, setShowFloatingButton] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(true);
 
-  const [dlg, setDlg] = useState<DialogState>({ mode: 'closed' });
+  const [dlg, setDlg] = useState<DialogState>({ mode: "closed" });
   const [collabs, setCollabs] = useState<Collaborator[]>([]);
   const [collabOrder, setCollabOrder] = useState<string[]>([]);
   const [accounts, setAccounts] = useState<Account[]>([]);
   const [loading, setLoading] = useState(false);
 
-  const [filterDesc, setFilterDesc] = useState('');
-  const [filterValor, setFilterValor] = useState('');
-  const [filterParcela, setFilterParcela] = useState('');
+  const [filterDesc, setFilterDesc] = useState("");
+  const [filterValor, setFilterValor] = useState("");
+  const [filterParcela, setFilterParcela] = useState("");
+  const [filterStatus, setFilterStatus] = useState("");
 
   const visibleSnapshotRef = useRef<Account[]>([]);
   const resumoRef = useRef<HTMLDivElement>(null);
 
   const [hiddenCollabs, setHiddenCollabs] = useState<string[]>(() => {
     try {
-      const saved = localStorage.getItem('hiddenCollabs');
+      const saved = localStorage.getItem("hiddenCollabs");
       return saved ? JSON.parse(saved) : [];
     } catch {
       return [];
@@ -191,7 +196,7 @@ export default function HomePage() {
       } else {
         updated = [...prev, id];
       }
-      localStorage.setItem('hiddenCollabs', JSON.stringify(updated));
+      localStorage.setItem("hiddenCollabs", JSON.stringify(updated));
       return updated;
     });
   }
@@ -199,15 +204,15 @@ export default function HomePage() {
   useEffect(() => {
     function syncHiddenCollabs() {
       try {
-        const saved = localStorage.getItem('hiddenCollabs');
+        const saved = localStorage.getItem("hiddenCollabs");
         setHiddenCollabs(saved ? JSON.parse(saved) : []);
       } catch {}
     }
-    window.addEventListener('storage', syncHiddenCollabs);
-    window.addEventListener('hiddenCollabsChanged', syncHiddenCollabs);
+    window.addEventListener("storage", syncHiddenCollabs);
+    window.addEventListener("hiddenCollabsChanged", syncHiddenCollabs);
     return () => {
-      window.removeEventListener('storage', syncHiddenCollabs);
-      window.removeEventListener('hiddenCollabsChanged', syncHiddenCollabs);
+      window.removeEventListener("storage", syncHiddenCollabs);
+      window.removeEventListener("hiddenCollabsChanged", syncHiddenCollabs);
     };
   }, []);
 
@@ -218,12 +223,12 @@ export default function HomePage() {
       const normalizedAccounts = (data.accounts as any[]).map(normalizeAccount);
       setAccounts(normalizedAccounts);
       let collabList = (data.collabs as Collaborator[]) || [];
-      if (collabList.length && 'orderId' in collabList[0]) {
+      if (collabList.length && "orderId" in collabList[0]) {
         collabList = [...collabList].sort((a, b) => {
           const va =
-            typeof a.orderId === 'number' ? a.orderId : Number(a.orderId ?? 0);
+            typeof a.orderId === "number" ? a.orderId : Number(a.orderId ?? 0);
           const vb =
-            typeof b.orderId === 'number' ? b.orderId : Number(b.orderId ?? 0);
+            typeof b.orderId === "number" ? b.orderId : Number(b.orderId ?? 0);
           return va - vb;
         });
       }
@@ -240,14 +245,14 @@ export default function HomePage() {
 
   useEffect(() => {
     function handleKeyDown(e: KeyboardEvent) {
-      if (e.altKey && e.key === 'n') {
+      if (e.altKey && e.key === "n") {
         e.preventDefault();
-        setDlg({ mode: 'addAccount' });
+        setDlg({ mode: "addAccount" });
       }
     }
 
-    document.addEventListener('keydown', handleKeyDown);
-    return () => document.removeEventListener('keydown', handleKeyDown);
+    document.addEventListener("keydown", handleKeyDown);
+    return () => document.removeEventListener("keydown", handleKeyDown);
   }, []);
 
   useEffect(() => {
@@ -259,8 +264,8 @@ export default function HomePage() {
       }
     };
 
-    window.addEventListener('scroll', handleScroll);
-    return () => window.removeEventListener('scroll', handleScroll);
+    window.addEventListener("scroll", handleScroll);
+    return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
   const visibleAccounts = useMemo(() => {
@@ -270,7 +275,7 @@ export default function HomePage() {
         if (acc.parcelasTotal === null || acc.parcelasTotal === undefined) {
           result.push(acc);
         } else if (
-          typeof acc.parcelasTotal === 'number' &&
+          typeof acc.parcelasTotal === "number" &&
           acc.parcelasTotal > 1
         ) {
           for (let i = 0; i < acc.parcelasTotal; i++) {
@@ -288,7 +293,7 @@ export default function HomePage() {
             result.push(acc);
           }
         } else if (
-          typeof acc.parcelasTotal === 'number' &&
+          typeof acc.parcelasTotal === "number" &&
           acc.parcelasTotal > 1
         ) {
           const start = { year: acc.year, month: acc.month };
@@ -307,7 +312,7 @@ export default function HomePage() {
     }
 
     if (!showCancelled) {
-      result = result.filter((acc) => acc.status !== 'Cancelado');
+      result = result.filter((acc) => acc.status !== "Cancelado");
     }
 
     if (filterDesc.trim()) {
@@ -323,21 +328,44 @@ export default function HomePage() {
     }
 
     if (filterParcela) {
-      if (filterParcela === 'avulso') {
+      if (filterParcela === "avulso") {
         result = result.filter(
           (acc) => acc.parcelasTotal === 0 || acc.parcelasTotal === 1
         );
-      } else if (filterParcela === 'fixo') {
+      } else if (filterParcela === "fixo") {
         result = result.filter(
           (acc) => acc.parcelasTotal === null || acc.parcelasTotal === undefined
         );
       } else {
         result = result.filter(
           (acc) =>
-            typeof (acc as any).parcelaAtual !== 'undefined' &&
+            typeof (acc as any).parcelaAtual !== "undefined" &&
             (acc as any).parcelaAtual === Number(filterParcela)
         );
       }
+    }
+    // Filtro de status
+    if (typeof filterStatus !== "undefined" && filterStatus !== "") {
+      result = result.filter((item) => {
+        if (filterStatus === "Pago")
+          return isAccountPaidInMonth(item, { year, month });
+        if (filterStatus === "Pendente")
+          return (
+            !isAccountPaidInMonth(item, { year, month }) &&
+            item.status !== "Cancelado"
+          );
+        if (filterStatus === "Cancelado") return item.status === "Cancelado";
+        if (filterStatus === "Futuro") {
+          if (item.dtPaid) {
+            const paidDate = new Date(item.dtPaid);
+            const paidYear = paidDate.getFullYear();
+            const paidMonth = paidDate.getMonth() + 1;
+            return paidYear > year || (paidYear === year && paidMonth > month);
+          }
+          return false;
+        }
+        return true;
+      });
     }
     return result;
   }, [
@@ -349,6 +377,7 @@ export default function HomePage() {
     filterDesc,
     filterValor,
     filterParcela,
+    filterStatus,
   ]);
 
   useEffect(() => {
@@ -366,7 +395,7 @@ export default function HomePage() {
   const totalPendente = stableVisible
     .filter(
       (a) =>
-        !isAccountPaidInMonth(a, { year, month }) && a.status !== 'Cancelado'
+        !isAccountPaidInMonth(a, { year, month }) && a.status !== "Cancelado"
     )
     .reduce((s, a) => s + Number(a.value), 0);
   const totalPago = stableVisible
@@ -386,7 +415,7 @@ export default function HomePage() {
   const totalPendenteSidebar = visibleAccountsForSidebar
     .filter(
       (a) =>
-        !isAccountPaidInMonth(a, { year, month }) && a.status !== 'Cancelado'
+        !isAccountPaidInMonth(a, { year, month }) && a.status !== "Cancelado"
     )
     .reduce((s, a) => s + Number(a.value), 0);
   const totalPagoSidebar = visibleAccountsForSidebar
@@ -396,7 +425,7 @@ export default function HomePage() {
   async function addOrUpdateAccount(
     payload: Omit<
       Account,
-      'id' | 'createdAt' | 'updatedAt' | 'collaboratorName' | 'cancelledAt'
+      "id" | "createdAt" | "updatedAt" | "collaboratorName" | "cancelledAt"
     >,
     idToUpdate?: string
   ) {
@@ -406,17 +435,17 @@ export default function HomePage() {
       } else {
         await api.addAccount(payload);
       }
-      setDlg({ mode: 'closed' });
+      setDlg({ mode: "closed" });
       await load();
     } catch (err) {
-      console.error('Erro ao salvar conta:', err);
+      console.error("Erro ao salvar conta:", err);
     }
   }
 
   async function removeAccount(id: string | string[]) {
     const ids = Array.isArray(id) ? id : [id];
 
-    let desc = '';
+    let desc = "";
     if (ids.length === 1) {
       const acc = accounts.find((a) => a.id === ids[0]);
       if (acc) desc = acc.description;
@@ -426,7 +455,7 @@ export default function HomePage() {
       ids.length === 1 && desc
         ? `Finança "${desc}" removida com sucesso!`
         : `Finanças removidas com sucesso!`,
-      'success'
+      "success"
     );
     await load();
   }
@@ -441,12 +470,12 @@ export default function HomePage() {
 
   async function createCollab(name: string) {
     if (collabs.some((c) => c.name.toLowerCase() === name.toLowerCase())) {
-      notify('Já existe um colaborador com esse nome!', 'error');
+      notify("Já existe um colaborador com esse nome!", "error");
       return;
     }
     await api.addCollab(name);
-    notify(`Colaborador "${name}" criado com sucesso!`, 'success');
-    setDlg({ mode: 'closed' });
+    notify(`Colaborador "${name}" criado com sucesso!`, "success");
+    setDlg({ mode: "closed" });
     await load();
   }
   function handlePaidUpdate(accountId: string, paid: boolean) {
@@ -469,14 +498,14 @@ export default function HomePage() {
     notify(
       collab
         ? `Colaborador "${collab.name}" removido com sucesso!`
-        : 'Colaborador removido com sucesso!',
-      'success'
+        : "Colaborador removido com sucesso!",
+      "success"
     );
     await load();
   }
 
   return (
-    <div className="flex items-start px-4 sm:px-6 lg:px-20 2xl:px-40 gap-6 mx-auto">
+    <div className="flex items-start px-4 sm:px-6 lg:px-20 gap-6 mx-auto">
       {sidebarOpen && (
         <div
           id="sidebar-total-colabs"
@@ -498,7 +527,7 @@ export default function HomePage() {
                 if (id !== null) {
                   const el = collabRefs.current[id];
                   if (el) {
-                    el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    el.scrollIntoView({ behavior: "smooth", block: "center" });
                   }
                 }
               }, 100);
@@ -506,7 +535,13 @@ export default function HomePage() {
             hiddenCollabs={hiddenCollabs}
             onToggleCollabVisibility={toggleCollabVisibility}
             onAddFinance={(collabId) => {
-              setDlg({ mode: 'addAccount', initialCollaboratorId: collabId });
+              setDlg({ mode: "addAccount", initialCollaboratorId: collabId });
+            }}
+            month={month}
+            year={year}
+            onChangeMonthYear={(m, y) => {
+              setMonth(m);
+              setYear(y);
             }}
           />
         </div>
@@ -516,7 +551,7 @@ export default function HomePage() {
         <div className="relative h-full">
           <div className="absolute left-1/2 top-0 bottom-0 -translate-x-1/2 w-px bg-slate-300 dark:bg-slate-700" />
           <button
-            aria-label={sidebarOpen ? 'Fechar sidebar' : 'Abrir sidebar'}
+            aria-label={sidebarOpen ? "Fechar sidebar" : "Abrir sidebar"}
             onClick={() => setSidebarOpen((s) => !s)}
             className="absolute z-10 p-1 rounded-full bg-slate-100 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 hover:bg-slate-200 dark:hover:bg-slate-700 transition left-1/2 top-3 -translate-x-1/2"
           >
@@ -562,6 +597,8 @@ export default function HomePage() {
             filterParcela={filterParcela}
             setFilterParcela={setFilterParcela}
             MONTHS_PT={MONTHS_PT}
+            filterStatus={filterStatus}
+            setFilterStatus={setFilterStatus}
           />
         </div>
 
@@ -619,8 +656,8 @@ export default function HomePage() {
                     }}
                     className={
                       selectedCollab === c.id
-                        ? 'border-2 border-blue-500 rounded transition-all'
-                        : 'rounded'
+                        ? "border-2 border-blue-500 rounded transition-all"
+                        : "rounded"
                     }
                   >
                     <SortableCollab id={c.id}>
@@ -631,8 +668,19 @@ export default function HomePage() {
                         currentComp={{ year, month }}
                         onDelete={(id) => removeAccount(id)}
                         onEdit={(account) =>
-                          setDlg({ mode: 'editAccount', account })
+                          setDlg({ mode: "editAccount", account })
                         }
+                        onDuplicate={(account) => {
+                          // Remove id and timestamps for duplication
+                          const {
+                            id,
+                            createdAt,
+                            updatedAt,
+                            cancelledAt,
+                            ...rest
+                          } = account;
+                          setDlg({ mode: "addAccount", account: { ...rest } });
+                        }}
                         onCancelToggle={(id) => toggleCancel(id)}
                         onCollabDeleted={async (collabId) => {
                           await handleCollabDeleted(collabId);
@@ -653,7 +701,7 @@ export default function HomePage() {
         <div className="fixed bottom-6 right-6 flex flex-col items-end gap-2 z-50">
           <div className="relative">
             <button
-              onClick={() => setDlg({ mode: 'addAccount' })}
+              onClick={() => setDlg({ mode: "addAccount" })}
               className="w-14 h-14 bg-blue-600 hover:bg-blue-700 text-white rounded-full shadow-lg hover:shadow-xl transition-all duration-300 flex items-center justify-center"
               title="Adicionar finança (Alt+N)"
             >
@@ -661,7 +709,7 @@ export default function HomePage() {
             </button>
 
             <button
-              onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
+              onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
               className="absolute -top-3 -left-3 w-8 h-8 bg-slate-200 hover:bg-slate-300 text-blue-700 rounded-full shadow-md transition-all duration-300 flex items-center justify-center border border-blue-400"
               title="Voltar ao topo"
               aria-label="Voltar ao topo"
@@ -683,23 +731,48 @@ export default function HomePage() {
         </div>
       )}
 
-      {dlg.mode === 'addCollab' && (
+      {dlg.mode === "addCollab" && (
         <AddCollaboratorDialog
-          onClose={() => setDlg({ mode: 'closed' })}
+          onClose={() => setDlg({ mode: "closed" })}
           onSave={createCollab}
         />
       )}
-      {(dlg.mode === 'addAccount' || dlg.mode === 'editAccount') && (
+      {(dlg.mode === "addAccount" || dlg.mode === "editAccount") && (
         <FinanceDialog
-          initial={dlg.mode === 'editAccount' ? dlg.account : undefined}
+          initial={
+            dlg.mode === "editAccount"
+              ? dlg.account
+              : dlg.mode === "addAccount" && dlg.account
+              ? {
+                  id: "",
+                  collaboratorId:
+                    dlg.account.collaboratorId || collabs[0]?.id || "",
+                  collaboratorName: dlg.account.collaboratorName || "",
+                  description: dlg.account.description || "",
+                  value: dlg.account.value ?? 0,
+                  parcelasTotal: dlg.account.parcelasTotal ?? null,
+                  month: dlg.account.month ?? month,
+                  year: dlg.account.year ?? year,
+                  status: dlg.account.status || "Pendente",
+                  paid: dlg.account.paid ?? false,
+                  dtPaid: dlg.account.dtPaid || "",
+                  createdAt: "",
+                  updatedAt: "",
+                  cancelledAt: undefined,
+                }
+              : undefined
+          }
+          mode={
+            dlg.mode === "addAccount" && dlg.account ? "duplicate" : dlg.mode
+          }
           collaborators={collabs.map((c) => ({ id: c.id, name: c.name }))}
           filteredMonth={month}
           filteredYear={year}
           initialCollaboratorId={
-            dlg.mode === 'addAccount' ? dlg.initialCollaboratorId : undefined
+            dlg.mode === "addAccount" ? dlg.initialCollaboratorId : undefined
           }
           onSave={addOrUpdateAccount}
-          onClose={() => setDlg({ mode: 'closed' })}
+          onClose={() => setDlg({ mode: "closed" })}
         />
       )}
     </div>

@@ -1,12 +1,12 @@
-import { useAuth } from '../../context/AuthContext';
-import { Navigate } from 'react-router-dom';
-import { useEffect, useState } from 'react';
-import { useNotification } from '../../context/NotificationContext';
-import { listUsers, deleteUser, changeUserRole } from '../../lib/api';
-import UserTable from '../../components/Admin/UserTable';
-import type { User } from '../../components/Admin/UserTable';
-import DeleteUserModal from '../../components/Admin/DeleteUserModal';
-import AdminSidebar from '../../components/Admin/AdminSidebar';
+import { useAuth } from "../../context/AuthContext";
+import { Navigate } from "react-router-dom";
+import { useEffect, useState } from "react";
+import { useNotification } from "../../context/NotificationContext";
+import { listUsers, deleteUser, changeUserRole } from "../../lib/api";
+import UserTable from "../../components/Admin/UserTable";
+import type { User } from "../../components/Admin/UserTable";
+import DeleteUserModal from "../../components/Admin/DeleteUserModal";
+import AdminSidebar from "../../components/Admin/AdminSidebar";
 
 export default function AdminPage() {
   const { notify } = useNotification();
@@ -20,14 +20,14 @@ export default function AdminPage() {
       </div>
     );
   if (!auth?.user) return <Navigate to="/login" replace />;
-  if (auth.user.role !== 'admin') return <Navigate to="/" replace />;
+  if (auth.user.role !== "admin") return <Navigate to="/" replace />;
   async function handleToggleAdmin(user: User) {
-    const newRole = user.role === 'admin' ? 'user' : 'admin';
+    const newRole = user.role === "admin" ? "user" : "admin";
     try {
       await changeUserRole(user.id, newRole);
       await refresh();
     } catch (err: any) {
-      notify('Erro ao atualizar papel do usuário', 'error');
+      notify("Erro ao atualizar papel do usuário", "error");
     }
   }
 
@@ -38,10 +38,10 @@ export default function AdminPage() {
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [userToDelete, setUserToDelete] = useState<number | null>(null);
   const [loading, setLoading] = useState(true);
-  const [sortKey, setSortKey] = useState<'name' | 'role' | 'email' | null>(
+  const [sortKey, setSortKey] = useState<"name" | "role" | "email" | null>(
     null
   );
-  const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc');
+  const [sortOrder, setSortOrder] = useState<"asc" | "desc">("asc");
 
   useEffect(() => {
     refresh();
@@ -56,7 +56,7 @@ export default function AdminPage() {
         .map(
           (u: { id: number; name: string; role: string; email?: string }) => ({
             ...u,
-            email: u.email ?? '',
+            email: u.email ?? "",
           })
         )
         .sort((a: User, b: User) => a.role.localeCompare(b.role));
@@ -74,16 +74,16 @@ export default function AdminPage() {
       setUserToDelete(null);
       await refresh();
     } catch (err: any) {
-      notify(err.message || 'Erro ao excluir usuário', 'error');
+      notify(err.message || "Erro ao excluir usuário", "error");
     }
   }
 
-  function handleSort(key: 'name' | 'role' | 'email') {
+  function handleSort(key: "name" | "role" | "email") {
     if (sortKey === key) {
-      setSortOrder((prev) => (prev === 'asc' ? 'desc' : 'asc'));
+      setSortOrder((prev) => (prev === "asc" ? "desc" : "asc"));
     } else {
       setSortKey(key);
-      setSortOrder('asc');
+      setSortOrder("asc");
     }
   }
 
@@ -93,13 +93,13 @@ export default function AdminPage() {
   }
 
   return (
-    <div className="flex min-h-screen px-4 sm:px-6 lg:px-20 2xl:px-40 gap-6 mx-auto">
+    <div className="flex min-h-screen px-4 sm:px-6 lg:px-20 gap-6 mx-auto">
       <AdminSidebar sidebarOpen={sidebarOpen} />
       <div className="hidden md:block sticky top-6 h-screen mx-2">
         <div className="relative h-full">
           <div className="absolute left-1/2 top-0 bottom-0 -translate-x-1/2 w-px bg-slate-300 dark:bg-slate-700" />
           <button
-            aria-label={sidebarOpen ? 'Fechar sidebar' : 'Abrir sidebar'}
+            aria-label={sidebarOpen ? "Fechar sidebar" : "Abrir sidebar"}
             onClick={() => setSidebarOpen((s) => !s)}
             className="absolute z-10 p-1 rounded-full bg-slate-100 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 hover:bg-slate-200 dark:hover:bg-slate-700 transition left-1/2 top-3 -translate-x-1/2"
           >

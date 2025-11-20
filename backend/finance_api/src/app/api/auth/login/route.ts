@@ -1,11 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { prisma } from '@/lib/prisma';
-import { loginSchema } from '@/lib/validations/auth';
 import { badRequest, serverError, unauthorized } from '@/lib/response';
-import bcrypt from 'bcryptjs';
 import { signAccessToken, signRefreshToken } from '@/lib/auth';
+import { loginSchema } from '@/lib/validations/auth';
+import { prisma } from '@/lib/prisma';
 import { logger } from '@/lib/logger';
 import { env } from '@/lib/env';
+import bcrypt from 'bcryptjs';
 
 export const runtime = 'nodejs';
 

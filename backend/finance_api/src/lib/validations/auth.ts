@@ -13,3 +13,8 @@ export const loginSchema = z.object({
   identifier: z.string().min(3).max(80),
   password: z.string().max(128),
 });
+
+export const changePasswordSchema = z.object({
+  currentPassword: z.string().min(8).max(128),
+  newPassword: z.string().min(8).max(128),
+});

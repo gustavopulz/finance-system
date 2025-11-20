@@ -1,85 +1,101 @@
-// middleware.ts
-import { NextResponse } from 'next/server'
-import type { NextRequest } from 'next/server'
-import { verifyToken } from '@/lib/jwt'
+import { NextRequest, NextResponse } from "next/server";
+import { ALLOWED_ORIGINS } from "@/lib/env";
+import { verifyToken, signAccessToken } from "@/lib/auth";
 
 export const config = {
-  matcher: '/api/:path*',
-  runtime: 'nodejs',
-}
+  matcher: ["/api/:path*"],
+};
 
-// 🔧 Função utilitária para headers CORS
-function corsHeaders(origin: string) {
-  return {
-    'Access-Control-Allow-Origin': origin,
-    'Access-Control-Allow-Methods': 'GET,POST,PATCH,PUT,DELETE,OPTIONS',
-    'Access-Control-Allow-Headers': 'Content-Type, Authorization',
-    'Access-Control-Allow-Credentials': 'true',
-  }
-}
+export async function middleware(req: NextRequest) {
+  const origin = req.headers.get("origin") ?? "";
+  const isAllowed = ALLOWED_ORIGINS.includes(origin);
 
-// 🔧 Helper para respostas já com CORS
-function withCors(
-  body: any,
-  status: number,
-  origin: string
-): NextResponse {
-  return new NextResponse(
-    body ? JSON.stringify(body) : null,
-    {
-      status,
-      headers: corsHeaders(origin),
-    }
-  )
-}
-
-export function middleware(request: NextRequest) {
-  const origin = request.headers.get('origin') || ''
-  const allowedOrigins = [
-    'https://finance-system.prxlab.app',
-    'http://localhost:5173',
-  ]
-  const allowedOrigin = allowedOrigins.includes(origin)
-    ? origin
-    : allowedOrigins[0]
-
-  // ✅ Preflight (CORS)
-  if (request.method === 'OPTIONS') {
-    return withCors(null, 204, allowedOrigin)
+  // Pré-flight CORS
+  if (req.method === "OPTIONS") {
+    return new NextResponse(null, {
+      status: 204,
+      headers: corsHeaders(origin, isAllowed),
+    });
   }
 
-  const isApiRoute = request.nextUrl.pathname.startsWith('/api')
-  const pathname = request.nextUrl.pathname.replace(/\/$/, '')
+  const res = NextResponse.next();
 
-  // ✅ Rotas públicas
-  const unprotectedRoutes: string[] = [
-    '/api/hello',
-    '/api/user/login',
-    '/api/user/register',
-    '/api/user/refresh',
-  ]
+  // CORS + headers de segurança
+  const headers = corsHeaders(origin, isAllowed);
+  headers.set("X-Content-Type-Options", "nosniff");
+  headers.set("X-Frame-Options", "DENY");
+  headers.set("Referrer-Policy", "no-referrer");
+  headers.set("Permissions-Policy", "geolocation=()");
+  headers.forEach((v, k) => res.headers.set(k, v));
 
-  if (isApiRoute && !unprotectedRoutes.includes(pathname)) {
-    const token = request.cookies.get('auth_token')?.value
+  // --- Autenticação e Auto-Refresh ---
+  const auth = req.headers.get("authorization");
+  const refreshToken = req.cookies.get("refresh_token")?.value;
+  const pathname = req.nextUrl.pathname;
 
-    if (!token) {
-      return withCors({ error: 'not_authenticated' }, 401, allowedOrigin)
-    }
+  // Rotas públicas por método
+  const publicRoutes = [
+    "/api/health",
+  ];
 
-    try {
-      verifyToken(token)
-    } catch (err: any) {
-      if (err.message === 'Token expirado') {
-        return withCors({ error: 'token_expired' }, 401, allowedOrigin)
+  if (publicRoutes.some((r) => pathname.startsWith(r))) {
+    const res = NextResponse.next();
+    headers.forEach((v, k) => res.headers.set(k, v));
+    return res;
+  }
+
+  // Bloqueia se não houver Authorization
+  if (!auth?.startsWith("Bearer ")) {
+    return NextResponse.json(
+      { success: false, error: { message: "Unauthorized - Missing token" } },
+      { status: 401, headers }
+    );
+  }
+
+  const token = auth.slice("Bearer ".length);
+
+  try {
+    await verifyToken(token);
+    return res;
+  } catch {
+    // Token expirado → tenta refresh
+    if (refreshToken) {
+      try {
+        const payload = await verifyToken(refreshToken);
+        const newAccessToken = await signAccessToken(payload);
+
+        res.headers.set("x-new-access-token", newAccessToken);
+        return res;
+      } catch {
+        // Refresh token inválido → limpa cookie
+        res.cookies.set({
+          name: "refresh_token",
+          value: "",
+          expires: new Date(0),
+          path: "/",
+        });
+        return NextResponse.json(
+          { success: false, error: { message: "Session expired" } },
+          { status: 401, headers }
+        );
       }
-      return withCors({ error: 'invalid_token' }, 403, allowedOrigin)
     }
-  }
 
-  // ✅ Resposta padrão
-  const response = NextResponse.next()
-  Object.entries(corsHeaders(allowedOrigin)).forEach(([k, v]) =>
-    response.headers.set(k, v)
-  )
-  return response
+    // Sem refresh token → 401
+    return NextResponse.json(
+      { success: false, error: { message: "Unauthorized" } },
+      { status: 401, headers }
+    );
+  }
+}
+
+// 🌐 Função utilitária de CORS
+function corsHeaders(origin: string, isAllowed: boolean) {
+  const h = new Headers();
+  h.set("Access-Control-Allow-Origin", isAllowed ? origin : "");
+  h.set("Access-Control-Allow-Credentials", "true");
+  h.set("Access-Control-Allow-Methods", "GET,POST,PUT,PATCH,DELETE,OPTIONS");
+  h.set("Access-Control-Allow-Headers", "Content-Type, Authorization");
+  h.set("Vary", "Origin");
+  return h;
 }

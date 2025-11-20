@@ -421,30 +421,10 @@ export default function FinanceTable({
     return isCollapsed ? [] : sortedData;
   }, [sortedData, isCollapsed]);
 
-  // Bloqueia qualquer drag/pointer/mouse quando colapsado
-  const blockEventsIfCollapsed = isCollapsed
-    ? {
-        onDragStart: (e: any) => {
-          e.preventDefault();
-          e.stopPropagation();
-        },
-        onPointerDown: (e: any) => {
-          e.preventDefault();
-          e.stopPropagation();
-        },
-        onMouseDown: (e: any) => {
-          e.preventDefault();
-          e.stopPropagation();
-        },
-        onTouchStart: (e: any) => {
-          e.preventDefault();
-          e.stopPropagation();
-        },
-      }
-    : {};
-  // dragHandleProps nunca é passado para o DOM quando colapsado
-  const dragProps = isCollapsed ? {} : dragHandleProps || {};
-  const dragStyle = isCollapsed ? {} : dragHandleProps?.style || {};
+  // Always allow drag handle props so the card can be dragged even when collapsed
+  const blockEventsIfCollapsed = {};
+  const dragProps = dragHandleProps || {};
+  const dragStyle = dragHandleProps?.style || {};
 
   return (
     <>

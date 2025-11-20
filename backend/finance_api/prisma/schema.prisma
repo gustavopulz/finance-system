@@ -1,0 +1,136 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Users {
+  id         String        @id @default(uuid()) @db.Uuid
+  email      String        @unique @db.VarChar(255)
+  name       String        @db.VarChar(150)
+  password   String        @db.VarChar(255)
+  role       Role          @default(user)
+  createdAt  DateTime      @default(now())
+  updatedAt  DateTime      @updatedAt
+
+  cards          Cards[]
+  tokens         ShareTokens[] @relation("TokensCreatedBy")
+  claimedTokens  ShareTokens[] @relation("TokenClaimedBy")
+  sharesWith     CardShares[]  @relation("SharesWith")
+  sharesBy       CardShares[]  @relation("SharesBy")
+}
+
+model Cards {
+  id        String        @id @default(uuid()) @db.Uuid
+  name      String        @db.VarChar(150)
+  userId    String        @db.Uuid
+  createdAt DateTime      @default(now())
+  updatedAt DateTime      @updatedAt
+
+  bills     Bills[]
+  shares    CardShares[]
+  user      Users         @relation(fields: [userId], references: [id])
+}
+
+model Bills {
+  id            String     @id @default(uuid()) @db.Uuid
+  cardId        String     @db.Uuid
+  userId        String     @db.Uuid
+
+  description   String?    @db.VarChar(255)
+  value         Decimal    @db.Decimal(12, 2)
+  type          BillType   @default(avulsa)
+  parcelasNum   Int?       // quantidade de parcelas (se parcelada)
+  category      String?    @db.VarChar(100)
+
+  startDate     DateTime
+  endDate       DateTime?
+
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+
+  // NOVO: tracking da última versão sincronizada
+  version       Int           @default(1)   // <-- usado para gerar eventos para o ClickHouse
+
+  card          Cards      @relation(fields: [cardId], references: [id])
+  occurrences   BillOccurrences[]
+
+  @@index([userId])
+  @@index([cardId])
+}
+
+model BillOccurrences {
+  id          String     @id @default(uuid()) @db.Uuid
+  billId      String     @db.Uuid
+  month       Int
+  year        Int
+  dueDate     DateTime
+  status      BillStatus @default(pendente)
+  paidAt      DateTime?
+  cancelledAt DateTime?
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt   // importante para versionamento
+
+  // NOVO: controla versões de sincronização para o ClickHouse
+  version     Int        @default(1)   // sempre que uma mudança ocorrer, version++
+
+  bill        Bills      @relation(fields: [billId], references: [id])
+
+  @@unique([billId, month, year])
+  @@index([year, month])
+  @@index([billId])
+  @@index([status])
+}
+
+model CardShares {
+  id               String   @id @default(uuid()) @db.Uuid
+  sharedByUserId   String   @db.Uuid
+  sharedWithUserId String   @db.Uuid
+  cardId           String   @db.Uuid
+  createdAt        DateTime @default(now())
+
+  card             Cards    @relation(fields: [cardId], references: [id])
+  sharedByUser     Users    @relation("SharesBy", fields: [sharedByUserId], references: [id])
+  sharedWithUser   Users    @relation("SharesWith", fields: [sharedWithUserId], references: [id])
+
+  @@unique([sharedByUserId, sharedWithUserId, cardId])
+  @@index([sharedWithUserId])
+  @@index([sharedByUserId])
+  @@index([cardId])
+}
+
+model ShareTokens {
+  id        String    @id @default(uuid()) @db.Uuid
+  token     String    @unique
+  userId    String    @db.Uuid
+  createdAt DateTime  @default(now())
+  expiresAt DateTime?
+  claimedByUserId String? @db.Uuid
+  claimedAt DateTime?
+
+  user            Users     @relation("TokensCreatedBy", fields: [userId], references: [id])
+  claimedByUser   Users?    @relation("TokenClaimedBy", fields: [claimedByUserId], references: [id])
+
+  @@index([userId])
+  @@index([claimedByUserId])
+}
+
+enum Role {
+  user
+  admin
+}
+
+enum BillStatus {
+  pendente
+  pago
+  cancelado
+}
+
+enum BillType {
+  recorrente
+  avulsa
+  parcelada
+}

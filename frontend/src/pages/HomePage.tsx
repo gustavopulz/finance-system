@@ -97,6 +97,52 @@ function normalizeAccount(a: any): Account {
   };
 }
 export default function HomePage() {
+  // Modo de edição de ordem de colaboradores
+  const [editOrderMode, setEditOrderMode] = useState(false);
+  const [collapsedStateBackup, setCollapsedStateBackup] = useState<{
+    [collabId: string]: boolean;
+  }>({});
+
+  // Função para obter o estado de colapso de cada colaborador
+  function getAllCollabsCollapseState() {
+    const state: { [collabId: string]: boolean } = {};
+    collabs.forEach((c) => {
+      const saved = localStorage.getItem(`collapse_${c.id}`);
+      state[c.id] = saved === "true";
+    });
+    return state;
+  }
+
+  // Função para forçar o colapso de todos os colaboradores
+  function forceCollapseAllCollabs() {
+    collabs.forEach((c) => {
+      localStorage.setItem(`collapse_${c.id}`, "true");
+    });
+  }
+
+  // Função para restaurar o estado de colapso salvo
+  function restoreCollapseState(state: { [collabId: string]: boolean }) {
+    Object.entries(state).forEach(([id, collapsed]) => {
+      localStorage.setItem(`collapse_${id}`, collapsed ? "true" : "false");
+    });
+  }
+
+  // Handler do botão Personalizar Ordem
+  function handleToggleEditOrderMode() {
+    if (!editOrderMode) {
+      // Ativar modo edição: salvar estado, colapsar todos, ativar drag, notificar
+      setCollapsedStateBackup(getAllCollabsCollapseState());
+      forceCollapseAllCollabs();
+      setEditOrderMode(true);
+      notify("Modo de edição de colaborador ativado!", "success");
+    } else {
+      // Desativar: restaurar estado, desativar drag, notificar
+      restoreCollapseState(collapsedStateBackup);
+      setEditOrderMode(false);
+      notify("Modo de edição de colaborador desativado!", "info");
+    }
+  }
+
   // Estado de seleção múltipla global para todos os FinanceTable
   // Seleção individual por colaborador
   const [selectedItems, setSelectedItems] = useState<{
@@ -538,6 +584,15 @@ export default function HomePage() {
     await load();
   }
 
+  // Se o usuário expandir manualmente um colaborador durante o modo edição, desativa o modo e restaura o estado
+  function handleCollabExpandDuringEdit(collabId: string) {
+    if (editOrderMode) {
+      restoreCollapseState(collapsedStateBackup);
+      setEditOrderMode(false);
+      notify("Modo de edição de colaborador desativado!", "info");
+    }
+  }
+
   return (
     <div className="flex items-start px-4 sm:px-6 lg:px-20 gap-6 mx-auto">
       {sidebarOpen && (
@@ -640,115 +695,191 @@ export default function HomePage() {
             MONTHS_PT={MONTHS_PT}
             filterStatus={filterStatus}
             setFilterStatus={setFilterStatus}
+            editOrderMode={editOrderMode}
+            onToggleEditOrderMode={handleToggleEditOrderMode}
           />
         </div>
 
         {loading && <SkeletonCard className="mb-4" />}
 
-        <DndContext
-          collisionDetection={closestCenter}
-          onDragEnd={(e) => {
-            const { active, over } = e;
-
-            if (!over) return;
-
-            if (active.id !== over.id) {
-              const oldIndex = collabOrder.indexOf(String(active.id));
-              const newIndex = collabOrder.indexOf(String(over.id));
-
-              if (oldIndex === -1 || newIndex === -1) return;
-
-              const newOrder = arrayMove(collabOrder, oldIndex, newIndex);
-              setCollabOrder(newOrder);
-              saveCollabOrder(newOrder);
-            }
-          }}
-        >
-          <SortableContext
-            items={collabOrder}
-            strategy={verticalListSortingStrategy}
+        {editOrderMode ? (
+          <DndContext
+            collisionDetection={closestCenter}
+            onDragEnd={(e) => {
+              const { active, over } = e;
+              if (!over) return;
+              if (active.id !== over.id) {
+                const oldIndex = collabOrder.indexOf(String(active.id));
+                const newIndex = collabOrder.indexOf(String(over.id));
+                if (oldIndex === -1 || newIndex === -1) return;
+                const newOrder = arrayMove(collabOrder, oldIndex, newIndex);
+                setCollabOrder(newOrder);
+                saveCollabOrder(newOrder);
+              }
+            }}
           >
-            <div className="flex flex-col gap-6 relative z-10">
-              <div
-                aria-hidden="true"
-                className="pointer-events-none absolute inset-0 overflow-hidden -z-10"
-              >
-                <div className="absolute left-1/2 top-[15%] -translate-x-1/2 w-[1000px] h-[1000px] rounded-full bg-gradient-to-br from-blue-700/20 via-blue-800/10 to-transparent  dark:from-blue-900/25 dark:via-blue-800/15 dark:to-transparent  blur-[120px]" />
-
-                <div className="absolute left-[65%] top-[95%] -translate-x-1/2 w-[800px] h-[800px] rounded-full bg-gradient-to-tr from-blue-700/16 via-blue-800/10 to-transparent  dark:from-blue-900/20 dark:via-blue-800/12 dark:to-transparent  blur-[100px]" />
-
+            <SortableContext
+              items={collabOrder}
+              strategy={verticalListSortingStrategy}
+            >
+              <div className="flex flex-col gap-6 relative z-10">
+                {/* ...background gradients... */}
                 <div
-                  className="absolute left-[30%] top-[175%] -translate-x-1/2 w-[600px] h-[600px] rounded-full 
-                  bg-gradient-to-tr from-blue-600/12 via-blue-700/8 to-transparent 
-                  dark:from-blue-900/16 dark:via-blue-800/10 dark:to-transparent 
-                  blur-[90px]"
-                />
-              </div>
-
-              {collabOrder.map((id) => {
-                const c = collabs.find((cc) => cc.id === id);
-                if (!c) return null;
-                if (hiddenCollabs.includes(c.id)) return null;
-                const items = byCollab(c.id);
-                const selectedSet = selectedItems[c.id] || new Set();
-                return (
+                  aria-hidden="true"
+                  className="pointer-events-none absolute inset-0 overflow-hidden -z-10"
+                >
+                  <div className="absolute left-1/2 top-[15%] -translate-x-1/2 w-[1000px] h-[1000px] rounded-full bg-gradient-to-br from-blue-700/20 via-blue-800/10 to-transparent  dark:from-blue-900/25 dark:via-blue-800/15 dark:to-transparent  blur-[120px]" />
+                  <div className="absolute left-[65%] top-[95%] -translate-x-1/2 w-[800px] h-[800px] rounded-full bg-gradient-to-tr from-blue-700/16 via-blue-800/10 to-transparent  dark:from-blue-900/20 dark:via-blue-800/12 dark:to-transparent  blur-[100px]" />
                   <div
-                    key={c.id}
-                    ref={(el) => {
-                      collabRefs.current[c.id] = el;
-                    }}
-                    className={
-                      selectedCollab === c.id
-                        ? "border-2 border-blue-500 rounded transition-all"
-                        : "rounded"
-                    }
-                  >
-                    <SortableCollab id={c.id}>
-                      <FinanceTable
-                        collaboratorId={c.id}
-                        title={c.name}
-                        items={items}
-                        currentComp={{ year, month }}
-                        onDelete={(id) => removeAccount(id)}
-                        onEdit={(account) =>
-                          setDlg({ mode: "editAccount", account })
-                        }
-                        onDuplicate={(account) => {
-                          // Remove id and timestamps for duplication
-                          const {
-                            id,
-                            createdAt,
-                            updatedAt,
-                            cancelledAt,
-                            ...rest
-                          } = account;
-                          setDlg({ mode: "addAccount", account: { ...rest } });
-                        }}
-                        onCancelToggle={(id) => toggleCancel(id)}
-                        onCollabDeleted={async (collabId) => {
-                          await handleCollabDeleted(collabId);
-                        }}
-                        onPaidUpdate={handlePaidUpdate}
-                        // Props para seleção múltipla individual
-                        selectedItems={selectedSet}
-                        toggleItemSelection={(itemId) =>
-                          toggleItemSelection(c.id, itemId)
-                        }
-                        toggleSelectAll={() =>
-                          toggleSelectAll(
-                            c.id,
-                            items.map((item) => item.id)
-                          )
-                        }
-                        clearSelection={() => clearSelection(c.id)}
-                      />
-                    </SortableCollab>
-                  </div>
-                );
-              })}
+                    className="absolute left-[30%] top-[175%] -translate-x-1/2 w-[600px] h-[600px] rounded-full 
+                    bg-gradient-to-tr from-blue-600/12 via-blue-700/8 to-transparent 
+                    dark:from-blue-900/16 dark:via-blue-800/10 dark:to-transparent 
+                    blur-[90px]"
+                  />
+                </div>
+                {collabOrder.map((id) => {
+                  const c = collabs.find((cc) => cc.id === id);
+                  if (!c) return null;
+                  if (hiddenCollabs.includes(c.id)) return null;
+                  const items = byCollab(c.id);
+                  const selectedSet = selectedItems[c.id] || new Set();
+                  return (
+                    <div
+                      key={c.id}
+                      ref={(el) => {
+                        collabRefs.current[c.id] = el;
+                      }}
+                      className={
+                        selectedCollab === c.id
+                          ? "border-2 border-blue-500 rounded transition-all"
+                          : "rounded"
+                      }
+                    >
+                      <SortableCollab id={c.id}>
+                        <FinanceTable
+                          collaboratorId={c.id}
+                          title={c.name}
+                          items={items}
+                          currentComp={{ year, month }}
+                          onDelete={(id) => removeAccount(id)}
+                          onEdit={(account) =>
+                            setDlg({ mode: "editAccount", account })
+                          }
+                          onDuplicate={(account) => {
+                            const {
+                              id,
+                              createdAt,
+                              updatedAt,
+                              cancelledAt,
+                              ...rest
+                            } = account;
+                            setDlg({
+                              mode: "addAccount",
+                              account: { ...rest },
+                            });
+                          }}
+                          onCancelToggle={(id) => toggleCancel(id)}
+                          onCollabDeleted={async (collabId) => {
+                            await handleCollabDeleted(collabId);
+                          }}
+                          onPaidUpdate={handlePaidUpdate}
+                          selectedItems={selectedSet}
+                          toggleItemSelection={(itemId) =>
+                            toggleItemSelection(c.id, itemId)
+                          }
+                          toggleSelectAll={() =>
+                            toggleSelectAll(
+                              c.id,
+                              items.map((item) => item.id)
+                            )
+                          }
+                          clearSelection={() => clearSelection(c.id)}
+                          forceCollapse={true}
+                          onExpandDuringEdit={() =>
+                            handleCollabExpandDuringEdit(c.id)
+                          }
+                        />
+                      </SortableCollab>
+                    </div>
+                  );
+                })}
+              </div>
+            </SortableContext>
+          </DndContext>
+        ) : (
+          // Drag-and-drop desativado quando não está em modo de edição
+          <div className="flex flex-col gap-6 relative z-10">
+            {/* ...background gradients... */}
+            <div
+              aria-hidden="true"
+              className="pointer-events-none absolute inset-0 overflow-hidden -z-10"
+            >
+              <div className="absolute left-1/2 top-[15%] -translate-x-1/2 w-[1000px] h-[1000px] rounded-full bg-gradient-to-br from-blue-700/20 via-blue-800/10 to-transparent  dark:from-blue-900/25 dark:via-blue-800/15 dark:to-transparent  blur-[120px]" />
+              <div className="absolute left-[65%] top-[95%] -translate-x-1/2 w-[800px] h-[800px] rounded-full bg-gradient-to-tr from-blue-700/16 via-blue-800/10 to-transparent  dark:from-blue-900/20 dark:via-blue-800/12 dark:to-transparent  blur-[100px]" />
+              <div
+                className="absolute left-[30%] top-[175%] -translate-x-1/2 w-[600px] h-[600px] rounded-full 
+                bg-gradient-to-tr from-blue-600/12 via-blue-700/8 to-transparent 
+                dark:from-blue-900/16 dark:via-blue-800/10 dark:to-transparent 
+                blur-[90px]"
+              />
             </div>
-          </SortableContext>
-        </DndContext>
+            {collabOrder.map((id) => {
+              const c = collabs.find((cc) => cc.id === id);
+              if (!c) return null;
+              if (hiddenCollabs.includes(c.id)) return null;
+              const items = byCollab(c.id);
+              const selectedSet = selectedItems[c.id] || new Set();
+              return (
+                <div
+                  key={c.id}
+                  ref={(el) => {
+                    collabRefs.current[c.id] = el;
+                  }}
+                  className={
+                    selectedCollab === c.id
+                      ? "border-2 border-blue-500 rounded transition-all"
+                      : "rounded"
+                  }
+                >
+                  <FinanceTable
+                    collaboratorId={c.id}
+                    title={c.name}
+                    items={items}
+                    currentComp={{ year, month }}
+                    onDelete={(id) => removeAccount(id)}
+                    onEdit={(account) =>
+                      setDlg({ mode: "editAccount", account })
+                    }
+                    onDuplicate={(account) => {
+                      const { id, createdAt, updatedAt, cancelledAt, ...rest } =
+                        account;
+                      setDlg({
+                        mode: "addAccount",
+                        account: { ...rest },
+                      });
+                    }}
+                    onCancelToggle={(id) => toggleCancel(id)}
+                    onCollabDeleted={async (collabId) => {
+                      await handleCollabDeleted(collabId);
+                    }}
+                    onPaidUpdate={handlePaidUpdate}
+                    selectedItems={selectedSet}
+                    toggleItemSelection={(itemId) =>
+                      toggleItemSelection(c.id, itemId)
+                    }
+                    toggleSelectAll={() =>
+                      toggleSelectAll(
+                        c.id,
+                        items.map((item) => item.id)
+                      )
+                    }
+                    clearSelection={() => clearSelection(c.id)}
+                  />
+                </div>
+              );
+            })}
+          </div>
+        )}
       </div>
 
       {/* Botões flutuantes */}

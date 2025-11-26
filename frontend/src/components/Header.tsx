@@ -8,6 +8,7 @@ import {
   PieChart,
   HelpCircle,
   Crown,
+  Sparkles,
 } from "lucide-react";
 import { useAuth } from "../context/AuthContext";
 import { useEffect, useRef, useState } from "react";
@@ -48,6 +49,11 @@ export default function Header() {
       label: "Dashboard",
       icon: <LayoutDashboard size={16} />,
     },
+    {
+      to: "/novidades",
+      label: "Novidades",
+      icon: <Sparkles size={16} />,
+    },
     { to: "/info", label: "Ajuda", icon: <HelpCircle size={16} /> },
   ];
 
@@ -65,7 +71,10 @@ export default function Header() {
   }, [userMenuOpen]);
 
   return (
-    <header className="bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl border-b border-slate-200/60 dark:border-slate-700/60">
+    <header
+      className="header-blur bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl border-b border-slate-200/60 dark:border-slate-700/60"
+      style={{ position: "relative" }}
+    >
       <div className="mx-auto px-4 lg:px-20 flex items-center justify-between h-[68px]">
         <div className="flex items-center gap-6">
           <NavLink to="/summary" className="flex items-center gap-2 group">
@@ -138,7 +147,7 @@ export default function Header() {
                 .join("")}
             </button>
             {userMenuOpen && (
-              <div className="absolute right-0 mt-0.5 -translate-y-1 w-56 rounded-xl border border-slate-200/70 dark:border-slate-700/60 bg-white dark:bg-slate-900 backdrop-blur-xl shadow-xl py-2 px-2 z-50">
+              <div className="absolute right-0 mt-0.5 -translate-y-1 w-56 rounded-xl border border-slate-200/70 dark:border-slate-700/60 bg-white/100 dark:bg-slate-900/100 shadow-xl py-2 px-2 z-[999]">
                 <div className="px-2 pb-2 border-b border-slate-200/60 dark:border-slate-700/60 mb-2">
                   <p className="text-sm font-medium text-slate-800 dark:text-slate-100 truncate">
                     {auth?.user?.name || "Usuário"}

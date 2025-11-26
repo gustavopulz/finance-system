@@ -1,5 +1,12 @@
 import React, { useState } from "react";
-import { Plus, UserPlus, X, BarChart2, SlidersHorizontal } from "lucide-react";
+import {
+  Plus,
+  UserPlus,
+  X,
+  BarChart2,
+  SlidersHorizontal,
+  User,
+} from "lucide-react";
 
 interface SummaryProps {
   total: number;
@@ -23,6 +30,9 @@ interface SummaryProps {
   MONTHS_PT: string[];
   filterStatus: string;
   setFilterStatus: (status: string) => void;
+  // Novas props para modo de edição de ordem
+  editOrderMode?: boolean;
+  onToggleEditOrderMode?: () => void;
 }
 
 const Summary: React.FC<SummaryProps> = ({
@@ -47,16 +57,19 @@ const Summary: React.FC<SummaryProps> = ({
   MONTHS_PT,
   filterStatus,
   setFilterStatus,
+  editOrderMode,
+  onToggleEditOrderMode,
 }) => {
   const [showFilterModal, setShowFilterModal] = useState(false);
-
   return (
     <div className="border border-slate-300 dark:border-slate-700 shadow-sm rounded-lg bg-white dark:bg-slate-900 p-4">
       <div className="flex flex-wrap items-center justify-between gap-2">
-        <h1 className="text-xl font-semibold flex items-center gap-2">
-          <BarChart2 size={18} className="text-slate-500" /> Resumo
-        </h1>
-        <div className="flex gap-2 flex-wrap">
+        <div className="flex items-center gap-2">
+          <h1 className="text-xl font-semibold flex items-center gap-2">
+            <BarChart2 size={18} className="text-slate-500" /> Resumo
+          </h1>
+        </div>
+        <div className="flex gap-2 flex-wrap items-center">
           <button
             className="flex items-center gap-2 border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-200 px-4 py-2 rounded-md transition"
             onClick={() => setShowFilterModal(true)}
@@ -65,6 +78,32 @@ const Summary: React.FC<SummaryProps> = ({
             <SlidersHorizontal size={18} />{" "}
             <span className="hidden sm:inline">Filtros</span>
           </button>
+
+          {/* Botão Personalizar Ordem após Filtros */}
+          {typeof editOrderMode !== "undefined" &&
+            typeof onToggleEditOrderMode === "function" && (
+              <button
+                className={`flex items-center gap-2 px-4 py-2 rounded-md transition border shadow-sm focus:outline-none ${
+                  editOrderMode
+                    ? "bg-blue-600 text-white border-blue-700 hover:bg-blue-700 hover:text-white"
+                    : "bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-200 border-slate-300 dark:border-slate-700 hover:bg-gray-100 dark:hover:bg-slate-800/40"
+                }`}
+                onClick={onToggleEditOrderMode}
+                title="Personalizar ordem dos colaboradores"
+              >
+                <User
+                  size={18}
+                  className={
+                    editOrderMode
+                      ? "text-white"
+                      : "text-blue-700 dark:text-slate-200"
+                  }
+                />{" "}
+                <span className="hidden sm:inline">
+                  {editOrderMode ? "Concluir Ordem" : "Reordenar"}
+                </span>
+              </button>
+            )}
 
           <button
             className="border border-slate-300 dark:border-slate-700 flex items-center gap-2 bg-transparent hover:bg-slate-700 hover:text-white text-slate-700 dark:text-slate-200 px-4 py-2 rounded-md transition"

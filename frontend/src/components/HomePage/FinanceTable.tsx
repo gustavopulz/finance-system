@@ -1,7 +1,13 @@
 import { parcelaLabel, brl, isAccountPaidInMonth } from "../../lib/format";
 import { markAccountPaid } from "../../lib/api";
 import type { Account } from "../../lib/types";
-import { Trash2, GripVertical, ChevronDown, ChevronUp } from "lucide-react";
+import {
+  Trash2,
+  GripVertical,
+  ChevronDown,
+  ChevronUp,
+  User,
+} from "lucide-react";
 import { useMemo, useState, useEffect } from "react";
 import { deleteCollab } from "../../lib/api";
 import {
@@ -55,6 +61,9 @@ export interface FinanceTableProps {
   toggleItemSelection: (id: string) => void;
   toggleSelectAll: () => void;
   clearSelection: () => void;
+  // Novas props para modo de edição de ordem
+  forceCollapse?: boolean;
+  onExpandDuringEdit?: () => void;
 }
 
 type SortKey = "description" | "value" | "parcelas" | "status";
@@ -75,6 +84,8 @@ export default function FinanceTable({
   toggleItemSelection,
   toggleSelectAll,
   clearSelection,
+  forceCollapse = false,
+  onExpandDuringEdit,
 }: FinanceTableProps) {
   const [localItems, setLocalItems] = useState<Account[]>(items);
 
@@ -114,9 +125,22 @@ export default function FinanceTable({
     return false;
   };
   const [isCollapsed, _setIsCollapsed] = useState(
-    getCollapseState(collaboratorId)
+    forceCollapse ? true : getCollapseState(collaboratorId)
   );
+  // Se forceCollapse mudar, força o colapso
+  React.useEffect(() => {
+    if (forceCollapse) {
+      _setIsCollapsed(true);
+    }
+  }, [forceCollapse]);
   const setIsCollapsed = (value: boolean) => {
+    // Se estiver em modo de edição de ordem, impedir expandir e notificar
+    if (forceCollapse && value === false) {
+      if (typeof onExpandDuringEdit === "function") {
+        onExpandDuringEdit();
+      }
+      return;
+    }
     localStorage.setItem(
       `collapse_${collaboratorId}`,
       value ? "true" : "false"
@@ -146,7 +170,6 @@ export default function FinanceTable({
 
   // Estado para expandir/collapse do cancelado em (mobile)
   const [expandedCancel, setExpandedCancel] = useState<string | null>(null);
-
 
   const handleBulkPaidToggle = async (markAsPaid: boolean) => {
     const selectedAccounts = localItems.filter((item) =>
@@ -393,26 +416,35 @@ export default function FinanceTable({
     return isCollapsed ? [] : sortedData;
   }, [sortedData, isCollapsed]);
 
-  // Always allow drag handle props so the card can be dragged even when collapsed
+  // Ajuste do drag: só permite cursor de mover se estiver em modo de edição
+  const isEditOrderMode = !!dragHandleProps;
   const blockEventsIfCollapsed = {};
   const dragProps = dragHandleProps || {};
-  const dragStyle = dragHandleProps?.style || {};
+  const dragStyle = {
+    ...dragHandleProps?.style,
+    userSelect: "none" as const,
+    cursor: isEditOrderMode ? "grab" : "default",
+  };
 
   return (
     <>
       <section className="relative">
         {/* Cabeçalho DESKTOP */}
         <div
-          className="hidden md:flex items-center justify-between px-6 py-2 border border-b-0 border-slate-300 dark:border-slate-700 rounded-t-md cursor-grab"
+          className="hidden md:flex items-center justify-between px-6 py-2 border border-b-0 border-slate-300 dark:border-slate-700 rounded-t-md"
           {...dragProps}
           {...blockEventsIfCollapsed}
-          style={{ ...dragStyle, userSelect: "none" }}
+          style={dragStyle}
         >
           <div className="flex items-center gap-2 flex-1">
-            <GripVertical
-              size={16}
-              className="text-slate-400 dark:text-slate-500"
-            />
+            {isEditOrderMode ? (
+              <GripVertical
+                size={16}
+                className="text-slate-400 dark:text-slate-500"
+              />
+            ) : (
+              <User size={18} className="text-slate-400 dark:text-slate-500" />
+            )}
             <h3 className="text-base font-semibold">{title}</h3>
             <button
               onClick={(e) => {
@@ -556,12 +588,25 @@ export default function FinanceTable({
         {/* Cabeçalho MOBILE */}
         <div className="md:hidden p-4 pb-2 border border-slate-300 dark:border-slate-700 border-b-0 rounded-t-md">
           <div
-            className="flex items-center justify-between mb-2 cursor-grab"
+            className="flex items-center justify-between mb-2"
             {...dragProps}
             {...blockEventsIfCollapsed}
-            style={{ ...dragStyle, userSelect: "none" }}
+            style={dragStyle}
           >
-            <h3 className="text-lg font-semibold">{title}</h3>
+            <div className="flex items-center gap-2">
+              {isEditOrderMode ? (
+                <GripVertical
+                  size={18}
+                  className="text-slate-400 dark:text-slate-500"
+                />
+              ) : (
+                <User
+                  size={18}
+                  className="text-slate-400 dark:text-slate-500"
+                />
+              )}
+              <h3 className="text-lg font-semibold">{title}</h3>
+            </div>
             <button
               onClick={(e) => {
                 e.preventDefault();
@@ -772,97 +817,115 @@ export default function FinanceTable({
 
                       <td className="px-2 sm:px-6 py-3 sm:py-4 text-center relative">
                         <div className="flex items-center justify-center">
-                          <button
-                            className="p-1 w-8 h-8 flex items-center justify-center text-slate-500 hover:text-slate-700 rounded"
-                            onClick={() =>
-                              setSelectedAction(
-                                selectedAction && selectedAction.id === f.id
-                                  ? null
-                                  : f
-                              )
-                            }
-                            aria-label="Ações"
-                            type="button"
-                          >
-                            <MoreVertical size={18} />
-                          </button>
-                          {selectedAction && selectedAction.id === f.id && (
-                            <div className="dropdown-actions -mt-3 absolute z-50 top-full left-1/2 -translate-x-1/2 w-48 bg-white dark:bg-slate-800 rounded shadow-lg border border-slate-200 dark:border-slate-700 flex flex-col text-sm animate-fade-in">
-                              <button
-                                className="flex items-center gap-2 px-4 py-2 text-left hover:bg-slate-100 dark:hover:bg-slate-700"
-                                onClick={() => {
-                                  onEdit(f);
-                                  setSelectedAction(null);
-                                }}
-                              >
-                                <Pencil size={16} className="text-slate-500" />
-                                Editar finança
-                              </button>
-                              <button
-                                className="flex items-center gap-2 px-4 py-2 text-left hover:bg-slate-100 dark:hover:bg-slate-700"
-                                onClick={() => {
-                                  if (typeof onDuplicate === "function")
-                                    onDuplicate(f);
-                                  setSelectedAction(null);
-                                }}
-                              >
-                                <Copy size={16} className="text-blue-500" />
-                                Duplicar finança
-                              </button>
-                              <button
-                                className="flex items-center gap-2 px-4 py-2 text-left hover:bg-slate-100 dark:hover:bg-slate-700"
-                                onClick={() => {
-                                  handlePaidToggle(f);
-                                  setSelectedAction(null);
-                                }}
-                              >
-                                {isAccountPaidInMonth(f, currentComp) ? (
-                                  <Clock
+                          {/* Dropdown de ações só aparece no desktop (md+) */}
+                          <div className="hidden md:block">
+                            <button
+                              className="p-1 w-8 h-8 flex items-center justify-center text-slate-500 hover:text-slate-700 rounded"
+                              onClick={() =>
+                                setSelectedAction(
+                                  selectedAction && selectedAction.id === f.id
+                                    ? null
+                                    : f
+                                )
+                              }
+                              aria-label="Ações"
+                              type="button"
+                            >
+                              <MoreVertical size={18} />
+                            </button>
+                            {selectedAction && selectedAction.id === f.id && (
+                              <div className="dropdown-actions -mt-3 absolute z-50 top-full left-1/2 -translate-x-1/2 w-48 bg-white dark:bg-slate-800 rounded shadow-lg border border-slate-200 dark:border-slate-700 flex flex-col text-sm animate-fade-in">
+                                <button
+                                  className="flex items-center gap-2 px-4 py-2 text-left hover:bg-slate-100 dark:hover:bg-slate-700"
+                                  onClick={() => {
+                                    onEdit(f);
+                                    setSelectedAction(null);
+                                  }}
+                                >
+                                  <Pencil
                                     size={16}
-                                    className="text-yellow-500"
+                                    className="text-slate-500"
                                   />
-                                ) : (
-                                  <CheckCircle
-                                    size={16}
-                                    className="text-green-500"
-                                  />
-                                )}
-                                {isAccountPaidInMonth(f, currentComp)
-                                  ? "Marcar como pendente"
-                                  : "Marcar como pago"}
-                              </button>
-                              <button
-                                className="flex items-center gap-2 px-4 py-2 text-left hover:bg-slate-100 dark:hover:bg-slate-700"
-                                onClick={() => {
-                                  onCancelToggle(f.id);
-                                  setSelectedAction(null);
-                                }}
-                              >
-                                {f.status === "Pendente" ||
-                                f.status === "ativo" ? (
-                                  <Ban size={16} className="text-red-500" />
-                                ) : (
-                                  <CheckCircle
-                                    size={16}
-                                    className="text-green-500"
-                                  />
-                                )}
-                                {f.status === "Pendente" || f.status === "ativo"
-                                  ? "Cancelar finança"
-                                  : "Reabrir finança"}
-                              </button>
-                              <button
-                                className="flex items-center gap-2 px-4 py-2 text-left hover:bg-slate-100 dark:hover:bg-slate-700"
-                                onClick={() => {
-                                  setFinancaToDelete(f);
-                                  setSelectedAction(null);
-                                }}
-                              >
-                                <Trash2 size={16} className="text-red-600" />
-                                Excluir finança
-                              </button>
-                            </div>
-                          )}
+                                  Editar finança
+                                </button>
+                                <button
+                                  className="flex items-center gap-2 px-4 py-2 text-left hover:bg-slate-100 dark:hover:bg-slate-700"
+                                  onClick={() => {
+                                    if (typeof onDuplicate === "function")
+                                      onDuplicate(f);
+                                    setSelectedAction(null);
+                                  }}
+                                >
+                                  <Copy size={16} className="text-blue-500" />
+                                  Duplicar finança
+                                </button>
+                                <button
+                                  className="flex items-center gap-2 px-4 py-2 text-left hover:bg-slate-100 dark:hover:bg-slate-700"
+                                  onClick={() => {
+                                    handlePaidToggle(f);
+                                    setSelectedAction(null);
+                                  }}
+                                >
+                                  {isAccountPaidInMonth(f, currentComp) ? (
+                                    <Clock
+                                      size={16}
+                                      className="text-yellow-500"
+                                    />
+                                  ) : (
+                                    <CheckCircle
+                                      size={16}
+                                      className="text-green-500"
+                                    />
+                                  )}
+                                  {isAccountPaidInMonth(f, currentComp)
+                                    ? "Marcar como pendente"
+                                    : "Marcar como pago"}
+                                </button>
+                                <button
+                                  className="flex items-center gap-2 px-4 py-2 text-left hover:bg-slate-100 dark:hover:bg-slate-700"
+                                  onClick={() => {
+                                    onCancelToggle(f.id);
+                                    setSelectedAction(null);
+                                  }}
+                                >
+                                  {f.status === "Pendente" ||
+                                  f.status === "ativo" ? (
+                                    <Ban size={16} className="text-red-500" />
+                                  ) : (
+                                    <CheckCircle
+                                      size={16}
+                                      className="text-green-500"
+                                    />
+                                  )}
+                                  {f.status === "Pendente" ||
+                                  f.status === "ativo"
+                                    ? "Cancelar finança"
+                                    : "Reabrir finança"}
+                                </button>
+                                <button
+                                  className="flex items-center gap-2 px-4 py-2 text-left hover:bg-slate-100 dark:hover:bg-slate-700"
+                                  onClick={() => {
+                                    setFinancaToDelete(f);
+                                    setSelectedAction(null);
+                                  }}
+                                >
+                                  <Trash2 size={16} className="text-red-600" />
+                                  Excluir finança
+                                </button>
+                              </div>
+                            )}
+                          </div>
+                          {/* No mobile, só abre o modal */}
+                          <div className="md:hidden">
+                            <button
+                              className="p-1 w-8 h-8 flex items-center justify-center text-slate-500 hover:text-slate-700 rounded"
+                              onClick={() => setSelectedAction(f)}
+                              aria-label="Ações"
+                              type="button"
+                            >
+                              <MoreVertical size={18} />
+                            </button>
+                          </div>
                         </div>
                       </td>
                     </tr>

@@ -4,47 +4,48 @@ import {
   Route,
   Navigate,
   useLocation,
-} from 'react-router-dom';
-import type { JSX } from 'react';
+} from "react-router-dom";
+import type { JSX } from "react";
 
-import HomePage from './pages/HomePage';
-import LoginPage from './pages/auth/LoginPage';
-import UserPanelPage from './pages/UserPanelPage';
-import { useAuth } from './context/AuthContext';
-import AdminPage from './pages/admin/AdminPage';
-import AdminNotificationsPage from './pages/admin/AdminNotificationsPage';
-import Header from './components/Header';
-import NotificationBar from './components/NotificationBar';
+import HomePage from "./pages/HomePage";
+import LoginPage from "./pages/auth/LoginPage";
+import UserPanelPage from "./pages/UserPanelPage";
+import { useAuth } from "./context/AuthContext";
+import AdminPage from "./pages/admin/AdminPage";
+import AdminNotificationsPage from "./pages/admin/AdminNotificationsPage";
+import Header from "./components/Header";
+import NotificationBar from "./components/NotificationBar";
 import {
   NotificationProvider,
   useNotification,
-} from './context/NotificationContext';
-import Footer from './components/Footer';
-import InfoPage from './pages/InfoPage';
-import NotFoundPage from './pages/errors/404';
-import MaintenancePage from './pages/errors/MaintenancePage';
-import RegisterPage from './pages/auth/RegisterPage';
-import PoliticasPage from './pages/PrivacyPage';
-import DashboardPage from './pages/DashboardPage';
+} from "./context/NotificationContext";
+import Footer from "./components/Footer";
+import InfoPage from "./pages/InfoPage";
+import NovidadesPage from "./pages/NovidadesPage";
+import NotFoundPage from "./pages/errors/404";
+import MaintenancePage from "./pages/errors/MaintenancePage";
+import RegisterPage from "./pages/auth/RegisterPage";
+import PoliticasPage from "./pages/PrivacyPage";
+import DashboardPage from "./pages/DashboardPage";
 
-import PrivateRoute from './PrivateRoute';
-import PublicRoute from './PublicRoute';
+import PrivateRoute from "./PrivateRoute";
+import PublicRoute from "./PublicRoute";
 
 // 🔒 AdminRoute separado (continua igual)
 function AdminRoute({ children }: { children: JSX.Element }) {
   const auth = useAuth();
   if (!auth || !auth.user) return <Navigate to="/login" />;
-  if (auth.user.role !== 'admin') return <Navigate to="/" />;
+  if (auth.user.role !== "admin") return <Navigate to="/" />;
   return children;
 }
 
 function AppWithHeader() {
   const location = useLocation();
   const hideHeader =
-    location.pathname === '/login' ||
-    location.pathname === '/404' ||
-    location.pathname === '/register' ||
-    location.pathname === '/manutencao';
+    location.pathname === "/login" ||
+    location.pathname === "/404" ||
+    location.pathname === "/register" ||
+    location.pathname === "/manutencao";
 
   const auth = useAuth();
   const { notifications, remove } = useNotification();
@@ -106,6 +107,14 @@ function AppWithHeader() {
               element={
                 <PrivateRoute>
                   <DashboardPage />
+                </PrivateRoute>
+              }
+            />
+            <Route
+              path="/novidades"
+              element={
+                <PrivateRoute>
+                  <NovidadesPage />
                 </PrivateRoute>
               }
             />

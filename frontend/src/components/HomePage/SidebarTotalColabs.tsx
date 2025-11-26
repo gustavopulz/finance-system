@@ -13,9 +13,12 @@ interface SidebarProps {
   hiddenCollabs: string[];
   onToggleCollabVisibility: (id: string) => void;
   onAddFinance?: (collabId: string) => void;
+  onAddCollaborator?: () => void;
   month: number;
   year: number;
   onChangeMonthYear: (month: number, year: number) => void;
+  selectedItems: { [collabId: string]: Set<string> };
+  accountsByCollab: { [collabId: string]: { value: number; id: string }[] };
 }
 
 export default function SidebarTotalColabs({
@@ -28,15 +31,36 @@ export default function SidebarTotalColabs({
   hiddenCollabs,
   onToggleCollabVisibility,
   onAddFinance,
+  onAddCollaborator,
   month,
   year,
   onChangeMonthYear,
+  selectedItems,
+  accountsByCollab,
 }: SidebarProps) {
-  // Handler para limpar seleção ao clicar na sidebar fora dos botões
+  const [colabsCollapsed, setColabsCollapsed] = React.useState(false);
+  const totalSelecionado = React.useMemo(() => {
+    let sum = 0;
+    for (const collab of collaborators) {
+      const selected = selectedItems[collab.id];
+      if (selected && selected.size > 0 && accountsByCollab[collab.id]) {
+        for (const acc of accountsByCollab[collab.id]) {
+          if (selected.has(acc.id)) {
+            sum += Number(acc.value);
+          }
+        }
+      }
+    }
+    return sum;
+  }, [selectedItems, accountsByCollab, collaborators]);
+
+  const [showTotalSel, setShowTotalSel] = React.useState(false);
+  React.useEffect(() => {
+    setShowTotalSel(totalSelecionado > 0);
+  }, [totalSelecionado]);
   function handleSidebarClick(
     e: React.MouseEvent<HTMLDivElement | HTMLButtonElement>
   ) {
-    // Se for botão de colaborador, não limpa
     if ((e.target as HTMLElement).tagName === "BUTTON") return;
     onSelect(null);
   }
@@ -66,7 +90,6 @@ export default function SidebarTotalColabs({
       style={{ height: "auto", alignSelf: "flex-start" }}
       onClick={handleSidebarClick}
     >
-      {/* Mês/Ano filtrado no topo */}
       <div className="mb-4">
         <div className="flex flex-col gap-1">
           <div className="text-slate-500 dark:text-slate-400 text-sm font-bold mb-1">
@@ -139,34 +162,115 @@ export default function SidebarTotalColabs({
         )}
       </div>
       <div>
-        <div className="text-slate-500 dark:text-slate-400 text-sm font-bold mb-1">
-          Total
+        <div
+          className={`transition-all duration-500 overflow-hidden ${
+            showTotalSel
+              ? "max-h-20 opacity-100 mb-6"
+              : "max-h-0 opacity-0 mb-0"
+          }`}
+          style={{ pointerEvents: showTotalSel ? "auto" : "none" }}
+        >
+          <div className="text-blue-600 dark:text-blue-300 text-sm font-bold mb-1 flex items-center gap-2 animate-fade-in uppercase">
+            TOTAL SELECIONADO
+          </div>
+          <div className="text-lg font-bold text-blue-700 dark:text-blue-200 animate-fade-in">
+            {brl(totalSelecionado)}
+          </div>
         </div>
-        <div className="text-2xl font-bold text-slate-800 dark:text-white">
+        <div className="text-slate-500 dark:text-slate-400 text-sm font-bold mb-1 uppercase">
+          TOTAL
+        </div>
+        <div className="text-lg font-bold text-slate-800 dark:text-white">
           {brl(total)}
         </div>
-        <div className="text-slate-500 dark:text-slate-400 text-sm font-bold mt-3 mb-1">
-          Total Pendente
+        <div className="text-slate-500 dark:text-slate-400 text-sm font-bold mt-3 mb-1 uppercase">
+          TOTAL PENDENTE
         </div>
         <div className="text-lg font-bold text-yellow-700 dark:text-yellow-300">
           {brl(totalPendente)}
         </div>
-        <div className="text-slate-500 dark:text-slate-400 text-sm font-bold mt-3 mb-1">
-          Total Pago
+        <div className="text-slate-500 dark:text-slate-400 text-sm font-bold mt-3 mb-1 uppercase">
+          TOTAL PAGO
         </div>
         <div className="text-lg font-bold text-green-700 dark:text-green-300">
           {brl(totalPago)}
         </div>
       </div>
-      <div>
-        <div className="text-slate-500 dark:text-slate-400 text-sm font-bold mb-1">
-          Colaboradores
+      <div className="mt-3">
+        <div className="flex items-center justify-between text-slate-500 dark:text-slate-400 text-sm font-bold mb-1 uppercase select-none">
+          <span>COLABORADORES</span>
+          <div className="flex items-center gap-1">
+            <button
+              className="p-1 text-slate-500 hover:text-slate-800 dark:hover:text-slate-200 rounded transition"
+              title="Adicionar colaborador"
+              onClick={onAddCollaborator}
+              type="button"
+              style={{
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+              }}
+            >
+              <svg
+                width="18"
+                height="18"
+                viewBox="0 0 20 20"
+                fill="none"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path
+                  d="M10 4V16M4 10H16"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
+              </svg>
+            </button>
+            <button
+              className="p-1 text-slate-500 hover:text-slate-800 dark:hover:text-slate-200 rounded transition"
+              title={
+                colabsCollapsed
+                  ? "Expandir colaboradores"
+                  : "Colapsar colaboradores"
+              }
+              onClick={() => setColabsCollapsed((v) => !v)}
+              type="button"
+              style={{ cursor: "pointer" }}
+            >
+              <svg
+                width="22"
+                height="22"
+                viewBox="0 0 22 22"
+                fill="none"
+                xmlns="http://www.w3.org/2000/svg"
+                className={`transition-transform duration-200 ${
+                  colabsCollapsed ? "-rotate-90" : "rotate-0"
+                }`}
+              >
+                <path
+                  d="M7 9L11 13L15 9"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
+              </svg>
+            </button>
+          </div>
         </div>
-        <ul className="flex flex-col gap-1">
+        <ul
+          className={`flex flex-col gap-1 transition-all duration-300 ${
+            colabsCollapsed
+              ? "max-h-0 overflow-hidden opacity-0"
+              : "max-h-[500px] opacity-100"
+          }`}
+          style={{ transitionProperty: "max-height,opacity" }}
+        >
           {collaborators.map((c) => (
             <li key={c.id} className="flex items-center gap-2">
               <button
-                className={`w-full text-left px-2 py-1.5 rounded border transition-all text-sm
+                className={`w-full text-left px-2 py-1.5 rounded border transition-all text-sm flex items-center justify-between
                   ${
                     selectedId === c.id
                       ? "border-blue-500 bg-blue-50 dark:bg-blue-950 font-bold"
@@ -175,7 +279,7 @@ export default function SidebarTotalColabs({
                 `}
                 onClick={() => onSelect(c.id)}
               >
-                {c.name}
+                <span>{c.name}</span>
               </button>
               <button
                 className="p-1 text-slate-500 hover:text-slate-800 dark:hover:text-slate-200"

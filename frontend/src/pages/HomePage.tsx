@@ -571,12 +571,19 @@ export default function HomePage() {
             onAddFinance={(collabId) => {
               setDlg({ mode: "addAccount", initialCollaboratorId: collabId });
             }}
+            onAddCollaborator={() => setDlg({ mode: "addCollab" })}
             month={month}
             year={year}
             onChangeMonthYear={(m, y) => {
               setMonth(m);
               setYear(y);
             }}
+            // Novas props para total selecionado
+            selectedItems={selectedItems}
+            accountsByCollab={collabs.reduce((acc, c) => {
+              acc[c.id] = byCollab(c.id);
+              return acc;
+            }, {} as { [collabId: string]: Account[] })}
           />
         </div>
       )}

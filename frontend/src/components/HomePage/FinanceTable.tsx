@@ -50,6 +50,11 @@ export interface FinanceTableProps {
   onCollabDeleted: (id: string) => void;
   onPaidUpdate?: (id: string, paid: boolean) => void;
   dragHandleProps?: React.HTMLAttributes<HTMLElement>;
+  // Novas props para seleção múltipla
+  selectedItems: Set<string>;
+  toggleItemSelection: (id: string) => void;
+  toggleSelectAll: () => void;
+  clearSelection: () => void;
 }
 
 type SortKey = "description" | "value" | "parcelas" | "status";
@@ -66,6 +71,10 @@ export default function FinanceTable({
   onCollabDeleted,
   onPaidUpdate,
   dragHandleProps,
+  selectedItems,
+  toggleItemSelection,
+  toggleSelectAll,
+  clearSelection,
 }: FinanceTableProps) {
   const [localItems, setLocalItems] = useState<Account[]>(items);
 
@@ -115,8 +124,7 @@ export default function FinanceTable({
     _setIsCollapsed(value);
   };
 
-  // Estados para seleção múltipla
-  const [selectedItems, setSelectedItems] = useState<Set<string>>(new Set());
+  // Removido estado local de seleção múltipla
   const [showBulkDeleteConfirm, setShowBulkDeleteConfirm] = useState(false);
 
   // Estado para ação selecionada (mobile menu)
@@ -139,30 +147,6 @@ export default function FinanceTable({
   // Estado para expandir/collapse do cancelado em (mobile)
   const [expandedCancel, setExpandedCancel] = useState<string | null>(null);
 
-  // Seleção múltipla
-  const toggleItemSelection = (itemId: string) => {
-    setSelectedItems((prev) => {
-      const newSet = new Set(prev);
-      if (newSet.has(itemId)) {
-        newSet.delete(itemId);
-      } else {
-        newSet.add(itemId);
-      }
-      return newSet;
-    });
-  };
-
-  const toggleSelectAll = () => {
-    if (selectedItems.size === localItems.length) {
-      setSelectedItems(new Set());
-    } else {
-      setSelectedItems(new Set(localItems.map((item) => item.id)));
-    }
-  };
-
-  const clearSelection = () => {
-    setSelectedItems(new Set());
-  };
 
   const handleBulkPaidToggle = async (markAsPaid: boolean) => {
     const selectedAccounts = localItems.filter((item) =>
@@ -240,18 +224,6 @@ export default function FinanceTable({
       });
 
       return updatedItems;
-    });
-
-    // Limpa seleções que não existem mais
-    setSelectedItems((prev) => {
-      const newSet = new Set(prev);
-      const itemIds = new Set(items.map((item) => item.id));
-      prev.forEach((id) => {
-        if (!itemIds.has(id)) {
-          newSet.delete(id);
-        }
-      });
-      return newSet;
     });
   }, [items]);
 

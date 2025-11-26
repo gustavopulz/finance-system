@@ -65,7 +65,7 @@ export default function Header() {
   }, [userMenuOpen]);
 
   return (
-    <header className="header-blur">
+    <header className="bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl border-b border-slate-200/60 dark:border-slate-700/60">
       <div className="mx-auto px-4 lg:px-20 flex items-center justify-between h-[68px]">
         <div className="flex items-center gap-6">
           <NavLink to="/summary" className="flex items-center gap-2 group">

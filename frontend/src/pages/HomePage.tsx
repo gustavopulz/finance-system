@@ -97,6 +97,40 @@ function normalizeAccount(a: any): Account {
   };
 }
 export default function HomePage() {
+  // Estado de seleção múltipla global para todos os FinanceTable
+  // Seleção individual por colaborador
+  const [selectedItems, setSelectedItems] = useState<{
+    [collabId: string]: Set<string>;
+  }>({});
+
+  // Funções auxiliares para seleção múltipla por colaborador
+  const toggleItemSelection = (collabId: string, itemId: string) => {
+    setSelectedItems((prev) => {
+      const prevSet = prev[collabId] || new Set();
+      const newSet = new Set(prevSet);
+      if (newSet.has(itemId)) {
+        newSet.delete(itemId);
+      } else {
+        newSet.add(itemId);
+      }
+      return { ...prev, [collabId]: newSet };
+    });
+  };
+
+  const toggleSelectAll = (collabId: string, ids: string[]) => {
+    setSelectedItems((prev) => {
+      const prevSet = prev[collabId] || new Set();
+      if (prevSet.size === ids.length) {
+        return { ...prev, [collabId]: new Set() };
+      } else {
+        return { ...prev, [collabId]: new Set(ids) };
+      }
+    });
+  };
+
+  const clearSelection = (collabId: string) => {
+    setSelectedItems((prev) => ({ ...prev, [collabId]: new Set() }));
+  };
   const { notify } = useNotification();
   const collabRefs = useRef<{ [id: string]: HTMLDivElement | null }>({});
   const [selectedCollab, setSelectedCollab] = useState<string | null>(null);
@@ -648,6 +682,8 @@ export default function HomePage() {
                 const c = collabs.find((cc) => cc.id === id);
                 if (!c) return null;
                 if (hiddenCollabs.includes(c.id)) return null;
+                const items = byCollab(c.id);
+                const selectedSet = selectedItems[c.id] || new Set();
                 return (
                   <div
                     key={c.id}
@@ -664,7 +700,7 @@ export default function HomePage() {
                       <FinanceTable
                         collaboratorId={c.id}
                         title={c.name}
-                        items={byCollab(c.id)}
+                        items={items}
                         currentComp={{ year, month }}
                         onDelete={(id) => removeAccount(id)}
                         onEdit={(account) =>
@@ -686,6 +722,18 @@ export default function HomePage() {
                           await handleCollabDeleted(collabId);
                         }}
                         onPaidUpdate={handlePaidUpdate}
+                        // Props para seleção múltipla individual
+                        selectedItems={selectedSet}
+                        toggleItemSelection={(itemId) =>
+                          toggleItemSelection(c.id, itemId)
+                        }
+                        toggleSelectAll={() =>
+                          toggleSelectAll(
+                            c.id,
+                            items.map((item) => item.id)
+                          )
+                        }
+                        clearSelection={() => clearSelection(c.id)}
                       />
                     </SortableCollab>
                   </div>

@@ -1,5 +1,12 @@
-import React, { useState } from 'react';
-import { Plus, UserPlus, X, BarChart2, SlidersHorizontal } from 'lucide-react';
+import React, { useState } from "react";
+import {
+  Plus,
+  UserPlus,
+  X,
+  BarChart2,
+  SlidersHorizontal,
+  User,
+} from "lucide-react";
 
 interface SummaryProps {
   total: number;
@@ -21,6 +28,11 @@ interface SummaryProps {
   filterParcela: string;
   setFilterParcela: (parcela: string) => void;
   MONTHS_PT: string[];
+  filterStatus: string;
+  setFilterStatus: (status: string) => void;
+  // Novas props para modo de edição de ordem
+  editOrderMode?: boolean;
+  onToggleEditOrderMode?: () => void;
 }
 
 const Summary: React.FC<SummaryProps> = ({
@@ -43,38 +55,69 @@ const Summary: React.FC<SummaryProps> = ({
   filterParcela,
   setFilterParcela,
   MONTHS_PT,
+  filterStatus,
+  setFilterStatus,
+  editOrderMode,
+  onToggleEditOrderMode,
 }) => {
   const [showFilterModal, setShowFilterModal] = useState(false);
-
   return (
     <div className="border border-slate-300 dark:border-slate-700 shadow-sm rounded-lg bg-white dark:bg-slate-900 p-4">
       <div className="flex flex-wrap items-center justify-between gap-2">
-        <h1 className="text-xl font-semibold flex items-center gap-2">
-          <BarChart2 size={18} className="text-slate-500" /> Resumo
-        </h1>
-        <div className="flex gap-2 flex-wrap">
+        <div className="flex items-center gap-2">
+          <h1 className="text-xl font-semibold flex items-center gap-2">
+            <BarChart2 size={18} className="text-slate-500" /> Resumo
+          </h1>
+        </div>
+        <div className="flex gap-2 flex-wrap items-center">
           <button
             className="flex items-center gap-2 border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-200 px-4 py-2 rounded-md transition"
             onClick={() => setShowFilterModal(true)}
             title="Filtros"
           >
-            <SlidersHorizontal size={18} />{' '}
+            <SlidersHorizontal size={18} />{" "}
             <span className="hidden sm:inline">Filtros</span>
           </button>
 
+          {/* Botão Personalizar Ordem após Filtros */}
+          {typeof editOrderMode !== "undefined" &&
+            typeof onToggleEditOrderMode === "function" && (
+              <button
+                className={`flex items-center gap-2 px-4 py-2 rounded-md transition border shadow-sm focus:outline-none ${
+                  editOrderMode
+                    ? "bg-blue-600 text-white border-blue-700 hover:bg-blue-700 hover:text-white"
+                    : "bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-200 border-slate-300 dark:border-slate-700 hover:bg-gray-100 dark:hover:bg-slate-800/40"
+                }`}
+                onClick={onToggleEditOrderMode}
+                title="Personalizar ordem dos colaboradores"
+              >
+                <User
+                  size={18}
+                  className={
+                    editOrderMode
+                      ? "text-white"
+                      : "text-blue-700 dark:text-slate-200"
+                  }
+                />{" "}
+                <span className="hidden sm:inline">
+                  {editOrderMode ? "Concluir Ordem" : "Reordenar"}
+                </span>
+              </button>
+            )}
+
           <button
             className="border border-slate-300 dark:border-slate-700 flex items-center gap-2 bg-transparent hover:bg-slate-700 hover:text-white text-slate-700 dark:text-slate-200 px-4 py-2 rounded-md transition"
-            onClick={() => setDlg({ mode: 'addCollab' })}
+            onClick={() => setDlg({ mode: "addCollab" })}
           >
-            <UserPlus size={18} />{' '}
+            <UserPlus size={18} />{" "}
             <span className="hidden sm:inline">Adicionar colaborador</span>
           </button>
           <button
             className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md transition"
-            onClick={() => setDlg({ mode: 'addAccount' })}
+            onClick={() => setDlg({ mode: "addAccount" })}
             title="Adicionar finança (Alt+N)"
           >
-            <Plus size={18} />{' '}
+            <Plus size={18} />{" "}
             <span className="hidden sm:inline">Adicionar finança</span>
           </button>
         </div>
@@ -127,9 +170,9 @@ const Summary: React.FC<SummaryProps> = ({
               </select>
               <select
                 className="select rounded w-full"
-                value={showAll ? 'all' : month}
+                value={showAll ? "all" : month}
                 onChange={(e) => {
-                  if (e.target.value === 'all') {
+                  if (e.target.value === "all") {
                     setShowAll(true);
                   } else {
                     setShowAll(false);
@@ -152,6 +195,16 @@ const Summary: React.FC<SummaryProps> = ({
                 disabled={showAll}
                 placeholder="Ano"
               />
+              <select
+                className="select rounded w-full"
+                value={filterStatus}
+                onChange={(e) => setFilterStatus(e.target.value)}
+              >
+                <option value="">Todos os status</option>
+                <option value="Pendente">Pendente</option>
+                <option value="Pago">Pago</option>
+                <option value="Cancelado">Cancelado</option>
+              </select>
               <label className="flex items-center gap-2 cursor-pointer text-slate-600 dark:text-slate-300 mt-2">
                 <input
                   type="checkbox"
@@ -166,13 +219,14 @@ const Summary: React.FC<SummaryProps> = ({
               <button
                 className="px-4 py-2 rounded bg-gray-200 dark:bg-slate-700 text-slate-700 dark:text-slate-100 hover:bg-gray-300 dark:hover:bg-slate-600"
                 onClick={() => {
-                  setFilterDesc('');
-                  setFilterValor('');
-                  setFilterParcela('');
+                  setFilterDesc("");
+                  setFilterValor("");
+                  setFilterParcela("");
                   setShowAll(false);
                   setMonth(new Date().getMonth() + 1);
                   setYear(new Date().getFullYear());
                   setShowCancelled(false);
+                  setFilterStatus("");
                 }}
               >
                 Limpar filtros
@@ -195,9 +249,9 @@ const Summary: React.FC<SummaryProps> = ({
             Total
           </span>
           <span className="text-base font-semibold text-slate-800 dark:text-slate-200 leading-tight">
-            {new Intl.NumberFormat('pt-BR', {
-              style: 'currency',
-              currency: 'BRL',
+            {new Intl.NumberFormat("pt-BR", {
+              style: "currency",
+              currency: "BRL",
             }).format(total)}
           </span>
         </div>
@@ -206,9 +260,9 @@ const Summary: React.FC<SummaryProps> = ({
             Pendente
           </span>
           <span className="text-base font-semibold text-yellow-700 dark:text-yellow-300 leading-tight">
-            {new Intl.NumberFormat('pt-BR', {
-              style: 'currency',
-              currency: 'BRL',
+            {new Intl.NumberFormat("pt-BR", {
+              style: "currency",
+              currency: "BRL",
             }).format(totalPendente)}
           </span>
         </div>
@@ -217,9 +271,9 @@ const Summary: React.FC<SummaryProps> = ({
             Pago
           </span>
           <span className="text-base font-semibold text-green-700 dark:text-green-300 leading-tight">
-            {new Intl.NumberFormat('pt-BR', {
-              style: 'currency',
-              currency: 'BRL',
+            {new Intl.NumberFormat("pt-BR", {
+              style: "currency",
+              currency: "BRL",
             }).format(totalPago)}
           </span>
         </div>

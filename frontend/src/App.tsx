@@ -14,6 +14,7 @@ import { useAuth } from "./context/AuthContext";
 import AdminPage from "./pages/admin/AdminPage";
 import AdminNotificationsPage from "./pages/admin/AdminNotificationsPage";
 import Header from "./components/Header";
+import { NovidadesModal } from "./components/NovidadesModal";
 import NotificationBar from "./components/NotificationBar";
 import {
   NotificationProvider,
@@ -54,6 +55,8 @@ function AppWithHeader() {
     <>
       <NotificationBar notifications={notifications} onRemove={remove} />
       {!hideHeader && <Header />}
+      {/* Modal de novidades só para usuários autenticados e fora das rotas públicas */}
+      {auth?.user && !hideHeader && <NovidadesModal />}
       <div className="flex flex-col min-h-screen">
         <main className="flex-1 py-6">
           <Routes>

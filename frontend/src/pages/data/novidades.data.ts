@@ -4,12 +4,17 @@ export interface NovidadeCard {
   highlights: string[];
   adjustments: string[];
   mobile: string[];
+  modalTitle?: string;
+  modalDescription?: string;
 }
 
 export const novidadesCards: NovidadeCard[] = [
   {
     date: "26/11/2025",
     title: "Versão 1.1.0 - Melhorias na Gestão de Colaboradores",
+    modalTitle: "Confira a nova versão: 1.1.0!",
+    modalDescription:
+      "Agora ficou ainda mais fácil gerenciar colaboradores, duplicar finanças e visualizar totais rapidamente. Veja as principais novidades e melhorias desta atualização!",
     highlights: [
       "*Duplicar Finança*: _Agora disponível diretamente no menu Ações._",
       "*Seleção inteligente*: _Ao selecionar itens da tabela, o valor total selecionado é exibido automaticamente na sidebar._",

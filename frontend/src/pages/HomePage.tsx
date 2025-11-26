@@ -585,7 +585,7 @@ export default function HomePage() {
   }
 
   // Se o usuário expandir manualmente um colaborador durante o modo edição, desativa o modo e restaura o estado
-  function handleCollabExpandDuringEdit(collabId: string) {
+  function handleCollabExpandDuringEdit() {
     if (editOrderMode) {
       restoreCollapseState(collapsedStateBackup);
       setEditOrderMode(false);
@@ -796,7 +796,7 @@ export default function HomePage() {
                           clearSelection={() => clearSelection(c.id)}
                           forceCollapse={true}
                           onExpandDuringEdit={() =>
-                            handleCollabExpandDuringEdit(c.id)
+                            handleCollabExpandDuringEdit()
                           }
                         />
                       </SortableCollab>
@@ -807,9 +807,7 @@ export default function HomePage() {
             </SortableContext>
           </DndContext>
         ) : (
-          // Drag-and-drop desativado quando não está em modo de edição
           <div className="flex flex-col gap-6 relative z-10">
-            {/* ...background gradients... */}
             <div
               aria-hidden="true"
               className="pointer-events-none absolute inset-0 overflow-hidden -z-10"

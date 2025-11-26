@@ -585,7 +585,7 @@ export default function HomePage() {
   }
 
   // Se o usuário expandir manualmente um colaborador durante o modo edição, desativa o modo e restaura o estado
-  function handleCollabExpandDuringEdit(collabId: string) {
+  function handleCollabExpandDuringEdit() {
     if (editOrderMode) {
       restoreCollapseState(collapsedStateBackup);
       setEditOrderMode(false);
@@ -796,7 +796,7 @@ export default function HomePage() {
                           clearSelection={() => clearSelection(c.id)}
                           forceCollapse={true}
                           onExpandDuringEdit={() =>
-                            handleCollabExpandDuringEdit(c.id)
+                            handleCollabExpandDuringEdit()
                           }
                         />
                       </SortableCollab>

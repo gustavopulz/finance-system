@@ -56,12 +56,10 @@ export interface FinanceTableProps {
   onCollabDeleted: (id: string) => void;
   onPaidUpdate?: (id: string, paid: boolean) => void;
   dragHandleProps?: React.HTMLAttributes<HTMLElement>;
-  // Novas props para seleção múltipla
   selectedItems: Set<string>;
   toggleItemSelection: (id: string) => void;
   toggleSelectAll: () => void;
   clearSelection: () => void;
-  // Novas props para modo de edição de ordem
   forceCollapse?: boolean;
   onExpandDuringEdit?: () => void;
 }
@@ -89,7 +87,6 @@ export default function FinanceTable({
 }: FinanceTableProps) {
   const [localItems, setLocalItems] = useState<Account[]>(items);
 
-  // Inicializa a ordenação com os valores salvos para este colaborador
   const savedSort = getSortState(collaboratorId);
   const [sortKey, setSortKey] = useState<SortKey>(savedSort.sortKey as SortKey);
   const [sortOrder, setSortOrder] = useState<"asc" | "desc">(
@@ -100,7 +97,6 @@ export default function FinanceTable({
   const [toast, setToast] = useState<string | null>(null);
   const [financaToDelete, setFinancaToDelete] = useState<Account | null>(null);
 
-  // Função helper para atualizar ordenação e salvar no localStorage
   const handleSortChange = (newSortKey: SortKey) => {
     let newSortOrder: "asc" | "desc" = "asc";
 
@@ -117,7 +113,6 @@ export default function FinanceTable({
     financa: Account | null;
   }>({ open: false, financa: null });
 
-  // Estado de colapso persistido no localStorage
   const getCollapseState = (collaboratorId: string) => {
     const saved = localStorage.getItem(`collapse_${collaboratorId}`);
     if (saved === "true") return true;
@@ -127,14 +122,12 @@ export default function FinanceTable({
   const [isCollapsed, _setIsCollapsed] = useState(
     forceCollapse ? true : getCollapseState(collaboratorId)
   );
-  // Se forceCollapse mudar, força o colapso
   React.useEffect(() => {
     if (forceCollapse) {
       _setIsCollapsed(true);
     }
   }, [forceCollapse]);
   const setIsCollapsed = (value: boolean) => {
-    // Se estiver em modo de edição de ordem, impedir expandir e notificar
     if (forceCollapse && value === false) {
       if (typeof onExpandDuringEdit === "function") {
         onExpandDuringEdit();
@@ -148,18 +141,17 @@ export default function FinanceTable({
     _setIsCollapsed(value);
   };
 
-  // Removido estado local de seleção múltipla
   const [showBulkDeleteConfirm, setShowBulkDeleteConfirm] = useState(false);
 
-  // Estado para ação selecionada (mobile menu)
   const [selectedAction, setSelectedAction] = useState<Account | null>(null);
-  // Fecha o dropdown ao clicar fora ou ao clicar novamente no botão
   useEffect(() => {
     if (!selectedAction) return;
     function handleClickOutside(e: MouseEvent) {
-      const dropdowns = document.querySelectorAll(".dropdown-actions");
+      const interactiveRoots = document.querySelectorAll(
+        ".dropdown-actions, .mobile-actions-modal"
+      );
       let clickedInside = false;
-      dropdowns.forEach((el) => {
+      interactiveRoots.forEach((el) => {
         if (el.contains(e.target as Node)) clickedInside = true;
       });
       if (!clickedInside) setSelectedAction(null);
@@ -168,7 +160,6 @@ export default function FinanceTable({
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, [selectedAction]);
 
-  // Estado para expandir/collapse do cancelado em (mobile)
   const [expandedCancel, setExpandedCancel] = useState<string | null>(null);
 
   const handleBulkPaidToggle = async (markAsPaid: boolean) => {
@@ -218,15 +209,12 @@ export default function FinanceTable({
     setTimeout(() => setToast(null), 3000);
   };
 
-  // Atualiza localItems quando items mudar
   useEffect(() => {
     setLocalItems((prev) => {
-      // Se é a primeira vez ou o número de itens mudou significativamente, usa items diretamente
       if (prev.length === 0 || Math.abs(prev.length - items.length) > 1) {
         return items;
       }
 
-      // Caso contrário, atualiza item por item preservando mudanças locais importantes
       const updatedItems = items.map((newItem) => {
         const existingItem = prev.find(
           (prevItem) => prevItem && prevItem.id === newItem.id
@@ -236,7 +224,6 @@ export default function FinanceTable({
           typeof existingItem === "object" &&
           typeof newItem === "object"
         ) {
-          // Preserva campos que podem ter sido modificados localmente
           return {
             ...newItem,
             paid: existingItem.paid,
@@ -250,18 +237,16 @@ export default function FinanceTable({
     });
   }, [items]);
 
-  // Adicionado para inspecionar os dados das contas renderizadas
   useEffect(() => {
     if (items && items.length > 0) {
     }
   }, [items]);
 
-  // Totais considerando o campo paid por competência
   const total = localItems.reduce((acc, f) => acc + Number(f.value), 0);
   const totalPendente = localItems
     .filter(
       (f) => !isAccountPaidInMonth(f, currentComp) && f.status !== "Cancelado"
-    ) // Exclui itens cancelados
+    )
     .reduce((acc, f) => acc + Number(f.value), 0);
   const totalPago = localItems
     .filter((f) => isAccountPaidInMonth(f, currentComp))
@@ -315,7 +300,6 @@ export default function FinanceTable({
   }
 
   function getStatusBadge(account: Account): React.JSX.Element {
-    // Verifica se está pago
     if (isAccountPaidInMonth(account, currentComp)) {
       return (
         <span className="badge bg-green-500 text-white dark:bg-green-500/30 dark:text-green-300">
@@ -349,7 +333,6 @@ export default function FinanceTable({
       );
     }
 
-    // Se não está pago e não está cancelado, está pendente
     return (
       <span className="badge bg-yellow-400 text-yellow-900 dark:bg-yellow-500/30 dark:text-yellow-300">
         Pendente
@@ -371,20 +354,17 @@ export default function FinanceTable({
           vb = b.paid ? 1 : 0;
           break;
         case "parcelas": {
-          // Fixas primeiro, depois avulsas, depois parceladas
           const getTypeOrder = (acc: Account) => {
             if (acc.parcelasTotal === null || acc.parcelasTotal === undefined)
-              return 0; // fixa
-            if (acc.parcelasTotal === 0 || acc.parcelasTotal === 1) return 1; // avulsa
-            return 2; // parcelada
+              return 0;
+            if (acc.parcelasTotal === 0 || acc.parcelasTotal === 1) return 1;
+            return 2;
           };
           const typeA = getTypeOrder(a);
           const typeB = getTypeOrder(b);
           if (typeA !== typeB)
             return sortOrder === "asc" ? typeA - typeB : typeB - typeA;
-          // Se mesmo tipo, ordena pelo número da parcela (se parcelada)
           if (typeA === 2) {
-            // Parcelada: ordena pelo número da parcela atual
             const la = parcelaLabel(a, currentComp);
             const lb = parcelaLabel(b, currentComp);
             va = Number(la.split("/")[0]) || 0;
@@ -393,7 +373,6 @@ export default function FinanceTable({
             if (va > vb) return sortOrder === "asc" ? 1 : -1;
             return 0;
           }
-          // Se fixa ou avulsa, ordena por descrição
           va = a.description.toLowerCase();
           vb = b.description.toLowerCase();
           if (va < vb) return sortOrder === "asc" ? -1 : 1;
@@ -411,12 +390,10 @@ export default function FinanceTable({
     return copy;
   }, [localItems, sortKey, sortOrder, currentComp]);
 
-  // Dados a serem exibidos (considerando colapso)
   const displayData = useMemo(() => {
     return isCollapsed ? [] : sortedData;
   }, [sortedData, isCollapsed]);
 
-  // Ajuste do drag: só permite cursor de mover se estiver em modo de edição
   const isEditOrderMode = !!dragHandleProps;
   const blockEventsIfCollapsed = {};
   const dragProps = dragHandleProps || {};
@@ -429,7 +406,6 @@ export default function FinanceTable({
   return (
     <>
       <section className="relative">
-        {/* Cabeçalho DESKTOP */}
         <div
           className="hidden md:flex items-center justify-between px-6 py-2 border border-b-0 border-slate-300 dark:border-slate-700 rounded-t-md"
           {...dragProps}
@@ -935,10 +911,9 @@ export default function FinanceTable({
             </div>
           </div>
         )}
-        {/* Modal de ações - Mobile */}
         {selectedAction && window.innerWidth < 768 && (
           <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-            <div className="bg-white dark:bg-slate-800 rounded-xl shadow-2xl w-80 p-0 relative">
+            <div className="bg-white dark:bg-slate-800 rounded-xl shadow-2xl w-80 p-0 relative mobile-actions-modal">
               <button
                 onClick={() => setSelectedAction(null)}
                 className="absolute top-3 right-3 text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 transition-colors p-1 rounded-full focus:outline-none focus:ring-2 focus:ring-slate-400 z-10"
@@ -968,13 +943,18 @@ export default function FinanceTable({
                 </h3>
                 <div className="flex flex-col gap-3">
                   <button
-                    onClick={() => onEdit(selectedAction)}
+                    onClick={() => {
+                      console.log("MOBILE: Editar", selectedAction);
+                      onEdit(selectedAction);
+                      setSelectedAction(null);
+                    }}
                     className="w-full py-2 rounded-lg font-semibold bg-yellow-500 hover:bg-yellow-600 text-white shadow-sm transition-colors"
                   >
                     Editar
                   </button>
                   <button
                     onClick={() => {
+                      console.log("MOBILE: Duplicar", selectedAction);
                       if (typeof onDuplicate === "function")
                         onDuplicate(selectedAction);
                       setSelectedAction(null);
@@ -984,13 +964,21 @@ export default function FinanceTable({
                     Duplicar
                   </button>
                   <button
-                    onClick={() => handlePaidToggle(selectedAction)}
+                    onClick={() => {
+                      console.log("MOBILE: Pagar", selectedAction);
+                      handlePaidToggle(selectedAction);
+                      setSelectedAction(null);
+                    }}
                     className="w-full py-2 rounded-lg font-semibold bg-green-600 hover:bg-green-700 text-white shadow-sm transition-colors"
                   >
                     Pagar
                   </button>
                   <button
-                    onClick={() => onCancelToggle(selectedAction.id)}
+                    onClick={() => {
+                      console.log("MOBILE: Cancelar/Reabrir", selectedAction);
+                      onCancelToggle(selectedAction.id);
+                      setSelectedAction(null);
+                    }}
                     className="w-full py-2 rounded-lg font-semibold bg-red-500 hover:bg-red-600 text-white shadow-sm transition-colors"
                   >
                     {selectedAction.status === "Pendente"
@@ -998,7 +986,11 @@ export default function FinanceTable({
                       : "Reabrir"}
                   </button>
                   <button
-                    onClick={() => setFinancaToDelete(selectedAction)}
+                    onClick={() => {
+                      console.log("MOBILE: Excluir", selectedAction);
+                      setFinancaToDelete(selectedAction);
+                      setSelectedAction(null);
+                    }}
                     className="w-full py-2 rounded-lg font-semibold bg-red-700 hover:bg-red-800 text-white shadow-sm transition-colors"
                   >
                     Excluir

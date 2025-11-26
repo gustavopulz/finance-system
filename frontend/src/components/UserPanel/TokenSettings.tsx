@@ -1,5 +1,5 @@
-import { useState, useEffect } from 'react';
-import type { ChangeEvent } from 'react';
+import { useState, useEffect } from "react";
+import type { ChangeEvent } from "react";
 import {
   generateShareToken,
   useShareToken,
@@ -10,7 +10,7 @@ import {
   listCollabs,
   getLinkConfig,
   saveLinkConfig,
-} from '../../lib/api';
+} from "../../lib/api";
 import {
   Settings,
   Plus,
@@ -18,16 +18,16 @@ import {
   User,
   X,
   SlidersHorizontal,
-} from 'lucide-react';
-import { useNotification } from '../../context/NotificationContext';
-import SkeletonCard from '../SkeletonCard';
-import { useAuth } from '../../context/AuthContext';
+} from "lucide-react";
+import { useNotification } from "../../context/NotificationContext";
+import SkeletonCard from "../SkeletonCard";
+import { useAuth } from "../../context/AuthContext";
 
 export default function TokenSettings({ active }: { active: boolean }) {
   const { notify } = useNotification();
   const auth = useAuth();
-  const [token, setToken] = useState('');
-  const [sharedToken, setSharedToken] = useState('');
+  const [token, setToken] = useState("");
+  const [sharedToken, setSharedToken] = useState("");
   const [copied, setCopied] = useState(false);
   const [links, setLinks] = useState<{ iSee: any[]; seeMe: any[] }>({
     iSee: [],
@@ -36,7 +36,7 @@ export default function TokenSettings({ active }: { active: boolean }) {
   const [loadingLinks, setLoadingLinks] = useState(false);
   const [tokenModalOpen, setTokenModalOpen] = useState(false);
   const [collabs, setCollabs] = useState<any[]>([]);
-  const [selectedCollabId, setSelectedCollabId] = useState('');
+  const [selectedCollabId, setSelectedCollabId] = useState("");
   const [tokenAllowedCollabIds, setTokenAllowedCollabIds] = useState<string[]>(
     []
   );
@@ -44,8 +44,8 @@ export default function TokenSettings({ active }: { active: boolean }) {
   const [linkConfigOpen, setLinkConfigOpen] = useState<{
     open: boolean;
     otherUserId: string | null;
-    direction?: 'i-see' | 'see-me';
-  }>({ open: false, otherUserId: null, direction: 'see-me' });
+    direction?: "i-see" | "see-me";
+  }>({ open: false, otherUserId: null, direction: "see-me" });
   const [linkAllowedCollabIds, setLinkAllowedCollabIds] = useState<string[]>(
     []
   );
@@ -61,7 +61,7 @@ export default function TokenSettings({ active }: { active: boolean }) {
   // Quando sair da aba (active=false), limpa a exibição temporária do token
   useEffect(() => {
     if (!active) {
-      setToken('');
+      setToken("");
       setCopied(false);
     }
   }, [active]);
@@ -97,20 +97,20 @@ export default function TokenSettings({ active }: { active: boolean }) {
   const handleUseToken = async () => {
     const res = await useShareToken(sharedToken);
     if (res.success) {
-      notify('Contas mescladas com sucesso!', 'success');
+      notify("Contas mescladas com sucesso!", "success");
       await fetchLinks();
     } else {
-      notify(res.error || 'Erro ao mesclar contas', 'error');
+      notify(res.error || "Erro ao mesclar contas", "error");
     }
-    setSharedToken('');
+    setSharedToken("");
   };
 
-  const handleUnlink = async (id: string, direction: 'i-see' | 'see-me') => {
+  const handleUnlink = async (id: string, direction: "i-see" | "see-me") => {
     try {
       await unlinkUser(id, direction);
       await fetchLinks();
     } catch (err: any) {
-      notify(err.message || 'Erro ao desvincular usuário', 'error');
+      notify(err.message || "Erro ao desvincular usuário", "error");
     }
   };
 
@@ -129,10 +129,10 @@ export default function TokenSettings({ active }: { active: boolean }) {
     setSavingTokenConfig(true);
     try {
       await saveTokenConfig(tokenAllowedCollabIds);
-      notify('Configuração do token salva.', 'success');
+      notify("Configuração do token salva.", "success");
       setTokenModalOpen(false);
     } catch (e: any) {
-      notify(e?.message || 'Erro ao salvar configuração', 'error');
+      notify(e?.message || "Erro ao salvar configuração", "error");
     } finally {
       setSavingTokenConfig(false);
     }
@@ -140,16 +140,16 @@ export default function TokenSettings({ active }: { active: boolean }) {
 
   async function startLinkConfig(
     otherUserId: string,
-    direction: 'i-see' | 'see-me'
+    direction: "i-see" | "see-me"
   ) {
-    setSelectedCollabId('');
+    setSelectedCollabId("");
     setLinkConfigOpen({ open: true, otherUserId, direction });
     setLinkConfigLoading(true);
     try {
       let res = await getLinkConfig(otherUserId, direction);
       let ids = res?.allowedCollabIds || [];
       if (!ids.length) {
-        const fallbackDir = direction === 'see-me' ? 'i-see' : 'see-me';
+        const fallbackDir = direction === "see-me" ? "i-see" : "see-me";
         try {
           const fb = await getLinkConfig(otherUserId, fallbackDir as any);
           if (fb?.allowedCollabIds?.length) ids = fb.allowedCollabIds;
@@ -159,8 +159,8 @@ export default function TokenSettings({ active }: { active: boolean }) {
     } catch (e: any) {
       setLinkAllowedCollabIds([]);
       notify(
-        e?.message || 'Não foi possível carregar a configuração do vínculo',
-        'error'
+        e?.message || "Não foi possível carregar a configuração do vínculo",
+        "error"
       );
     } finally {
       setLinkConfigLoading(false);
@@ -185,16 +185,16 @@ export default function TokenSettings({ active }: { active: boolean }) {
       await saveLinkConfig(
         linkConfigOpen.otherUserId,
         linkAllowedCollabIds,
-        linkConfigOpen.direction || 'see-me'
+        linkConfigOpen.direction || "see-me"
       );
-      notify('Configuração do vínculo salva.', 'success');
+      notify("Configuração do vínculo salva.", "success");
       setLinkConfigOpen({
         open: false,
         otherUserId: null,
-        direction: 'see-me',
+        direction: "see-me",
       });
     } catch (e: any) {
-      notify(e?.message || 'Erro ao salvar configuração do vínculo', 'error');
+      notify(e?.message || "Erro ao salvar configuração do vínculo", "error");
     } finally {
       setSavingLinkConfig(false);
     }
@@ -202,19 +202,19 @@ export default function TokenSettings({ active }: { active: boolean }) {
 
   return (
     <div className="bg-white dark:bg-slate-900 rounded shadow-md p-6 sm:p-8 border border-slate-200 dark:border-slate-800">
-      <div className="mb-4 flex items-center gap-3">
+      <div className="mb-4 flex flex-col md:flex-row items-start md:items-center gap-3 md:gap-3">
         <h3 className="text-lg font-bold flex items-center gap-2 m-0">
           <Settings size={20} /> Configuração de Token
         </h3>
-        <div className="ml-auto flex items-center gap-2">
+        <div className="w-full md:w-auto md:ml-auto flex flex-col md:flex-row gap-2 mt-3 md:mt-0">
           <button
-            className="border border-slate-300 dark:border-slate-700 flex items-center gap-2 bg-transparent hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-700 dark:text-white px-4 py-2 rounded-md transition"
+            className="w-full md:w-auto border border-slate-300 dark:border-slate-700 flex items-center gap-2 bg-transparent hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-700 dark:text-white px-4 py-2 rounded-md transition"
             onClick={() => setTokenModalOpen(true)}
           >
             <SlidersHorizontal size={16} /> Configurar token
           </button>
           <button
-            className="btn btn-primary flex items-center gap-2"
+            className="w-full md:w-auto btn btn-primary flex items-center gap-2"
             onClick={handleGenerateToken}
           >
             <Plus size={16} /> Gerar Token
@@ -237,7 +237,7 @@ export default function TokenSettings({ active }: { active: boolean }) {
               setCopied(true);
             }}
           >
-            {copied ? 'Copiado!' : 'Copiar'}
+            {copied ? "Copiado!" : "Copiar"}
           </button>
         </div>
       )}
@@ -284,7 +284,7 @@ export default function TokenSettings({ active }: { active: boolean }) {
                     <div className="flex items-center gap-2">
                       <button
                         className="btn btn-xs btn-ghost text-red-600 hover:bg-red-50 dark:hover:bg-red-900/30"
-                        onClick={() => handleUnlink(u.id, 'i-see')}
+                        onClick={() => handleUnlink(u.id, "i-see")}
                         title="Remover vínculo"
                         aria-label="Remover vínculo"
                       >
@@ -313,13 +313,13 @@ export default function TokenSettings({ active }: { active: boolean }) {
                         className="btn btn-xs btn-ghost text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/30"
                         title="Configurar quais colaboradores desse vínculo veem da sua conta"
                         aria-label="Configurar vínculo"
-                        onClick={() => startLinkConfig(u.id, 'see-me')}
+                        onClick={() => startLinkConfig(u.id, "see-me")}
                       >
                         <SlidersHorizontal size={16} />
                       </button>
                       <button
                         className="btn btn-xs btn-ghost text-red-600 hover:bg-red-50 dark:hover:bg-red-900/30"
-                        onClick={() => handleUnlink(u.id, 'see-me')}
+                        onClick={() => handleUnlink(u.id, "see-me")}
                         title="Remover vínculo"
                         aria-label="Remover vínculo"
                       >
@@ -407,7 +407,9 @@ export default function TokenSettings({ active }: { active: boolean }) {
                 Cancelar
               </button>
               <button
-                className={`btn btn-primary ${savingTokenConfig ? 'loading' : ''}`}
+                className={`btn btn-primary ${
+                  savingTokenConfig ? "loading" : ""
+                }`}
                 onClick={saveTokenConfiguration}
                 disabled={savingTokenConfig}
               >
@@ -495,7 +497,9 @@ export default function TokenSettings({ active }: { active: boolean }) {
                 Cancelar
               </button>
               <button
-                className={`btn btn-primary ${savingLinkConfig ? 'loading' : ''}`}
+                className={`btn btn-primary ${
+                  savingLinkConfig ? "loading" : ""
+                }`}
                 onClick={saveLinkConfiguration}
                 disabled={savingLinkConfig || linkConfigLoading}
               >

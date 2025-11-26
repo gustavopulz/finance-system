@@ -7,7 +7,7 @@ import {
   Settings,
   PieChart,
   HelpCircle,
-  Crown,
+  // Crown,
   Sparkles,
 } from "lucide-react";
 import { useAuth } from "../context/AuthContext";
@@ -120,7 +120,7 @@ export default function Header() {
           >
             {theme === "dark" ? <Sun size={18} /> : <Moon size={18} />}
           </button>
-          <button
+          {/* <button
             type="button"
             onClick={() => setProOpen(true)}
             className="hidden sm:inline-flex items-center gap-2 rounded-md px-3 py-2 text-sm font-medium bg-gradient-to-r from-amber-500 via-amber-600 to-orange-600 text-white shadow hover:from-amber-500/90 hover:to-orange-600/90 transition relative"
@@ -128,7 +128,7 @@ export default function Header() {
           >
             <Crown size={16} className="drop-shadow" />
             <span className="hidden xl:inline">Pro</span>
-          </button>
+          </button> */}
           <div
             className="relative"
             ref={userMenuRef}
@@ -152,7 +152,13 @@ export default function Header() {
                   <p className="text-sm font-medium text-slate-800 dark:text-slate-100 truncate">
                     {auth?.user?.name || "Usuário"}
                   </p>
-                  <p className="text-[10px] uppercase tracking-wide font-semibold text-blue-600 dark:text-blue-400">
+                  <p
+                    className={`text-[10px] uppercase tracking-wide font-semibold ${
+                      auth?.user?.role === "admin"
+                        ? "text-red-600 dark:text-red-400"
+                        : "text-blue-600 dark:text-blue-400"
+                    }`}
+                  >
                     {auth?.user?.role === "admin" ? "Admin" : "Usuário"}
                   </p>
                 </div>

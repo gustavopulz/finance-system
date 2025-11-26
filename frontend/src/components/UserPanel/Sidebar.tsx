@@ -1,8 +1,8 @@
-import { Settings, Link as LinkIcon, User, Palette } from 'lucide-react';
+import { Settings, Link as LinkIcon, User } from "lucide-react";
 
 interface UserPanelSidebarProps {
-  activeTab: 'account' | 'token' | 'categories';
-  onTabChange: (tab: 'account' | 'token' | 'categories') => void;
+  activeTab: "account" | "token" | "categories";
+  onTabChange: (tab: "account" | "token" | "categories") => void;
 }
 
 export default function UserPanelSidebar({
@@ -10,41 +10,37 @@ export default function UserPanelSidebar({
   onTabChange,
 }: UserPanelSidebarProps) {
   return (
-    <aside className="w-70 bg-slate-50 dark:bg-slate-900 pr-4 flex flex-col gap-3 sticky top-6 pt-3 pb-3 self-stretch h-full">
-      <h2 className="text-xl font-bold mb-6 flex items-center gap-2">
-        <User size={22} className="text-slate-500" /> Painel do Usuário
+    <div className="w-full md:w-70 bg-slate-50 dark:bg-slate-900 pr-4 flex flex-col gap-3 pt-3 pb-3">
+      <h2 className="text-xl font-bold mb-6 flex items-center gap-2 pl-2">
+        <User size={22} /> Painel do Usuário
       </h2>
       <nav className="flex flex-col gap-2">
         <button
           className={`btn w-full flex items-center gap-2 justify-start whitespace-nowrap ${
-            activeTab === 'account' ? 'btn-primary' : 'btn-ghost'
+            activeTab === "account" ? "btn-primary" : "btn-ghost"
           }`}
-          onClick={() => onTabChange('account')}
+          onClick={() => onTabChange("account")}
         >
-          <Settings size={18} className="text-slate-500" /> Configuração de
-          Conta
+          <Settings size={18} /> Configuração de Conta
         </button>
-
         <button
           className={`btn w-full flex items-center gap-2 justify-start whitespace-nowrap ${
-            activeTab === 'token' ? 'btn-primary' : 'btn-ghost'
+            activeTab === "token" ? "btn-primary" : "btn-ghost"
           }`}
-          onClick={() => onTabChange('token')}
+          onClick={() => onTabChange("token")}
         >
-          <LinkIcon size={18} className="text-slate-500" /> Configuração de
-          Token
+          <LinkIcon size={18} /> Configuração de Token
         </button>
-
-        <button
+        {/* <button
           className={`btn w-full flex items-center gap-2 justify-start whitespace-nowrap ${
-            activeTab === 'categories' ? 'btn-primary' : 'btn-ghost'
+            activeTab === "categories" ? "btn-primary" : "btn-ghost"
           }`}
-          onClick={() => onTabChange('categories')}
+          onClick={() => onTabChange("categories")}
         >
           <Palette size={18} className="text-slate-500" /> Configuração de
           Categorias
-        </button>
+        </button> */}
       </nav>
-    </aside>
+    </div>
   );
 }

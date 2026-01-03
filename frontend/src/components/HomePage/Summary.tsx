@@ -5,6 +5,7 @@ import {
   BarChart2,
   SlidersHorizontal,
   User,
+  Minimize2,
 } from "lucide-react";
 import ModalBase from "../ModalBase";
 
@@ -79,8 +80,7 @@ const Summary: React.FC<SummaryProps> = ({
             onClick={() => setShowFilterModal(true)}
             title="Filtros"
           >
-            <SlidersHorizontal size={18} />{" "}
-            <span className="hidden sm:inline">Filtros</span>
+            <SlidersHorizontal size={18} /> <span>Filtros</span>
           </button>
 
           {typeof compactTable !== "undefined" &&
@@ -95,8 +95,8 @@ const Summary: React.FC<SummaryProps> = ({
                 title="Compactar tabela"
                 aria-pressed={compactTable}
               >
-                <span className="hidden sm:inline">Compactar</span>
-                <span className="sm:hidden">Compactar</span>
+                <Minimize2 size={18} />
+                <span>Compactar</span>
               </button>
             )}
 
@@ -120,9 +120,7 @@ const Summary: React.FC<SummaryProps> = ({
                       : "text-blue-700 dark:text-slate-200"
                   }
                 />{" "}
-                <span className="hidden sm:inline">
-                  {editOrderMode ? "Concluir Ordem" : "Reordenar"}
-                </span>
+                <span>{editOrderMode ? "Concluir Ordem" : "Reordenar"}</span>
               </button>
             )}
 
@@ -130,16 +128,14 @@ const Summary: React.FC<SummaryProps> = ({
             className="border border-slate-300 dark:border-slate-700 flex items-center gap-2 bg-transparent hover:bg-slate-700 hover:text-white text-slate-700 dark:text-slate-200 px-4 py-2 rounded-md transition"
             onClick={() => setDlg({ mode: "addCollab" })}
           >
-            <UserPlus size={18} />{" "}
-            <span className="hidden sm:inline">Adicionar colaborador</span>
+            <UserPlus size={18} /> <span>Adicionar colaborador</span>
           </button>
           <button
             className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md transition"
             onClick={() => setDlg({ mode: "addAccount" })}
             title="Adicionar finança (Alt+N)"
           >
-            <Plus size={18} />{" "}
-            <span className="hidden sm:inline">Adicionar finança</span>
+            <Plus size={18} /> <span>Adicionar finança</span>
           </button>
         </div>
       </div>

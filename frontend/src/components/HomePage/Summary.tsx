@@ -30,6 +30,8 @@ interface SummaryProps {
   MONTHS_PT: string[];
   filterStatus: string;
   setFilterStatus: (status: string) => void;
+  compactTable?: boolean;
+  onToggleCompactTable?: () => void;
   // Novas props para modo de edição de ordem
   editOrderMode?: boolean;
   onToggleEditOrderMode?: () => void;
@@ -57,6 +59,8 @@ const Summary: React.FC<SummaryProps> = ({
   MONTHS_PT,
   filterStatus,
   setFilterStatus,
+  compactTable,
+  onToggleCompactTable,
   editOrderMode,
   onToggleEditOrderMode,
 }) => {
@@ -78,6 +82,23 @@ const Summary: React.FC<SummaryProps> = ({
             <SlidersHorizontal size={18} />{" "}
             <span className="hidden sm:inline">Filtros</span>
           </button>
+
+          {typeof compactTable !== "undefined" &&
+            typeof onToggleCompactTable === "function" && (
+              <button
+                className={`flex items-center gap-2 border border-slate-300 dark:border-slate-700 px-4 py-2 rounded-md transition ${
+                  compactTable
+                    ? "bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-200"
+                    : "bg-white dark:bg-slate-900 hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-200"
+                }`}
+                onClick={onToggleCompactTable}
+                title="Compactar tabela"
+                aria-pressed={compactTable}
+              >
+                <span className="hidden sm:inline">Compactar</span>
+                <span className="sm:hidden">Compactar</span>
+              </button>
+            )}
 
           {/* Botão Personalizar Ordem após Filtros */}
           {typeof editOrderMode !== "undefined" &&

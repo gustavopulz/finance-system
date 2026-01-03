@@ -48,6 +48,7 @@ const setSortState = (
 export interface FinanceTableProps {
   collaboratorId: string;
   title: string;
+  compact?: boolean;
   items: Account[];
   currentComp: { year: number; month: number };
   onDelete: (id: string | string[]) => void;
@@ -70,6 +71,7 @@ type SortKey = "description" | "value" | "parcelas" | "status";
 export default function FinanceTable({
   collaboratorId,
   title,
+  compact = false,
   items,
   currentComp,
   onDelete,
@@ -404,11 +406,27 @@ export default function FinanceTable({
     cursor: isEditOrderMode ? "grab" : "default",
   };
 
+  const desktopHeaderPad = compact ? "px-4 py-1" : "px-6 py-2";
+  const titleText = compact
+    ? "text-sm font-semibold"
+    : "text-base font-semibold";
+  const tableText = compact
+    ? "text-xs text-left border-collapse w-full table-auto"
+    : "text-xs sm:text-sm text-left border-collapse w-full table-auto";
+  const cellPad = compact
+    ? "px-2 sm:px-3 py-1.5 sm:py-2"
+    : "px-2 sm:px-6 py-3 sm:py-4";
+  const actionMenuButtonClass = compact
+    ? "p-1 w-7 h-7 flex items-center justify-center text-slate-500 hover:text-slate-700 rounded"
+    : "p-1 w-8 h-8 flex items-center justify-center text-slate-500 hover:text-slate-700 rounded";
+  const dropdownTextClass = compact ? "text-xs" : "text-sm";
+  const dropdownItemPad = compact ? "px-3 py-1.5" : "px-4 py-2";
+
   return (
     <>
       <section className="relative">
         <div
-          className="hidden md:flex items-center justify-between px-6 py-2 border border-b-0 border-slate-300 dark:border-slate-700 rounded-t-md"
+          className={`hidden md:flex items-center justify-between ${desktopHeaderPad} border border-b-0 border-slate-300 dark:border-slate-700 rounded-t-md`}
           {...dragProps}
           {...blockEventsIfCollapsed}
           style={dragStyle}
@@ -422,7 +440,7 @@ export default function FinanceTable({
             ) : (
               <User size={18} className="text-slate-400 dark:text-slate-500" />
             )}
-            <h3 className="text-base font-semibold">{title}</h3>
+            <h3 className={titleText}>{title}</h3>
             <button
               onClick={(e) => {
                 e.preventDefault();
@@ -632,7 +650,7 @@ export default function FinanceTable({
         {!isCollapsed && (
           <div className="border border-slate-300 dark:border-slate-700 shadow-sm rounded-b-md">
             <div className="w-full px-0">
-              <table className="text-xs sm:text-sm text-left border-collapse w-full table-auto">
+              <table className={tableText}>
                 <colgroup>
                   <col style={{ width: "5%" }} />
                   <col style={{ width: "50%" }} />
@@ -645,7 +663,9 @@ export default function FinanceTable({
                   <thead className="bg-slate-100 dark:bg-slate-700/60 text-slate-700 dark:text-slate-300">
                     <tr>
                       {/* Checkbox oculto no mobile */}
-                      <th className="px-2 sm:px-6 py-3 sm:py-4 font-medium text-center hidden sm:table-cell">
+                      <th
+                        className={`${cellPad} font-medium text-center hidden sm:table-cell`}
+                      >
                         <input
                           type="checkbox"
                           checked={
@@ -658,7 +678,7 @@ export default function FinanceTable({
                         />
                       </th>
                       <th
-                        className="px-2 sm:px-6 py-3 sm:py-4 font-medium text-left cursor-pointer break-words"
+                        className={`${cellPad} font-medium text-left cursor-pointer break-words`}
                         onClick={() => handleSortChange("description")}
                       >
                         Descrição{" "}
@@ -666,7 +686,7 @@ export default function FinanceTable({
                           (sortOrder === "asc" ? "↑" : "↓")}
                       </th>
                       <th
-                        className="px-2 sm:px-6 py-3 sm:py-4 font-medium text-left cursor-pointer break-words"
+                        className={`${cellPad} font-medium text-left cursor-pointer break-words`}
                         onClick={() => handleSortChange("value")}
                       >
                         Valor{" "}
@@ -674,7 +694,7 @@ export default function FinanceTable({
                           (sortOrder === "asc" ? "↑" : "↓")}
                       </th>
                       <th
-                        className="px-2 sm:px-6 py-3 sm:py-4 font-medium text-center cursor-pointer break-words"
+                        className={`${cellPad} font-medium text-center cursor-pointer break-words`}
                         onClick={() => handleSortChange("parcelas")}
                       >
                         Parcela{" "}
@@ -682,7 +702,7 @@ export default function FinanceTable({
                           (sortOrder === "asc" ? "↑" : "↓")}
                       </th>
                       <th
-                        className="px-2 sm:px-6 py-3 sm:py-4 font-medium text-center cursor-pointer break-words"
+                        className={`${cellPad} font-medium text-center cursor-pointer break-words`}
                         onClick={() => handleSortChange("status")}
                       >
                         Status{" "}
@@ -690,7 +710,9 @@ export default function FinanceTable({
                           (sortOrder === "asc" ? "↑" : "↓")}
                       </th>
 
-                      <th className="px-2 sm:px-6 py-3 sm:py-4 font-medium text-center break-words">
+                      <th
+                        className={`${cellPad} font-medium text-center break-words`}
+                      >
                         Ações
                       </th>
                     </tr>
@@ -707,7 +729,9 @@ export default function FinanceTable({
                       }`}
                     >
                       {/* Checkbox oculto no mobile */}
-                      <td className="px-2 sm:px-6 py-3 sm:py-4 text-center hidden sm:table-cell">
+                      <td
+                        className={`${cellPad} text-center hidden sm:table-cell`}
+                      >
                         <input
                           type="checkbox"
                           checked={selectedItems.has(f.id)}
@@ -715,17 +739,23 @@ export default function FinanceTable({
                           className="custom-checkbox"
                         />
                       </td>
-                      <td className="break-words px-2 sm:px-6 py-3 sm:py-4 font-medium text-slate-800 dark:text-slate-100">
+                      <td
+                        className={`break-words ${cellPad} font-medium text-slate-800 dark:text-slate-100`}
+                      >
                         {f.description}
                       </td>
-                      <td className="break-words px-2 sm:px-6 py-3 sm:py-4 text-slate-600 dark:text-slate-400">
+                      <td
+                        className={`break-words ${cellPad} text-slate-600 dark:text-slate-400`}
+                      >
                         {brl(Number(f.value))}
                       </td>
-                      <td className="break-words px-2 sm:px-6 py-3 sm:py-4 text-center text-slate-600 dark:text-slate-400">
+                      <td
+                        className={`break-words ${cellPad} text-center text-slate-600 dark:text-slate-400`}
+                      >
                         {parcelaLabel(f, currentComp)}
                       </td>
 
-                      <td className="break-words px-2 sm:px-6 py-3 sm:py-4 text-center">
+                      <td className={`break-words ${cellPad} text-center`}>
                         <div className="hidden sm:block">
                           {f.status === "Cancelado" ? (
                             <>
@@ -792,12 +822,12 @@ export default function FinanceTable({
                         )}
                       </td>
 
-                      <td className="px-2 sm:px-6 py-3 sm:py-4 text-center relative">
+                      <td className={`${cellPad} text-center relative`}>
                         <div className="flex items-center justify-center">
                           {/* Dropdown de ações só aparece no desktop (md+) */}
                           <div className="hidden md:block">
                             <button
-                              className="p-1 w-8 h-8 flex items-center justify-center text-slate-500 hover:text-slate-700 rounded"
+                              className={actionMenuButtonClass}
                               onClick={() =>
                                 setSelectedAction(
                                   selectedAction && selectedAction.id === f.id
@@ -811,9 +841,11 @@ export default function FinanceTable({
                               <MoreVertical size={18} />
                             </button>
                             {selectedAction && selectedAction.id === f.id && (
-                              <div className="dropdown-actions -mt-3 absolute z-50 top-full left-1/2 -translate-x-1/2 w-48 bg-white dark:bg-slate-800 rounded shadow-lg border border-slate-200 dark:border-slate-700 flex flex-col text-sm animate-fade-in">
+                              <div
+                                className={`dropdown-actions -mt-3 absolute z-50 top-full left-1/2 -translate-x-1/2 w-48 bg-white dark:bg-slate-800 rounded shadow-lg border border-slate-200 dark:border-slate-700 flex flex-col ${dropdownTextClass} animate-fade-in`}
+                              >
                                 <button
-                                  className="flex items-center gap-2 px-4 py-2 text-left hover:bg-slate-100 dark:hover:bg-slate-700"
+                                  className={`flex items-center gap-2 ${dropdownItemPad} text-left hover:bg-slate-100 dark:hover:bg-slate-700`}
                                   onClick={() => {
                                     onEdit(f);
                                     setSelectedAction(null);
@@ -826,7 +858,7 @@ export default function FinanceTable({
                                   Editar finança
                                 </button>
                                 <button
-                                  className="flex items-center gap-2 px-4 py-2 text-left hover:bg-slate-100 dark:hover:bg-slate-700"
+                                  className={`flex items-center gap-2 ${dropdownItemPad} text-left hover:bg-slate-100 dark:hover:bg-slate-700`}
                                   onClick={() => {
                                     if (typeof onDuplicate === "function")
                                       onDuplicate(f);
@@ -837,7 +869,7 @@ export default function FinanceTable({
                                   Duplicar finança
                                 </button>
                                 <button
-                                  className="flex items-center gap-2 px-4 py-2 text-left hover:bg-slate-100 dark:hover:bg-slate-700"
+                                  className={`flex items-center gap-2 ${dropdownItemPad} text-left hover:bg-slate-100 dark:hover:bg-slate-700`}
                                   onClick={() => {
                                     handlePaidToggle(f);
                                     setSelectedAction(null);
@@ -859,7 +891,7 @@ export default function FinanceTable({
                                     : "Marcar como pago"}
                                 </button>
                                 <button
-                                  className="flex items-center gap-2 px-4 py-2 text-left hover:bg-slate-100 dark:hover:bg-slate-700"
+                                  className={`flex items-center gap-2 ${dropdownItemPad} text-left hover:bg-slate-100 dark:hover:bg-slate-700`}
                                   onClick={() => {
                                     onCancelToggle(f.id);
                                     setSelectedAction(null);
@@ -880,7 +912,7 @@ export default function FinanceTable({
                                     : "Reabrir finança"}
                                 </button>
                                 <button
-                                  className="flex items-center gap-2 px-4 py-2 text-left hover:bg-slate-100 dark:hover:bg-slate-700"
+                                  className={`flex items-center gap-2 ${dropdownItemPad} text-left hover:bg-slate-100 dark:hover:bg-slate-700`}
                                   onClick={() => {
                                     setFinancaToDelete(f);
                                     setSelectedAction(null);
@@ -895,7 +927,7 @@ export default function FinanceTable({
                           {/* No mobile, só abre o modal */}
                           <div className="md:hidden">
                             <button
-                              className="p-1 w-8 h-8 flex items-center justify-center text-slate-500 hover:text-slate-700 rounded"
+                              className={actionMenuButtonClass}
                               onClick={() => setSelectedAction(f)}
                               aria-label="Ações"
                               type="button"

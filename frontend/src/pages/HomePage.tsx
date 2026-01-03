@@ -99,9 +99,28 @@ function normalizeAccount(a: any): Account {
 export default function HomePage() {
   // Modo de edição de ordem de colaboradores
   const [editOrderMode, setEditOrderMode] = useState(false);
+  const COMPACT_TABLE_KEY = "compact_table";
+  const [compactTable, setCompactTable] = useState<boolean>(() => {
+    try {
+      return localStorage.getItem(COMPACT_TABLE_KEY) === "true";
+    } catch {
+      return false;
+    }
+  });
   const [collapsedStateBackup, setCollapsedStateBackup] = useState<{
     [collabId: string]: boolean;
   }>({});
+
+  function handleToggleCompactTable() {
+    setCompactTable((prev) => {
+      const next = !prev;
+      try {
+        if (next) localStorage.setItem(COMPACT_TABLE_KEY, "true");
+        else localStorage.removeItem(COMPACT_TABLE_KEY);
+      } catch {}
+      return next;
+    });
+  }
 
   // Função para obter o estado de colapso de cada colaborador
   function getAllCollabsCollapseState() {
@@ -695,6 +714,8 @@ export default function HomePage() {
             MONTHS_PT={MONTHS_PT}
             filterStatus={filterStatus}
             setFilterStatus={setFilterStatus}
+            compactTable={compactTable}
+            onToggleCompactTable={handleToggleCompactTable}
             editOrderMode={editOrderMode}
             onToggleEditOrderMode={handleToggleEditOrderMode}
           />
@@ -759,6 +780,7 @@ export default function HomePage() {
                         <FinanceTable
                           collaboratorId={c.id}
                           title={c.name}
+                          compact={compactTable}
                           items={items}
                           currentComp={{ year, month }}
                           onDelete={(id) => removeAccount(id)}
@@ -844,6 +866,7 @@ export default function HomePage() {
                   <FinanceTable
                     collaboratorId={c.id}
                     title={c.name}
+                    compact={compactTable}
                     items={items}
                     currentComp={{ year, month }}
                     onDelete={(id) => removeAccount(id)}

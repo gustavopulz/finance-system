@@ -1,41 +1,42 @@
-import { useEffect } from 'react';
-import { createPortal } from 'react-dom';
-import type { ReactNode } from 'react';
+import { useEffect } from "react";
+import { createPortal } from "react-dom";
+import type { ReactNode } from "react";
+import { X } from "lucide-react";
 
 interface ModalBaseProps {
   open: boolean;
   onClose: () => void;
   children: ReactNode;
-  maxWidth?: 'sm' | 'md' | 'lg' | 'xl' | '2xl';
+  maxWidth?: "sm" | "md" | "lg" | "xl" | "2xl";
   labelledBy?: string;
+  showClose?: boolean;
 }
 
-// Base reutilizável para modais.
-// Estilo: backdrop blur, centralização, scroll interno, animação simples fade/scale.
 export function ModalBase({
   open,
   onClose,
   children,
-  maxWidth = 'lg',
+  maxWidth = "lg",
   labelledBy,
+  showClose = true,
 }: ModalBaseProps) {
   const maxWidthClass = {
-    sm: 'max-w-sm',
-    md: 'max-w-md',
-    lg: 'max-w-lg',
-    xl: 'max-w-xl',
-    '2xl': 'max-w-2xl',
+    sm: "max-w-sm",
+    md: "max-w-md",
+    lg: "max-w-lg",
+    xl: "max-w-xl",
+    "2xl": "max-w-2xl",
   }[maxWidth];
   useEffect(() => {
     function onKey(e: KeyboardEvent) {
-      if (e.key === 'Escape') onClose();
+      if (e.key === "Escape") onClose();
     }
     if (open) {
-      document.addEventListener('keydown', onKey);
+      document.addEventListener("keydown", onKey);
       const prev = document.body.style.overflow;
-      document.body.style.overflow = 'hidden';
+      document.body.style.overflow = "hidden";
       return () => {
-        document.removeEventListener('keydown', onKey);
+        document.removeEventListener("keydown", onKey);
         document.body.style.overflow = prev;
       };
     }
@@ -43,24 +44,28 @@ export function ModalBase({
 
   if (!open) return null;
   return createPortal(
-    <div className="fixed inset-0 z-[120] flex items-start justify-center px-4 py-10 overflow-y-auto">
+    <div className="fixed inset-0 z-[120] flex items-center justify-center p-4">
       <div
-        className="absolute inset-0 bg-slate-950/70 backdrop-blur-sm"
+        className="absolute inset-0 bg-black/30 backdrop-blur-sm"
         onClick={onClose}
       />
       <div
         role="dialog"
         aria-modal="true"
         aria-labelledby={labelledBy}
-        className={`relative w-full ${maxWidthClass} rounded-2xl border border-amber-400/25 bg-[#0f1115]/95 dark:bg-slate-900/90 shadow-2xl ring-1 ring-slate-100/5 max-h-[90vh] overflow-y-auto animate-fade-in`}
+        className={`w-full ${maxWidthClass} p-5 rounded shadow-lg bg-white dark:bg-slate-900 relative animate-fade-in`}
+        style={{ maxHeight: "90vh", overflowY: "auto" }}
       >
-        <div
-          className="pointer-events-none absolute inset-0 opacity-40"
-          style={{
-            background:
-              'radial-gradient(circle at 20% 25%,rgba(251,191,36,0.18),transparent 60%), radial-gradient(circle at 80% 70%,rgba(249,115,22,0.16),transparent 65%)',
-          }}
-        />
+        {showClose && (
+          <button
+            type="button"
+            onClick={onClose}
+            className="absolute top-3 right-3 text-slate-500 hover:text-red-500 text-xl font-bold rounded-full w-8 h-8 flex items-center justify-center focus:outline-none"
+            aria-label="Fechar"
+          >
+            <X size={20} />
+          </button>
+        )}
         {children}
       </div>
     </div>,

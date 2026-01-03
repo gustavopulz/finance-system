@@ -2,11 +2,11 @@ import React, { useState } from "react";
 import {
   Plus,
   UserPlus,
-  X,
   BarChart2,
   SlidersHorizontal,
   User,
 } from "lucide-react";
+import ModalBase from "../ModalBase";
 
 interface SummaryProps {
   total: number;
@@ -123,124 +123,124 @@ const Summary: React.FC<SummaryProps> = ({
         </div>
       </div>
 
-      {showFilterModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60">
-          <div className="bg-white dark:bg-slate-900 rounded-xl shadow-2xl w-full max-w-2xl p-6 relative animate-fade-in">
-            <button
-              className="absolute top-4 right-4 text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 transition-colors p-1 rounded-full focus:outline-none focus:ring-2 focus:ring-slate-400 z-10"
-              onClick={() => setShowFilterModal(false)}
-              aria-label="Fechar modal"
-            >
-              <X size={22} />
-            </button>
-            <h2 className="text-lg font-semibold mb-6 text-slate-800 dark:text-slate-100">
-              Filtros
-            </h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
-              <input
-                className="input w-full"
-                type="text"
-                placeholder="Descrição"
-                value={filterDesc}
-                onChange={(e) => setFilterDesc(e.target.value)}
-              />
-              <input
-                className="input w-full"
-                type="number"
-                placeholder="Valor"
-                value={filterValor}
-                onChange={(e) => setFilterValor(e.target.value)}
-              />
-              <select
-                className="select rounded w-full"
-                value={filterParcela}
-                onChange={(e) => setFilterParcela(e.target.value)}
-              >
-                <option value="">Todas parcelas</option>
-                <option value="avulso">Avulso</option>
-                <option value="fixo">Fixo</option>
-                {[...Array(48)].map((_, i) => (
-                  <option key={i + 1} value={i + 1}>
-                    {i + 1}
-                  </option>
-                ))}
-              </select>
-              <select className="select rounded w-full" disabled>
-                <option value="">Categoria (em breve)</option>
-              </select>
-              <select
-                className="select rounded w-full"
-                value={showAll ? "all" : month}
-                onChange={(e) => {
-                  if (e.target.value === "all") {
-                    setShowAll(true);
-                  } else {
-                    setShowAll(false);
-                    setMonth(Number(e.target.value));
-                  }
-                }}
-              >
-                <option value="all">Todos os meses</option>
-                {MONTHS_PT.map((m, i) => (
-                  <option key={i + 1} value={i + 1}>
-                    {m}
-                  </option>
-                ))}
-              </select>
-              <input
-                className="input w-full"
-                type="number"
-                value={year}
-                onChange={(e) => setYear(Number(e.target.value))}
-                disabled={showAll}
-                placeholder="Ano"
-              />
-              <select
-                className="select rounded w-full"
-                value={filterStatus}
-                onChange={(e) => setFilterStatus(e.target.value)}
-              >
-                <option value="">Todos os status</option>
-                <option value="Pendente">Pendente</option>
-                <option value="Pago">Pago</option>
-                <option value="Cancelado">Cancelado</option>
-              </select>
-              <label className="flex items-center gap-2 cursor-pointer text-slate-600 dark:text-slate-300 mt-2">
-                <input
-                  type="checkbox"
-                  checked={showCancelled}
-                  onChange={(e) => setShowCancelled(e.target.checked)}
-                  className="register-checkbox"
-                />
-                Ver Cancelados
-              </label>
-            </div>
-            <div className="flex justify-end gap-2">
-              <button
-                className="px-4 py-2 rounded bg-gray-200 dark:bg-slate-700 text-slate-700 dark:text-slate-100 hover:bg-gray-300 dark:hover:bg-slate-600"
-                onClick={() => {
-                  setFilterDesc("");
-                  setFilterValor("");
-                  setFilterParcela("");
-                  setShowAll(false);
-                  setMonth(new Date().getMonth() + 1);
-                  setYear(new Date().getFullYear());
-                  setShowCancelled(false);
-                  setFilterStatus("");
-                }}
-              >
-                Limpar filtros
-              </button>
-              <button
-                className="px-4 py-2 rounded bg-blue-600 text-white hover:bg-blue-700"
-                onClick={() => setShowFilterModal(false)}
-              >
-                Aplicar filtros
-              </button>
-            </div>
-          </div>
+      <ModalBase
+        open={showFilterModal}
+        onClose={() => setShowFilterModal(false)}
+        maxWidth="2xl"
+        labelledBy="titulo-filtros"
+      >
+        <h2
+          id="titulo-filtros"
+          className="text-lg font-semibold mb-3 text-slate-800 dark:text-slate-100"
+        >
+          Filtros
+        </h2>
+
+        <hr className="py-2 border-[#334155]"></hr>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+          <input
+            className="input w-full"
+            type="text"
+            placeholder="Descrição"
+            value={filterDesc}
+            onChange={(e) => setFilterDesc(e.target.value)}
+          />
+          <input
+            className="input w-full"
+            type="number"
+            placeholder="Valor"
+            value={filterValor}
+            onChange={(e) => setFilterValor(e.target.value)}
+          />
+          <select
+            className="select rounded w-full"
+            value={filterParcela}
+            onChange={(e) => setFilterParcela(e.target.value)}
+          >
+            <option value="">Todas parcelas</option>
+            <option value="avulso">Avulso</option>
+            <option value="fixo">Fixo</option>
+            {[...Array(48)].map((_, i) => (
+              <option key={i + 1} value={i + 1}>
+                {i + 1}
+              </option>
+            ))}
+          </select>
+          <select className="select rounded w-full" disabled>
+            <option value="">Categoria (em breve)</option>
+          </select>
+          <select
+            className="select rounded w-full"
+            value={showAll ? "all" : month}
+            onChange={(e) => {
+              if (e.target.value === "all") {
+                setShowAll(true);
+              } else {
+                setShowAll(false);
+                setMonth(Number(e.target.value));
+              }
+            }}
+          >
+            <option value="all">Todos os meses</option>
+            {MONTHS_PT.map((m, i) => (
+              <option key={i + 1} value={i + 1}>
+                {m}
+              </option>
+            ))}
+          </select>
+          <input
+            className="input w-full"
+            type="number"
+            value={year}
+            onChange={(e) => setYear(Number(e.target.value))}
+            disabled={showAll}
+            placeholder="Ano"
+          />
+          <select
+            className="select rounded w-full"
+            value={filterStatus}
+            onChange={(e) => setFilterStatus(e.target.value)}
+          >
+            <option value="">Todos os status</option>
+            <option value="Pendente">Pendente</option>
+            <option value="Pago">Pago</option>
+            <option value="Cancelado">Cancelado</option>
+          </select>
+          <label className="flex items-center gap-2 cursor-pointer text-slate-600 dark:text-slate-300 mt-2">
+            <input
+              type="checkbox"
+              checked={showCancelled}
+              onChange={(e) => setShowCancelled(e.target.checked)}
+              className="register-checkbox"
+            />
+            Ver Cancelados
+          </label>
         </div>
-      )}
+        <div className="flex justify-end gap-2">
+          <button
+            className="px-4 py-2 rounded bg-gray-200 dark:bg-slate-700 text-slate-700 dark:text-slate-100 hover:bg-gray-300 dark:hover:bg-slate-600"
+            onClick={() => {
+              setFilterDesc("");
+              setFilterValor("");
+              setFilterParcela("");
+              setShowAll(false);
+              setMonth(new Date().getMonth() + 1);
+              setYear(new Date().getFullYear());
+              setShowCancelled(false);
+              setFilterStatus("");
+            }}
+          >
+            Limpar filtros
+          </button>
+          <button
+            className="px-4 py-2 rounded bg-blue-600 text-white hover:bg-blue-700"
+            onClick={() => setShowFilterModal(false)}
+          >
+            Aplicar filtros
+          </button>
+        </div>
+      </ModalBase>
 
       {/* Totais apenas no mobile */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 md:hidden mt-4">

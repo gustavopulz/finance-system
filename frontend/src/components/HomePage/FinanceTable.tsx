@@ -8,6 +8,7 @@ import {
   ChevronUp,
   User,
 } from "lucide-react";
+import ModalBase from "../ModalBase";
 import { useMemo, useState, useEffect } from "react";
 import { deleteCollab } from "../../lib/api";
 import {
@@ -912,224 +913,230 @@ export default function FinanceTable({
           </div>
         )}
         {selectedAction && window.innerWidth < 768 && (
-          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-            <div className="bg-white dark:bg-slate-800 rounded-xl shadow-2xl w-80 p-0 relative mobile-actions-modal">
-              <button
-                onClick={() => setSelectedAction(null)}
-                className="absolute top-3 right-3 text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 transition-colors p-1 rounded-full focus:outline-none focus:ring-2 focus:ring-slate-400 z-10"
-                aria-label="Fechar modal"
+          <ModalBase
+            open={true}
+            onClose={() => setSelectedAction(null)}
+            maxWidth="sm"
+            labelledBy="titulo-acoes-mobile"
+          >
+            <div className="pb-1">
+              <h3
+                id="titulo-acoes-mobile"
+                className="text-lg font-normal mb-6 text-slate-800 dark:text-slate-100 text-center"
               >
-                <svg
-                  width="22"
-                  height="22"
-                  viewBox="0 0 20 20"
-                  fill="none"
-                  xmlns="http://www.w3.org/2000/svg"
-                >
-                  <path
-                    d="M6 6L14 14M14 6L6 14"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                  />
-                </svg>
-              </button>
-              <div className="p-6 pb-4">
-                <h3 className="text-lg font-normal mb-6 text-slate-800 dark:text-slate-100 text-center">
-                  Ações para{" "}
-                  <b className="text-primary font-bold">
-                    {selectedAction.description}
-                  </b>
-                </h3>
-                <div className="flex flex-col gap-3">
-                  <button
-                    onClick={() => {
-                      console.log("MOBILE: Editar", selectedAction);
-                      onEdit(selectedAction);
-                      setSelectedAction(null);
-                    }}
-                    className="w-full py-2 rounded-lg font-semibold bg-yellow-500 hover:bg-yellow-600 text-white shadow-sm transition-colors"
-                  >
-                    Editar
-                  </button>
-                  <button
-                    onClick={() => {
-                      console.log("MOBILE: Duplicar", selectedAction);
-                      if (typeof onDuplicate === "function")
-                        onDuplicate(selectedAction);
-                      setSelectedAction(null);
-                    }}
-                    className="w-full py-2 rounded-lg font-semibold bg-blue-500 hover:bg-blue-600 text-white shadow-sm transition-colors"
-                  >
-                    Duplicar
-                  </button>
-                  <button
-                    onClick={() => {
-                      console.log("MOBILE: Pagar", selectedAction);
-                      handlePaidToggle(selectedAction);
-                      setSelectedAction(null);
-                    }}
-                    className="w-full py-2 rounded-lg font-semibold bg-green-600 hover:bg-green-700 text-white shadow-sm transition-colors"
-                  >
-                    Pagar
-                  </button>
-                  <button
-                    onClick={() => {
-                      console.log("MOBILE: Cancelar/Reabrir", selectedAction);
-                      onCancelToggle(selectedAction.id);
-                      setSelectedAction(null);
-                    }}
-                    className="w-full py-2 rounded-lg font-semibold bg-red-500 hover:bg-red-600 text-white shadow-sm transition-colors"
-                  >
-                    {selectedAction.status === "Pendente"
-                      ? "Cancelar"
-                      : "Reabrir"}
-                  </button>
-                  <button
-                    onClick={() => {
-                      console.log("MOBILE: Excluir", selectedAction);
-                      setFinancaToDelete(selectedAction);
-                      setSelectedAction(null);
-                    }}
-                    className="w-full py-2 rounded-lg font-semibold bg-red-700 hover:bg-red-800 text-white shadow-sm transition-colors"
-                  >
-                    Excluir
-                  </button>
-                </div>
+                Ações para{" "}
+                <b className="text-primary font-bold">
+                  {selectedAction.description}
+                </b>
+              </h3>
+              <div className="flex flex-col gap-3">
                 <button
-                  onClick={() => setSelectedAction(null)}
-                  className="mt-6 w-full py-2 rounded-lg font-semibold border border-slate-300 dark:border-slate-600 text-slate-600 dark:text-slate-200 bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 dark:hover:bg-slate-600 transition-colors shadow-sm"
-                >
-                  Fechar
-                </button>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* Modais */}
-        {showBulkDeleteConfirm && (
-          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-            <div className="bg-white dark:bg-slate-800 rounded p-6 shadow-lg max-w-sm w-full">
-              <h2 className="text-lg font-semibold mb-4">
-                Excluir finanças selecionadas
-              </h2>
-              <p className="mb-6">
-                Tem certeza que deseja excluir{" "}
-                <b>{selectedItems.size} finança(s)</b> selecionada(s)? Essa ação
-                não pode ser desfeita.
-              </p>
-              <div className="hidden md:block relative">
-                <button
-                  onClick={() => setShowBulkDeleteConfirm(false)}
-                  className="px-4 py-2 rounded bg-gray-200 dark:bg-slate-700"
-                >
-                  Cancelar
-                </button>
-                <button
-                  onClick={handleBulkDelete}
-                  className="px-4 py-2 rounded bg-red-600 text-white"
-                >
-                  Excluir
-                </button>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {showConfirm && (
-          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-            <div className="bg-white dark:bg-slate-800 rounded p-6 shadow-lg max-w-sm w-full">
-              <h2 className="text-lg font-semibold mb-4">
-                Excluir colaborador
-              </h2>
-              <p className="mb-6">
-                Tem certeza que deseja excluir <b>{title}</b>? Essa ação não
-                pode ser desfeita.
-              </p>
-              <div className="flex justify-end gap-2">
-                <button
-                  onClick={() => setShowConfirm(false)}
-                  className="px-4 py-2 rounded bg-gray-200 dark:bg-slate-700"
-                >
-                  Cancelar
-                </button>
-                <button
-                  onClick={confirmDeleteCollab}
-                  className="px-4 py-2 rounded bg-red-600 text-white"
-                >
-                  Excluir
-                </button>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {actionModal.open && actionModal.financa && (
-          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-            <div className="bg-white dark:bg-slate-800 rounded p-6 shadow-lg max-w-sm w-full">
-              <h2 className="text-lg font-semibold mb-4">Ações</h2>
-              <p className="mb-6">
-                Selecione uma ação para o lançamento{" "}
-                <b>{actionModal.financa.description}</b>:
-              </p>
-              <div className="flex flex-col gap-2">
-                <button
-                  className="px-4 py-2 rounded bg-blue-600 text-white"
                   onClick={() => {
-                    if (actionModal.financa) {
-                      onEdit(actionModal.financa);
-                    }
-                    setActionModal({ open: false, financa: null });
+                    onEdit(selectedAction);
+                    setSelectedAction(null);
                   }}
+                  className="w-full py-2 rounded-lg font-semibold bg-yellow-500 hover:bg-yellow-600 text-white shadow-sm transition-colors"
                 >
                   Editar
                 </button>
                 <button
-                  className={`px-4 py-2 rounded text-white font-semibold ${
-                    actionModal.financa.status === "Pendente" ||
-                    actionModal.financa.status === "ativo"
-                      ? "bg-red-600"
-                      : "bg-yellow-500"
-                  }`}
                   onClick={() => {
-                    if (actionModal.financa) {
-                      onCancelToggle(actionModal.financa.id);
-                    }
-                    setActionModal({ open: false, financa: null });
+                    if (typeof onDuplicate === "function")
+                      onDuplicate(selectedAction);
+                    setSelectedAction(null);
                   }}
+                  className="w-full py-2 rounded-lg font-semibold bg-blue-500 hover:bg-blue-600 text-white shadow-sm transition-colors"
                 >
-                  {actionModal.financa.status === "Pendente" ||
-                  actionModal.financa.status === "ativo"
+                  Duplicar
+                </button>
+                <button
+                  onClick={() => {
+                    handlePaidToggle(selectedAction);
+                    setSelectedAction(null);
+                  }}
+                  className="w-full py-2 rounded-lg font-semibold bg-green-600 hover:bg-green-700 text-white shadow-sm transition-colors"
+                >
+                  Pagar
+                </button>
+                <button
+                  onClick={() => {
+                    onCancelToggle(selectedAction.id);
+                    setSelectedAction(null);
+                  }}
+                  className="w-full py-2 rounded-lg font-semibold bg-red-500 hover:bg-red-600 text-white shadow-sm transition-colors"
+                >
+                  {selectedAction.status === "Pendente"
                     ? "Cancelar"
-                    : "Pendente"}
+                    : "Reabrir"}
                 </button>
                 <button
-                  className="px-4 py-2 rounded bg-red-600 text-white"
                   onClick={() => {
-                    if (actionModal.financa) {
-                      setFinancaToDelete(actionModal.financa);
-                    }
-                    setActionModal({ open: false, financa: null });
+                    setFinancaToDelete(selectedAction);
+                    setSelectedAction(null);
                   }}
+                  className="w-full py-2 rounded-lg font-semibold bg-red-700 hover:bg-red-800 text-white shadow-sm transition-colors"
                 >
-                  Excluir lançamento
-                </button>
-                <button
-                  className="px-4 py-2 rounded bg-gray-200 dark:bg-slate-700 text-black dark:text-white"
-                  onClick={() => setActionModal({ open: false, financa: null })}
-                >
-                  Cancelar
+                  Excluir
                 </button>
               </div>
+              <button
+                onClick={() => setSelectedAction(null)}
+                className="mt-6 w-full py-2 rounded-lg font-semibold border border-slate-300 dark:border-slate-600 text-slate-600 dark:text-slate-200 bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 dark:hover:bg-slate-600 transition-colors shadow-sm"
+              >
+                Fechar
+              </button>
             </div>
-          </div>
+          </ModalBase>
         )}
 
-        {financaToDelete && (
-          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-            <div className="bg-white dark:bg-slate-800 rounded p-6 shadow-lg max-w-sm w-full">
-              <h2 className="text-lg font-semibold mb-4">Excluir finança</h2>
+        {/* Modais */}
+        <ModalBase
+          open={showBulkDeleteConfirm}
+          onClose={() => setShowBulkDeleteConfirm(false)}
+          maxWidth="sm"
+          labelledBy="titulo-excluir-selecionadas"
+        >
+          <h2
+            id="titulo-excluir-selecionadas"
+            className="text-lg font-semibold mb-4"
+          >
+            Excluir finanças selecionadas
+          </h2>
+          <p className="mb-6">
+            Tem certeza que deseja excluir{" "}
+            <b>{selectedItems.size} finança(s)</b> selecionada(s)? Essa ação não
+            pode ser desfeita.
+          </p>
+          <div className="flex justify-end gap-2">
+            <button
+              onClick={() => setShowBulkDeleteConfirm(false)}
+              className="px-4 py-2 rounded bg-gray-200 dark:bg-slate-700"
+            >
+              Cancelar
+            </button>
+            <button
+              onClick={handleBulkDelete}
+              className="px-4 py-2 rounded bg-red-600 text-white"
+            >
+              Excluir
+            </button>
+          </div>
+        </ModalBase>
+
+        <ModalBase
+          open={showConfirm}
+          onClose={() => setShowConfirm(false)}
+          maxWidth="sm"
+          labelledBy="titulo-excluir-colaborador"
+        >
+          <h2
+            id="titulo-excluir-colaborador"
+            className="text-lg font-semibold mb-4"
+          >
+            Excluir colaborador
+          </h2>
+          <p className="mb-6">
+            Tem certeza que deseja excluir <b>{title}</b>? Essa ação não pode
+            ser desfeita.
+          </p>
+          <div className="flex justify-end gap-2">
+            <button
+              onClick={() => setShowConfirm(false)}
+              className="px-4 py-2 rounded bg-gray-200 dark:bg-slate-700"
+            >
+              Cancelar
+            </button>
+            <button
+              onClick={confirmDeleteCollab}
+              className="px-4 py-2 rounded bg-red-600 text-white"
+            >
+              Excluir
+            </button>
+          </div>
+        </ModalBase>
+
+        <ModalBase
+          open={actionModal.open && Boolean(actionModal.financa)}
+          onClose={() => setActionModal({ open: false, financa: null })}
+          maxWidth="sm"
+          labelledBy="titulo-acoes"
+        >
+          {actionModal.financa &&
+            (() => {
+              const financa = actionModal.financa;
+              return (
+                <>
+                  <h2 id="titulo-acoes" className="text-lg font-semibold mb-4">
+                    Ações
+                  </h2>
+                  <p className="mb-6">
+                    Selecione uma ação para o lançamento{" "}
+                    <b>{financa.description}</b>:
+                  </p>
+                  <div className="flex flex-col gap-2">
+                    <button
+                      className="px-4 py-2 rounded bg-blue-600 text-white"
+                      onClick={() => {
+                        onEdit(financa);
+                        setActionModal({ open: false, financa: null });
+                      }}
+                    >
+                      Editar
+                    </button>
+                    <button
+                      className={`px-4 py-2 rounded text-white font-semibold ${
+                        financa.status === "Pendente" ||
+                        financa.status === "ativo"
+                          ? "bg-red-600"
+                          : "bg-yellow-500"
+                      }`}
+                      onClick={() => {
+                        onCancelToggle(financa.id);
+                        setActionModal({ open: false, financa: null });
+                      }}
+                    >
+                      {financa.status === "Pendente" ||
+                      financa.status === "ativo"
+                        ? "Cancelar"
+                        : "Pendente"}
+                    </button>
+                    <button
+                      className="px-4 py-2 rounded bg-red-600 text-white"
+                      onClick={() => {
+                        setFinancaToDelete(financa);
+                        setActionModal({ open: false, financa: null });
+                      }}
+                    >
+                      Excluir lançamento
+                    </button>
+                    <button
+                      className="px-4 py-2 rounded bg-gray-200 dark:bg-slate-700 text-black dark:text-white"
+                      onClick={() =>
+                        setActionModal({ open: false, financa: null })
+                      }
+                    >
+                      Cancelar
+                    </button>
+                  </div>
+                </>
+              );
+            })()}
+        </ModalBase>
+
+        <ModalBase
+          open={Boolean(financaToDelete)}
+          onClose={() => setFinancaToDelete(null)}
+          maxWidth="sm"
+          labelledBy="titulo-excluir-financa"
+        >
+          {financaToDelete && (
+            <>
+              <h2
+                id="titulo-excluir-financa"
+                className="text-lg font-semibold mb-4"
+              >
+                Excluir finança
+              </h2>
               <p className="mb-6">
                 Tem certeza que deseja excluir o lançamento{" "}
                 <b>{financaToDelete.description}</b>? Essa ação não pode ser
@@ -1149,9 +1156,9 @@ export default function FinanceTable({
                   Excluir
                 </button>
               </div>
-            </div>
-          </div>
-        )}
+            </>
+          )}
+        </ModalBase>
 
         {toast && (
           <div className="fixed bottom-5 right-5 bg-green-600 text-white px-4 py-2 rounded shadow-lg z-50">

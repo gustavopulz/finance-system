@@ -95,7 +95,7 @@ export default function Header() {
                 to={link.to}
                 className={({ isActive }) =>
                   `nav-link flex items-center gap-1 ${
-                    isActive ? "nav-link-active" : ""
+                    isActive ? "nav-link-active !text-brand-400" : ""
                   }`
                 }
               >

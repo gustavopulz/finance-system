@@ -10,6 +10,22 @@ export interface NovidadeCard {
 
 export const novidadesCards: NovidadeCard[] = [
   {
+    date: "03/01/2026",
+    title: "Versão 1.1.1 - Refinos de UI e Tabelas",
+    modalTitle: "Confira a nova versão: 1.1.1!",
+    modalDescription:
+      "Refinamos o header, melhoramos a consistência dos modais e adicionamos um modo de compactação de tabelas para facilitar a visualização.",
+    highlights: [
+      "*Ajustes no header*: _Links fixos agora destacam texto e ícone (antes só havia a barra)._",
+      "*Correção de hover*: _Bug onde o hover dos links fixos ocultava o ícone foi corrigido._",
+      "*Tabelas*: _Adicionado botão para compactação, facilitando a visualização de grandes volumes de dados._",
+    ],
+    adjustments: [
+      "*Melhorias em modais*: _Refatoração e otimização do código dos modais, resultando em maior consistência visual e melhor manutenção._",
+    ],
+    mobile: ["Sem mudanças específicas para mobile nesta versão."],
+  },
+  {
     date: "26/11/2025",
     title: "Versão 1.1.0 - Melhorias na Gestão de Colaboradores",
     modalTitle: "Confira a nova versão: 1.1.0!",

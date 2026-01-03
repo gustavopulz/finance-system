@@ -1,6 +1,6 @@
-import { parcelaLabel, brl, isAccountPaidInMonth } from '../../lib/format';
-import { markAccountPaid } from '../../lib/api';
-import type { Account } from '../../lib/types';
+import { parcelaLabel, brl, isAccountPaidInMonth } from "../../lib/format";
+import { markAccountPaid } from "../../lib/api";
+import type { Account } from "../../lib/types";
 import {
   Trash2,
   Pencil,
@@ -9,9 +9,10 @@ import {
   GripVertical,
   ChevronDown,
   ChevronUp,
-} from 'lucide-react';
-import { useMemo, useState, useEffect } from 'react';
-import { deleteCollab } from '../../lib/api';
+} from "lucide-react";
+import { useMemo, useState, useEffect } from "react";
+import { deleteCollab } from "../../lib/api";
+import ModalBase from "../ModalBase";
 
 // Funções para persistir a ordenação no localStorage
 const getSortState = (collaboratorId: string) => {
@@ -20,10 +21,10 @@ const getSortState = (collaboratorId: string) => {
     try {
       return JSON.parse(saved);
     } catch {
-      return { sortKey: 'description', sortOrder: 'asc' };
+      return { sortKey: "description", sortOrder: "asc" };
     }
   }
-  return { sortKey: 'description', sortOrder: 'asc' };
+  return { sortKey: "description", sortOrder: "asc" };
 };
 
 const setSortState = (
@@ -50,7 +51,7 @@ export interface FinanceTableProps {
   dragHandleProps?: React.HTMLAttributes<HTMLElement>;
 }
 
-type SortKey = 'description' | 'value' | 'parcelas' | 'status';
+type SortKey = "description" | "value" | "parcelas" | "status";
 
 export default function oldFinanceTable({
   collaboratorId,
@@ -69,7 +70,7 @@ export default function oldFinanceTable({
   // Inicializa a ordenação com os valores salvos para este colaborador
   const savedSort = getSortState(collaboratorId);
   const [sortKey, setSortKey] = useState<SortKey>(savedSort.sortKey as SortKey);
-  const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>(
+  const [sortOrder, setSortOrder] = useState<"asc" | "desc">(
     savedSort.sortOrder
   );
 
@@ -79,11 +80,11 @@ export default function oldFinanceTable({
 
   // Função helper para atualizar ordenação e salvar no localStorage
   const handleSortChange = (newSortKey: SortKey) => {
-    let newSortOrder: 'asc' | 'desc' = 'asc';
+    let newSortOrder: "asc" | "desc" = "asc";
 
     if (sortKey === newSortKey) {
       // Se clicou na mesma coluna, inverte a ordem
-      newSortOrder = sortOrder === 'asc' ? 'desc' : 'asc';
+      newSortOrder = sortOrder === "asc" ? "desc" : "asc";
     }
 
     setSortKey(newSortKey);
@@ -97,8 +98,8 @@ export default function oldFinanceTable({
   // Estado de colapso persistido no localStorage
   const getCollapseState = (collaboratorId: string) => {
     const saved = localStorage.getItem(`collapse_${collaboratorId}`);
-    if (saved === 'true') return true;
-    if (saved === 'false') return false;
+    if (saved === "true") return true;
+    if (saved === "false") return false;
     return false;
   };
   const [isCollapsed, _setIsCollapsed] = useState(
@@ -107,7 +108,7 @@ export default function oldFinanceTable({
   const setIsCollapsed = (value: boolean) => {
     localStorage.setItem(
       `collapse_${collaboratorId}`,
-      value ? 'true' : 'false'
+      value ? "true" : "false"
     );
     _setIsCollapsed(value);
   };
@@ -164,10 +165,12 @@ export default function oldFinanceTable({
 
       accountIds.forEach((id) => onPaidUpdate?.(id, markAsPaid));
       setToast(
-        `${accountIds.length} finança(s) marcada(s) como ${markAsPaid ? 'paga(s)' : 'não paga(s)'} ✅`
+        `${accountIds.length} finança(s) marcada(s) como ${
+          markAsPaid ? "paga(s)" : "não paga(s)"
+        } ✅`
       );
     } catch (error) {
-      setToast('Erro ao marcar contas');
+      setToast("Erro ao marcar contas");
     }
     clearSelection();
     setTimeout(() => setToast(null), 3000);
@@ -183,7 +186,7 @@ export default function oldFinanceTable({
       await onDelete(accountIds);
       setToast(`${accountIds.length} finança(s) excluída(s) com sucesso ✅`);
     } catch (error) {
-      setToast('Erro ao excluir contas');
+      setToast("Erro ao excluir contas");
     }
     clearSelection();
     setShowBulkDeleteConfirm(false);
@@ -205,8 +208,8 @@ export default function oldFinanceTable({
         );
         if (
           existingItem &&
-          typeof existingItem === 'object' &&
-          typeof newItem === 'object'
+          typeof existingItem === "object" &&
+          typeof newItem === "object"
         ) {
           // Preserva campos que podem ter sido modificados localmente
           return {
@@ -244,7 +247,7 @@ export default function oldFinanceTable({
   const total = localItems.reduce((acc, f) => acc + Number(f.value), 0);
   const totalPendente = localItems
     .filter(
-      (f) => !isAccountPaidInMonth(f, currentComp) && f.status !== 'Cancelado'
+      (f) => !isAccountPaidInMonth(f, currentComp) && f.status !== "Cancelado"
     ) // Exclui itens cancelados
     .reduce((acc, f) => acc + Number(f.value), 0);
   const totalPago = localItems
@@ -271,10 +274,10 @@ export default function oldFinanceTable({
       );
 
       onPaidUpdate?.(account.id, newPaid);
-      setToast(`Finança marcada como ${newPaid ? 'paga' : 'não paga'} ✅`);
+      setToast(`Finança marcada como ${newPaid ? "paga" : "não paga"} ✅`);
       setTimeout(() => setToast(null), 2000);
     } catch (e) {
-      setToast('Erro ao marcar como pago');
+      setToast("Erro ao marcar como pago");
       setTimeout(() => setToast(null), 2000);
     }
   }
@@ -323,7 +326,7 @@ export default function oldFinanceTable({
       }
     }
 
-    if (account.status === 'Cancelado') {
+    if (account.status === "Cancelado") {
       return (
         <span className="badge bg-red-100 dark:bg-red-500/30 text-red-700 dark:text-red-300">
           Cancelado
@@ -344,15 +347,15 @@ export default function oldFinanceTable({
     copy.sort((a: Account, b: Account) => {
       let va: any, vb: any;
       switch (sortKey) {
-        case 'value':
+        case "value":
           va = a.value;
           vb = b.value;
           break;
-        case 'status':
+        case "status":
           va = a.paid ? 1 : 0;
           vb = b.paid ? 1 : 0;
           break;
-        case 'parcelas': {
+        case "parcelas": {
           // Fixas primeiro, depois avulsas, depois parceladas
           const getTypeOrder = (acc: Account) => {
             if (acc.parcelasTotal === null || acc.parcelasTotal === undefined)
@@ -363,31 +366,31 @@ export default function oldFinanceTable({
           const typeA = getTypeOrder(a);
           const typeB = getTypeOrder(b);
           if (typeA !== typeB)
-            return sortOrder === 'asc' ? typeA - typeB : typeB - typeA;
+            return sortOrder === "asc" ? typeA - typeB : typeB - typeA;
           // Se mesmo tipo, ordena pelo número da parcela (se parcelada)
           if (typeA === 2) {
             // Parcelada: ordena pelo número da parcela atual
             const la = parcelaLabel(a, currentComp);
             const lb = parcelaLabel(b, currentComp);
-            va = Number(la.split('/')[0]) || 0;
-            vb = Number(lb.split('/')[0]) || 0;
-            if (va < vb) return sortOrder === 'asc' ? -1 : 1;
-            if (va > vb) return sortOrder === 'asc' ? 1 : -1;
+            va = Number(la.split("/")[0]) || 0;
+            vb = Number(lb.split("/")[0]) || 0;
+            if (va < vb) return sortOrder === "asc" ? -1 : 1;
+            if (va > vb) return sortOrder === "asc" ? 1 : -1;
             return 0;
           }
           // Se fixa ou avulsa, ordena por descrição
           va = a.description.toLowerCase();
           vb = b.description.toLowerCase();
-          if (va < vb) return sortOrder === 'asc' ? -1 : 1;
-          if (va > vb) return sortOrder === 'asc' ? 1 : -1;
+          if (va < vb) return sortOrder === "asc" ? -1 : 1;
+          if (va > vb) return sortOrder === "asc" ? 1 : -1;
           return 0;
         }
         default:
           va = a.description.toLowerCase();
           vb = b.description.toLowerCase();
       }
-      if (va < vb) return sortOrder === 'asc' ? -1 : 1;
-      if (va > vb) return sortOrder === 'asc' ? 1 : -1;
+      if (va < vb) return sortOrder === "asc" ? -1 : 1;
+      if (va > vb) return sortOrder === "asc" ? 1 : -1;
       return 0;
     });
     return copy;
@@ -432,7 +435,7 @@ export default function oldFinanceTable({
         className="hidden md:flex items-center justify-between px-6 py-2 border border-b-0 border-slate-300 dark:border-slate-700 rounded-t-md cursor-grab"
         {...dragProps}
         {...blockEventsIfCollapsed}
-        style={{ ...dragStyle, userSelect: 'none' }}
+        style={{ ...dragStyle, userSelect: "none" }}
       >
         {/* Área esquerda: grip + título + seta */}
         <div className="flex items-center gap-2 flex-1">
@@ -457,8 +460,8 @@ export default function oldFinanceTable({
               e.stopPropagation();
             }}
             className="p-1 hover:bg-slate-200 dark:hover:bg-slate-600 rounded transition-colors relative z-10"
-            style={{ pointerEvents: 'auto', cursor: 'pointer' }}
-            title={isCollapsed ? 'Expandir tabela' : 'Colapsar tabela'}
+            style={{ pointerEvents: "auto", cursor: "pointer" }}
+            title={isCollapsed ? "Expandir tabela" : "Colapsar tabela"}
           >
             {isCollapsed ? (
               <ChevronDown
@@ -497,7 +500,7 @@ export default function oldFinanceTable({
                 }}
                 className="px-3 py-1 text-xs bg-green-600 text-white rounded hover:bg-green-700"
                 title="Marcar selecionados como pagos"
-                style={{ pointerEvents: 'auto', cursor: 'pointer' }}
+                style={{ pointerEvents: "auto", cursor: "pointer" }}
               >
                 Marcar Pago
               </button>
@@ -517,7 +520,7 @@ export default function oldFinanceTable({
                 }}
                 className="px-3 py-1 text-xs bg-yellow-600 text-white rounded hover:bg-yellow-700"
                 title="Marcar selecionados como não pagos"
-                style={{ pointerEvents: 'auto', cursor: 'pointer' }}
+                style={{ pointerEvents: "auto", cursor: "pointer" }}
               >
                 Marcar Pendente
               </button>
@@ -537,7 +540,7 @@ export default function oldFinanceTable({
                 }}
                 className="px-3 py-1 text-xs bg-red-600 text-white rounded hover:bg-red-700"
                 title="Excluir selecionados"
-                style={{ pointerEvents: 'auto', cursor: 'pointer' }}
+                style={{ pointerEvents: "auto", cursor: "pointer" }}
               >
                 Excluir
               </button>
@@ -557,7 +560,7 @@ export default function oldFinanceTable({
                 }}
                 className="px-2 py-1 text-xs text-slate-600 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200"
                 title="Limpar seleção"
-                style={{ pointerEvents: 'auto', cursor: 'pointer' }}
+                style={{ pointerEvents: "auto", cursor: "pointer" }}
               >
                 ✕
               </button>
@@ -606,7 +609,7 @@ export default function oldFinanceTable({
                   e.stopPropagation();
                 }}
                 className="px-3 py-1 text-xs bg-green-600 text-white rounded hover:bg-green-700"
-                style={{ pointerEvents: 'auto', cursor: 'pointer' }}
+                style={{ pointerEvents: "auto", cursor: "pointer" }}
               >
                 Marcar Pago
               </button>
@@ -625,7 +628,7 @@ export default function oldFinanceTable({
                   e.stopPropagation();
                 }}
                 className="px-3 py-1 text-xs bg-yellow-600 text-white rounded hover:bg-yellow-700"
-                style={{ pointerEvents: 'auto', cursor: 'pointer' }}
+                style={{ pointerEvents: "auto", cursor: "pointer" }}
               >
                 Pendente
               </button>
@@ -644,7 +647,7 @@ export default function oldFinanceTable({
                   e.stopPropagation();
                 }}
                 className="px-3 py-1 text-xs bg-red-600 text-white rounded hover:bg-red-700"
-                style={{ pointerEvents: 'auto', cursor: 'pointer' }}
+                style={{ pointerEvents: "auto", cursor: "pointer" }}
               >
                 Excluir
               </button>
@@ -663,7 +666,7 @@ export default function oldFinanceTable({
                   e.stopPropagation();
                 }}
                 className="px-2 py-1 text-xs text-slate-600 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200"
-                style={{ pointerEvents: 'auto', cursor: 'pointer' }}
+                style={{ pointerEvents: "auto", cursor: "pointer" }}
               >
                 ✕
               </button>
@@ -688,7 +691,7 @@ export default function oldFinanceTable({
           className="flex items-center justify-between cursor-grab"
           {...dragProps}
           {...blockEventsIfCollapsed}
-          style={{ ...dragStyle, userSelect: 'none' }}
+          style={{ ...dragStyle, userSelect: "none" }}
         >
           <div className="flex items-center gap-2">
             <h3 className="text-lg font-semibold">{title}</h3>
@@ -708,8 +711,8 @@ export default function oldFinanceTable({
                 e.stopPropagation();
               }}
               className="p-1 hover:bg-slate-200 dark:hover:bg-slate-600 rounded transition-colors relative z-10"
-              style={{ pointerEvents: 'auto', cursor: 'pointer' }}
-              title={isCollapsed ? 'Expandir tabela' : 'Colapsar tabela'}
+              style={{ pointerEvents: "auto", cursor: "pointer" }}
+              title={isCollapsed ? "Expandir tabela" : "Colapsar tabela"}
             >
               {isCollapsed ? (
                 <ChevronDown
@@ -768,30 +771,30 @@ export default function oldFinanceTable({
               </th>
               <th
                 className="px-6 py-3 font-medium text-left w-[28%] cursor-pointer"
-                onClick={() => handleSortChange('description')}
+                onClick={() => handleSortChange("description")}
               >
-                Descrição{' '}
-                {sortKey === 'description' && (sortOrder === 'asc' ? '↑' : '↓')}
+                Descrição{" "}
+                {sortKey === "description" && (sortOrder === "asc" ? "↑" : "↓")}
               </th>
               <th
                 className="px-4 py-3 font-medium text-left w-[10%] cursor-pointer"
-                onClick={() => handleSortChange('value')}
+                onClick={() => handleSortChange("value")}
               >
-                Valor {sortKey === 'value' && (sortOrder === 'asc' ? '↑' : '↓')}
+                Valor {sortKey === "value" && (sortOrder === "asc" ? "↑" : "↓")}
               </th>
               <th
                 className="px-4 py-3 font-medium text-center w-[10%] cursor-pointer"
-                onClick={() => handleSortChange('parcelas')}
+                onClick={() => handleSortChange("parcelas")}
               >
-                Parcela{' '}
-                {sortKey === 'parcelas' && (sortOrder === 'asc' ? '↑' : '↓')}
+                Parcela{" "}
+                {sortKey === "parcelas" && (sortOrder === "asc" ? "↑" : "↓")}
               </th>
               <th
                 className="px-4 py-3 font-medium text-center w-[12%] cursor-pointer"
-                onClick={() => handleSortChange('status')}
+                onClick={() => handleSortChange("status")}
               >
-                Status{' '}
-                {sortKey === 'status' && (sortOrder === 'asc' ? '↑' : '↓')}
+                Status{" "}
+                {sortKey === "status" && (sortOrder === "asc" ? "↑" : "↓")}
               </th>
               <th className="px-4 py-3 font-medium text-center w-[8%]">Pago</th>
               <th className="px-4 py-3 font-medium text-center w-[12%]">
@@ -808,8 +811,8 @@ export default function oldFinanceTable({
                 key={f.id}
                 className={`hover:bg-slate-50 dark:hover:bg-slate-700/30 transition ${
                   idx % 2 === 0
-                    ? 'bg-white dark:bg-slate-800/40'
-                    : 'bg-slate-50 dark:bg-slate-900/40'
+                    ? "bg-white dark:bg-slate-800/40"
+                    : "bg-slate-50 dark:bg-slate-900/40"
                 }`}
               >
                 <td className="px-4 py-3 text-center">
@@ -841,11 +844,11 @@ export default function oldFinanceTable({
                 </td>
                 <td className="px-4 py-3 text-center text-xs text-slate-500 dark:text-slate-400">
                   {f.cancelledAt
-                    ? new Date(f.cancelledAt).toLocaleDateString('pt-BR', {
-                        year: 'numeric',
-                        month: '2-digit',
+                    ? new Date(f.cancelledAt).toLocaleDateString("pt-BR", {
+                        year: "numeric",
+                        month: "2-digit",
                       })
-                    : ''}
+                    : ""}
                 </td>
 
                 {/* COLUNA AÇÕES - agora garantida no desktop */}
@@ -865,12 +868,12 @@ export default function oldFinanceTable({
                       className="p-2 text-slate-500 hover:text-red-400"
                       onClick={() => onCancelToggle(f.id)}
                       aria-label={
-                        f.status === 'Pendente' || f.status === 'ativo'
-                          ? 'Cancelar lançamento'
-                          : 'Reabrir como pendente'
+                        f.status === "Pendente" || f.status === "ativo"
+                          ? "Cancelar lançamento"
+                          : "Reabrir como pendente"
                       }
                     >
-                      {f.status === 'Pendente' || f.status === 'ativo' ? (
+                      {f.status === "Pendente" || f.status === "ativo" ? (
                         <Ban size={16} />
                       ) : (
                         <CheckCircle size={16} />
@@ -920,8 +923,8 @@ export default function oldFinanceTable({
             key={f.id}
             className={`border border-slate-300 dark:border-slate-700 rounded p-4 bg-white dark:bg-slate-800 shadow-sm ${
               selectedItems.has(f.id)
-                ? 'ring-2 ring-blue-500 bg-blue-50 dark:bg-blue-900/20'
-                : ''
+                ? "ring-2 ring-blue-500 bg-blue-50 dark:bg-blue-900/20"
+                : ""
             }`}
           >
             {/* Header: checkbox + título + status */}
@@ -943,10 +946,10 @@ export default function oldFinanceTable({
                 {getStatusBadge(f)}
                 {f.cancelledAt && (
                   <span className="text-xs text-slate-500 dark:text-slate-400 mt-1">
-                    {new Date(f.cancelledAt).toLocaleDateString('pt-BR', {
-                      day: '2-digit',
-                      month: '2-digit',
-                      year: 'numeric',
+                    {new Date(f.cancelledAt).toLocaleDateString("pt-BR", {
+                      day: "2-digit",
+                      month: "2-digit",
+                      year: "numeric",
                     })}
                   </span>
                 )}
@@ -983,7 +986,7 @@ export default function oldFinanceTable({
                   />
                 </button>
                 <button onClick={() => onCancelToggle(f.id)}>
-                  {f.status === 'Pendente' || f.status === 'ativo' ? (
+                  {f.status === "Pendente" || f.status === "ativo" ? (
                     <Ban
                       size={16}
                       className="text-slate-400 hover:text-red-600"
@@ -1012,129 +1015,153 @@ export default function oldFinanceTable({
         )}
       </div>
 
-      {/* Modais permanecem iguais abaixo */}
-      {showBulkDeleteConfirm && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-          <div className="bg-white dark:bg-slate-800 rounded p-6 shadow-lg max-w-sm w-full">
-            <h2 className="text-lg font-semibold mb-4">
-              Excluir finanças selecionadas
+      <ModalBase
+        open={showBulkDeleteConfirm}
+        onClose={() => setShowBulkDeleteConfirm(false)}
+        maxWidth="sm"
+        labelledBy="titulo-excluir-selecionadas"
+      >
+        <h2
+          id="titulo-excluir-selecionadas"
+          className="text-lg font-semibold mb-4"
+        >
+          Excluir finanças selecionadas
+        </h2>
+        <p className="mb-6">
+          Tem certeza que deseja excluir <b>{selectedItems.size} finança(s)</b>{" "}
+          selecionada(s)? Essa ação não pode ser desfeita.
+        </p>
+        <div className="flex justify-end gap-2">
+          <button
+            onClick={() => setShowBulkDeleteConfirm(false)}
+            className="px-4 py-2 rounded bg-gray-200 dark:bg-slate-700"
+          >
+            Cancelar
+          </button>
+          <button
+            onClick={handleBulkDelete}
+            className="px-4 py-2 rounded bg-red-600 text-white"
+          >
+            Excluir
+          </button>
+        </div>
+      </ModalBase>
+
+      <ModalBase
+        open={showConfirm}
+        onClose={() => setShowConfirm(false)}
+        maxWidth="sm"
+        labelledBy="titulo-excluir-colaborador"
+      >
+        <h2
+          id="titulo-excluir-colaborador"
+          className="text-lg font-semibold mb-4"
+        >
+          Excluir colaborador
+        </h2>
+        <p className="mb-6">
+          Tem certeza que deseja excluir <b>{title}</b>? Essa ação não pode ser
+          desfeita.
+        </p>
+        <div className="flex justify-end gap-2">
+          <button
+            onClick={() => setShowConfirm(false)}
+            className="px-4 py-2 rounded bg-gray-200 dark:bg-slate-700"
+          >
+            Cancelar
+          </button>
+          <button
+            onClick={confirmDeleteCollab}
+            className="px-4 py-2 rounded bg-red-600 text-white"
+          >
+            Excluir
+          </button>
+        </div>
+      </ModalBase>
+
+      <ModalBase
+        open={actionModal.open && Boolean(actionModal.financa)}
+        onClose={() => setActionModal({ open: false, financa: null })}
+        maxWidth="sm"
+        labelledBy="titulo-acoes"
+      >
+        {actionModal.financa &&
+          (() => {
+            const financa = actionModal.financa;
+            return (
+              <>
+                <h2 id="titulo-acoes" className="text-lg font-semibold mb-4">
+                  Ações
+                </h2>
+                <p className="mb-6">
+                  Selecione uma ação para o lançamento{" "}
+                  <b>{financa.description}</b>:
+                </p>
+                <div className="flex flex-col gap-2">
+                  <button
+                    className="px-4 py-2 rounded bg-blue-600 text-white"
+                    onClick={() => {
+                      onEdit(financa);
+                      setActionModal({ open: false, financa: null });
+                    }}
+                  >
+                    Editar
+                  </button>
+                  <button
+                    className={`px-4 py-2 rounded text-white font-semibold capitalize ${
+                      financa.status === "Pendente" ||
+                      financa.status === "ativo"
+                        ? "bg-red-600"
+                        : "bg-yellow-500"
+                    }`}
+                    onClick={() => {
+                      onCancelToggle(financa.id);
+                      setActionModal({ open: false, financa: null });
+                    }}
+                  >
+                    {financa.status === "Pendente" || financa.status === "ativo"
+                      ? "Cancelar"
+                      : "Pendente"}
+                  </button>
+                  <button
+                    className="px-4 py-2 rounded bg-red-600 text-white"
+                    onClick={() => {
+                      setFinancaToDelete(financa);
+                      setActionModal({ open: false, financa: null });
+                    }}
+                  >
+                    Excluir lançamento
+                  </button>
+                  <button
+                    className="px-4 py-2 rounded bg-gray-200 dark:bg-slate-700 text-black dark:text-white"
+                    onClick={() =>
+                      setActionModal({ open: false, financa: null })
+                    }
+                  >
+                    Cancelar
+                  </button>
+                </div>
+              </>
+            );
+          })()}
+      </ModalBase>
+
+      <ModalBase
+        open={Boolean(financaToDelete)}
+        onClose={() => setFinancaToDelete(null)}
+        maxWidth="sm"
+        labelledBy="titulo-excluir-financa"
+      >
+        {financaToDelete && (
+          <>
+            <h2
+              id="titulo-excluir-financa"
+              className="text-lg font-semibold mb-4"
+            >
+              Excluir finança
             </h2>
             <p className="mb-6">
-              Tem certeza que deseja excluir{' '}
-              <b>{selectedItems.size} finança(s)</b> selecionada(s)? Essa ação
-              não pode ser desfeita.
-            </p>
-            <div className="flex justify-end gap-2">
-              <button
-                onClick={() => setShowBulkDeleteConfirm(false)}
-                className="px-4 py-2 rounded bg-gray-200 dark:bg-slate-700"
-              >
-                Cancelar
-              </button>
-              <button
-                onClick={handleBulkDelete}
-                className="px-4 py-2 rounded bg-red-600 text-white"
-              >
-                Excluir
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {showConfirm && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-          <div className="bg-white dark:bg-slate-800 rounded p-6 shadow-lg max-w-sm w-full">
-            <h2 className="text-lg font-semibold mb-4">Excluir colaborador</h2>
-            <p className="mb-6">
-              Tem certeza que deseja excluir <b>{title}</b>? Essa ação não pode
-              ser desfeita.
-            </p>
-            <div className="flex justify-end gap-2">
-              <button
-                onClick={() => setShowConfirm(false)}
-                className="px-4 py-2 rounded bg-gray-200 dark:bg-slate-700"
-              >
-                Cancelar
-              </button>
-              <button
-                onClick={confirmDeleteCollab}
-                className="px-4 py-2 rounded bg-red-600 text-white"
-              >
-                Excluir
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {actionModal.open && actionModal.financa && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-          <div className="bg-white dark:bg-slate-800 rounded p-6 shadow-lg max-w-sm w-full">
-            <h2 className="text-lg font-semibold mb-4">Ações</h2>
-            <p className="mb-6">
-              Selecione uma ação para o lançamento{' '}
-              <b>{actionModal.financa.description}</b>:
-            </p>
-            <div className="flex flex-col gap-2">
-              <button
-                className="px-4 py-2 rounded bg-blue-600 text-white"
-                onClick={() => {
-                  if (actionModal.financa) {
-                    onEdit(actionModal.financa);
-                  }
-                  setActionModal({ open: false, financa: null });
-                }}
-              >
-                Editar
-              </button>
-              <button
-                className={`px-4 py-2 rounded text-white font-semibold capitalize ${
-                  actionModal.financa.status === 'Pendente' ||
-                  actionModal.financa.status === 'ativo'
-                    ? 'bg-red-600'
-                    : 'bg-yellow-500'
-                }`}
-                onClick={() => {
-                  if (actionModal.financa) {
-                    onCancelToggle(actionModal.financa.id);
-                  }
-                  setActionModal({ open: false, financa: null });
-                }}
-              >
-                {actionModal.financa.status === 'Pendente' ||
-                actionModal.financa.status === 'ativo'
-                  ? 'Cancelar'
-                  : 'Pendente'}
-              </button>
-              <button
-                className="px-4 py-2 rounded bg-red-600 text-white"
-                onClick={() => {
-                  if (actionModal.financa) {
-                    setFinancaToDelete(actionModal.financa);
-                  }
-                  setActionModal({ open: false, financa: null });
-                }}
-              >
-                Excluir lançamento
-              </button>
-              <button
-                className="px-4 py-2 rounded bg-gray-200 dark:bg-slate-700 text-black dark:text-white"
-                onClick={() => setActionModal({ open: false, financa: null })}
-              >
-                Cancelar
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {financaToDelete && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-          <div className="bg-white dark:bg-slate-800 rounded p-6 shadow-lg max-w-sm w-full">
-            <h2 className="text-lg font-semibold mb-4">Excluir finança</h2>
-            <p className="mb-6">
-              Tem certeza que deseja excluir o lançamento{' '}
+              Tem certeza que deseja excluir o lançamento{" "}
               <b>{financaToDelete.description}</b>? Essa ação não pode ser
               desfeita.
             </p>
@@ -1152,9 +1179,9 @@ export default function oldFinanceTable({
                 Excluir
               </button>
             </div>
-          </div>
-        </div>
-      )}
+          </>
+        )}
+      </ModalBase>
 
       {toast && (
         <div className="fixed bottom-5 right-5 bg-green-600 text-white px-4 py-2 rounded shadow-lg z-50">

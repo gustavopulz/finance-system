@@ -42,25 +42,33 @@ function AdminRoute({ children }: { children: JSX.Element }) {
 
 function AppWithHeader() {
   const location = useLocation();
+  const auth = useAuth();
+  const isPoliticas = location.pathname === "/politicas-e-termos";
   const hideHeader =
     location.pathname === "/login" ||
     location.pathname === "/404" ||
     location.pathname === "/register" ||
-    location.pathname === "/manutencao";
+    location.pathname === "/manutencao" ||
+    (isPoliticas && !auth?.user);
 
-  const auth = useAuth();
+  const hideFooter =
+    (location.pathname === "/login" ||
+      location.pathname === "/404" ||
+      location.pathname === "/register" ||
+      location.pathname === "/manutencao") &&
+    !isPoliticas;
+
   const { notifications, remove } = useNotification();
 
   return (
     <>
       <NotificationBar notifications={notifications} onRemove={remove} />
       {!hideHeader && <Header />}
-      {/* Modal de novidades só para usuários autenticados e fora das rotas públicas */}
+
       {auth?.user && !hideHeader && <NovidadesModal />}
       <div className="flex flex-col min-h-screen">
         <main className="flex-1 py-6">
           <Routes>
-            {/* Página de manutenção */}
             <Route path="/manutencao" element={<MaintenancePage />} />
             {/* Rotas públicas */}
             <Route
@@ -150,6 +158,10 @@ function AppWithHeader() {
 
             {/* Rotas livres */}
             <Route path="/politicas-e-termos" element={<PoliticasPage />} />
+            <Route path="/politicas" element={<PoliticasPage />} />
+            <Route path="/termos" element={<PoliticasPage />} />
+            <Route path="/cookies" element={<PoliticasPage />} />
+            <Route path="/privacidade" element={<PoliticasPage />} />
             <Route path="/404" element={<NotFoundPage />} />
 
             {/* Catch-all */}
@@ -167,7 +179,7 @@ function AppWithHeader() {
             />
           </Routes>
         </main>
-        {!hideHeader && <Footer />}
+        {!hideFooter && <Footer />}
       </div>
     </>
   );

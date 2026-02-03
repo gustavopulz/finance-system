@@ -7,12 +7,14 @@ import {
   Settings,
   PieChart,
   HelpCircle,
+  MessageSquareText,
   // Crown,
   Sparkles,
 } from "lucide-react";
 import { useAuth } from "../context/AuthContext";
 import { useEffect, useRef, useState } from "react";
 import { ProModal } from "./ProModal";
+import FeedbackModal from "./FeedbackModal";
 
 function useTheme() {
   const [theme, setTheme] = useState<"light" | "dark">(() => {
@@ -40,6 +42,7 @@ export default function Header() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [userMenuOpen, setUserMenuOpen] = useState(false);
   const [proOpen, setProOpen] = useState(false);
+  const [feedbackOpen, setFeedbackOpen] = useState(false);
 
   // Links do menu
   const menuLinks = [
@@ -113,6 +116,17 @@ export default function Header() {
           </nav>
         </div>
         <div className="flex items-center gap-3">
+          <button
+            type="button"
+            onClick={() => setFeedbackOpen(true)}
+            className="rounded-md px-2 py-2 sm:px-3 text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-slate-200/50 dark:hover:bg-slate-700/50 transition inline-flex items-center gap-2"
+            title="Enviar sugestão ou reportar um bug"
+          >
+            <MessageSquareText size={18} />
+            <span className="hidden sm:inline text-sm font-medium">
+              Feedback
+            </span>
+          </button>
           <button
             onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
             className="rounded-md p-2 text-slate-500 hover:text-slate-800 dark:text-slate-300 dark:hover:text-white hover:bg-slate-200/50 dark:hover:bg-slate-700/50 transition"
@@ -238,6 +252,16 @@ export default function Header() {
             {theme === "dark" ? <Sun size={16} /> : <Moon size={16} />} Tema
           </button>
           <button
+            type="button"
+            onClick={() => {
+              setFeedbackOpen(true);
+              setMobileMenuOpen(false);
+            }}
+            className="flex items-center gap-2 px-3 py-3 rounded-md text-sm font-medium text-slate-600 dark:text-slate-300 hover:bg-blue-50 dark:hover:bg-slate-700/60"
+          >
+            <MessageSquareText size={16} /> Feedback
+          </button>
+          <button
             onClick={() => {
               auth?.logout();
               setMobileMenuOpen(false);
@@ -249,6 +273,10 @@ export default function Header() {
         </nav>
       )}
       <ProModal open={proOpen} onClose={() => setProOpen(false)} />
+      <FeedbackModal
+        open={feedbackOpen}
+        onClose={() => setFeedbackOpen(false)}
+      />
     </header>
   );
 }

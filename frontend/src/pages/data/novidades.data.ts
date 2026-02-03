@@ -1,5 +1,5 @@
 export interface NovidadeCard {
-  date: string; // ISO ou dd/MM/yyyy
+  date: string;
   title: string;
   highlights: string[];
   adjustments: string[];
@@ -9,6 +9,23 @@ export interface NovidadeCard {
 }
 
 export const novidadesCards: NovidadeCard[] = [
+  {
+    date: "03/02/2026",
+    title: "Versão 1.1.2 - Feedback, Correções e Notificações",
+    modalTitle: "Atualização 1.1.2 disponível!",
+    modalDescription:
+      "Adicionamos um fluxo de feedback (sugestão/bug) e fizemos ajustes importantes na experiência de finanças e notificações.",
+    highlights: [
+      "*Feedback no header*: _Novo botão 'Feedback' para enviar Sugestões/Ideias ou reportar Problemas/Bugs._",
+    ],
+    adjustments: [
+      "*Finanças avulsas*: _Ajustado um bug que fazia finanças avulsas serem cadastradas como fixas._",
+      "*Valor formatado*: _Campo de valor no modal de finança sempre inicia e permanece com 2 casas decimais._",
+      "*Notificações unificadas*: _Removidas notificações duplicadas; agora o app usa apenas a barra superior._",
+      "*Login mais estável*: _Corrigido um caso onde o login podia dar sucesso e logo em seguida pedir autenticação novamente._",
+    ],
+    mobile: ["Melhorias herdadas automaticamente do desktop."],
+  },
   {
     date: "03/01/2026",
     title: "Versão 1.1.1 - Refinos de UI e Tabelas",

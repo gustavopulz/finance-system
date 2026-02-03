@@ -1,6 +1,6 @@
-import { createContext, useContext, useState, useEffect } from 'react';
-import * as api from '../lib/api';
-import type { User } from '../lib/types';
+import { createContext, useContext, useState, useEffect } from "react";
+import * as api from "../lib/api";
+import type { User } from "../lib/types";
 
 interface AuthContextType {
   user: User | null;
@@ -21,7 +21,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     api.setAuthFailureHandler(() => {
-      logout();
+      setUser(null);
     });
 
     api.setUserRefreshHandler((user) => {
@@ -35,7 +35,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         const data = await api.getCurrentUser();
         setUser(api.normalizeUser(data));
       } catch {
-        setUser(null);
+        // Não sobrescreve um usuário recém-logado (corrige race condition)
+        // Se realmente houver falha de sessão, o interceptor chama onAuthFailure.
       } finally {
         setLoading(false);
       }
@@ -48,8 +49,19 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const normalized = api.normalizeUser(data.user);
     if (normalized) {
       setUser(normalized);
+      try {
+        // Garante que a sessão/cookie realmente persistiu (evita "login com sucesso" + deslogar logo em seguida)
+        const me = await api.getCurrentUser();
+        const meNormalized = api.normalizeUser(me);
+        if (meNormalized) setUser(meNormalized);
+      } catch {
+        setUser(null);
+        throw new Error(
+          "Login não persistiu a sessão. Verifique as permissões de cookies/privacidade do navegador.",
+        );
+      }
     } else {
-      throw new Error('Credenciais inválidas');
+      throw new Error("Credenciais inválidas");
     }
   };
 
@@ -75,7 +87,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const updatePassword = async (password: string) => {
     const res = await api.updateUserPassword(password);
     if (!res?.success) {
-      throw new Error('Erro ao alterar senha');
+      throw new Error("Erro ao alterar senha");
     }
   };
 

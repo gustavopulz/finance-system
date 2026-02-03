@@ -1,8 +1,8 @@
-import React, { useState } from 'react';
-import { useNotification } from '../../context/NotificationContext';
-import { useAuth } from '../../context/AuthContext';
-import { useNavigate } from 'react-router-dom';
-import { FaEyeSlash, FaEye } from 'react-icons/fa';
+import React, { useState } from "react";
+import { useNotification } from "../../context/NotificationContext";
+import { useAuth } from "../../context/AuthContext";
+import { useNavigate } from "react-router-dom";
+import { FaEyeSlash, FaEye } from "react-icons/fa";
 
 export default function LoginPage() {
   const { notify } = useNotification();
@@ -10,27 +10,31 @@ export default function LoginPage() {
   const navigate = useNavigate();
 
   const [formData, setFormData] = useState({
-    email: '',
-    password: '',
+    email: "",
+    password: "",
   });
   const [passwordFocused, setPasswordFocused] = useState(false);
   const [emailFocused, setEmailFocused] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
-  const [error] = useState('');
+  const [error] = useState("");
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     try {
       if (!auth || !auth.login) {
-        notify('Erro de autenticação', 'error');
+        notify("Erro de autenticação", "error");
         return;
       }
       await auth.login(formData.email, formData.password);
-      notify('Login realizado com sucesso!', 'success');
-      navigate('/');
+      notify("Login realizado com sucesso!", "success");
+      navigate("/");
     } catch (err: any) {
       console.error(err);
-      notify('Credenciais inválidas', 'error');
+      const message =
+        typeof err?.message === "string" && err.message
+          ? err.message
+          : "Credenciais inválidas";
+      notify(message, "error");
     }
   }
 
@@ -42,7 +46,7 @@ export default function LoginPage() {
   return (
     <div
       className="min-h-screen flex items-center justify-center bg-slate-900 px-4"
-      style={{ marginTop: '-1.5rem', marginBottom: '-1.5rem' }}
+      style={{ marginTop: "-1.5rem", marginBottom: "-1.5rem" }}
     >
       <div className="w-full max-w-sm bg-slate-800 rounded shadow-xl p-6">
         <h2 className="text-2xl font-medium text-center text-gray-200 mb-6">
@@ -71,8 +75,8 @@ export default function LoginPage() {
               htmlFor="email"
               className={`cursor-text absolute left-3 top-[15px] text-sm transition-all ${
                 emailFocused || formData.email
-                  ? '-translate-y-9 left-2 text-brand-400 text-xs'
-                  : 'text-gray-400'
+                  ? "-translate-y-9 left-2 text-brand-400 text-xs"
+                  : "text-gray-400"
               }`}
             >
               Email
@@ -96,14 +100,14 @@ export default function LoginPage() {
               htmlFor="password"
               className={`cursor-text absolute left-3 top-[15px] text-sm transition-all ${
                 passwordFocused || formData.password
-                  ? '-translate-y-9 left-2 text-brand-400 text-xs'
-                  : 'text-gray-400'
+                  ? "-translate-y-9 left-2 text-brand-400 text-xs"
+                  : "text-gray-400"
               }`}
             >
               Senha
             </label>
             <input
-              type={showPassword ? 'text' : 'password'}
+              type={showPassword ? "text" : "password"}
               id="password"
               name="password"
               value={formData.password}
@@ -139,7 +143,7 @@ export default function LoginPage() {
           </div>
 
           <div className="text-center mt-4 text-sm text-gray-400">
-            Não tem uma conta?{' '}
+            Não tem uma conta?{" "}
             <a href="/register" className="hover:underline text-brand-400">
               Cadastre-se agora!
             </a>

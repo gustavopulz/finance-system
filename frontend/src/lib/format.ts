@@ -1,31 +1,31 @@
 // src/lib/format.ts
-import { monthsDiff } from './date';
-import type { Account, Competencia } from './types';
+import { monthsDiff } from "./date";
+import type { Account, Competencia } from "./types";
 
 export const brl = (n: number) =>
-  n.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+  n.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
 
 // Mantido para compatibilidade (retorna número em REAIS)
 export const parseBRL = (s: string) =>
   Number(
     String(s)
-      .replace(/[^\d,-]/g, '')
-      .replace(',', '.')
+      .replace(/[^\d,-]/g, "")
+      .replace(",", "."),
   ) || 0;
 
 export const MONTHS_PT = [
-  '01 - Janeiro',
-  '02 - Fevereiro',
-  '03 - Março',
-  '04 - Abril',
-  '05 - Maio',
-  '06 - Junho',
-  '07 - Julho',
-  '08 - Agosto',
-  '09 - Setembro',
-  '10 - Outubro',
-  '11 - Novembro',
-  '12 - Dezembro',
+  "01 - Janeiro",
+  "02 - Fevereiro",
+  "03 - Março",
+  "04 - Abril",
+  "05 - Maio",
+  "06 - Junho",
+  "07 - Julho",
+  "08 - Agosto",
+  "09 - Setembro",
+  "10 - Outubro",
+  "11 - Novembro",
+  "12 - Dezembro",
 ];
 
 /**
@@ -33,10 +33,10 @@ export const MONTHS_PT = [
  */
 export function isAccountPaidInMonth(
   account: Account,
-  competencia: Competencia
+  competencia: Competencia,
 ): boolean {
   // Para contas não-recorrentes, verifica a data de pagamento (dtPaid)
-  if (typeof account.dtPaid === 'string') {
+  if (typeof account.dtPaid === "string") {
     const paidDate = new Date(account.dtPaid);
     if (isNaN(paidDate.getTime())) {
       // Data inválida, não considerar como pago
@@ -70,7 +70,7 @@ export function isAccountPaidInMonth(
  */
 export function parcelaLabel(f: Account, inMonth: Competencia): string {
   // Se Cancelado, só mostra '—' se o mês filtrado for após o cancelamento
-  if (f.status === 'Cancelado' && f.cancelledAt) {
+  if (f.status === "Cancelado" && f.cancelledAt) {
     const cancelledDate = new Date(f.cancelledAt);
     const cancelledYear = cancelledDate.getFullYear();
     const cancelledMonth = cancelledDate.getMonth() + 1;
@@ -78,20 +78,20 @@ export function parcelaLabel(f: Account, inMonth: Competencia): string {
       inMonth.year > cancelledYear ||
       (inMonth.year === cancelledYear && inMonth.month > cancelledMonth)
     ) {
-      return '—';
+      return "—";
     }
     // Se ainda está visível, mostra o label normal
   }
-  if (f.parcelasTotal === null) return 'Fixo';
-  if (f.parcelasTotal === 0) return '-';
+  if (f.parcelasTotal === null) return "Fixo";
+  if (f.parcelasTotal === 0 || f.parcelasTotal === 1) return "-";
 
-  if (typeof f.parcelasTotal === 'number') {
+  if (typeof f.parcelasTotal === "number") {
     const start = { year: f.year, month: f.month };
     const k = monthsDiff(start, inMonth) + 1; // 1..N
     if (k < 1) return `1/${f.parcelasTotal}`;
-    if (k > f.parcelasTotal) return 'Quitado';
+    if (k > f.parcelasTotal) return "Quitado";
     return `${Math.min(k, f.parcelasTotal)}/${f.parcelasTotal}`;
   }
 
-  return '-';
+  return "-";
 }

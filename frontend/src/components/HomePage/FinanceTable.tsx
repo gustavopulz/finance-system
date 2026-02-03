@@ -11,6 +11,7 @@ import {
 import ModalBase from "../ModalBase";
 import { useMemo, useState, useEffect } from "react";
 import { deleteCollab } from "../../lib/api";
+import { useNotification } from "../../context/NotificationContext";
 import {
   CheckCircle,
   Ban,
@@ -37,11 +38,11 @@ const getSortState = (collaboratorId: string) => {
 const setSortState = (
   collaboratorId: string,
   sortKey: string,
-  sortOrder: string
+  sortOrder: string,
 ) => {
   localStorage.setItem(
     `sort_${collaboratorId}`,
-    JSON.stringify({ sortKey, sortOrder })
+    JSON.stringify({ sortKey, sortOrder }),
   );
 };
 
@@ -88,16 +89,16 @@ export default function FinanceTable({
   forceCollapse = false,
   onExpandDuringEdit,
 }: FinanceTableProps) {
+  const { notify } = useNotification();
   const [localItems, setLocalItems] = useState<Account[]>(items);
 
   const savedSort = getSortState(collaboratorId);
   const [sortKey, setSortKey] = useState<SortKey>(savedSort.sortKey as SortKey);
   const [sortOrder, setSortOrder] = useState<"asc" | "desc">(
-    savedSort.sortOrder
+    savedSort.sortOrder,
   );
 
   const [showConfirm, setShowConfirm] = useState(false);
-  const [toast, setToast] = useState<string | null>(null);
   const [financaToDelete, setFinancaToDelete] = useState<Account | null>(null);
 
   const handleSortChange = (newSortKey: SortKey) => {
@@ -123,7 +124,7 @@ export default function FinanceTable({
     return false;
   };
   const [isCollapsed, _setIsCollapsed] = useState(
-    forceCollapse ? true : getCollapseState(collaboratorId)
+    forceCollapse ? true : getCollapseState(collaboratorId),
   );
   React.useEffect(() => {
     if (forceCollapse) {
@@ -139,7 +140,7 @@ export default function FinanceTable({
     }
     localStorage.setItem(
       `collapse_${collaboratorId}`,
-      value ? "true" : "false"
+      value ? "true" : "false",
     );
     _setIsCollapsed(value);
   };
@@ -151,7 +152,7 @@ export default function FinanceTable({
     if (!selectedAction) return;
     function handleClickOutside(e: MouseEvent) {
       const interactiveRoots = document.querySelectorAll(
-        ".dropdown-actions, .mobile-actions-modal"
+        ".dropdown-actions, .mobile-actions-modal",
       );
       let clickedInside = false;
       interactiveRoots.forEach((el) => {
@@ -167,7 +168,7 @@ export default function FinanceTable({
 
   const handleBulkPaidToggle = async (markAsPaid: boolean) => {
     const selectedAccounts = localItems.filter((item) =>
-      selectedItems.has(item.id)
+      selectedItems.has(item.id),
     );
     const accountIds = selectedAccounts.map((a) => a.id);
     try {
@@ -180,36 +181,34 @@ export default function FinanceTable({
                 paid: markAsPaid,
                 dtPaid: markAsPaid ? new Date().toISOString() : undefined,
               }
-            : item
-        )
+            : item,
+        ),
       );
       accountIds.forEach((id) => onPaidUpdate?.(id, markAsPaid));
-      setToast(
+      notify(
         `${accountIds.length} finança(s) marcada(s) como ${
           markAsPaid ? "paga(s)" : "não paga(s)"
-        } ✅`
+        } ✅`,
+        "success",
       );
     } catch (error) {
-      setToast("Erro ao marcar contas");
+      notify("Erro ao marcar contas", "error");
     }
     clearSelection();
-    setTimeout(() => setToast(null), 3000);
   };
 
   const handleBulkDelete = async () => {
     const selectedAccounts = localItems.filter((item) =>
-      selectedItems.has(item.id)
+      selectedItems.has(item.id),
     );
     const accountIds = selectedAccounts.map((a) => a.id);
     try {
       await onDelete(accountIds);
-      setToast(`${accountIds.length} finança(s) excluída(s) com sucesso ✅`);
     } catch (error) {
-      setToast("Erro ao excluir contas");
+      notify("Erro ao excluir contas", "error");
     }
     clearSelection();
     setShowBulkDeleteConfirm(false);
-    setTimeout(() => setToast(null), 3000);
   };
 
   useEffect(() => {
@@ -220,7 +219,7 @@ export default function FinanceTable({
 
       const updatedItems = items.map((newItem) => {
         const existingItem = prev.find(
-          (prevItem) => prevItem && prevItem.id === newItem.id
+          (prevItem) => prevItem && prevItem.id === newItem.id,
         );
         if (
           existingItem &&
@@ -248,7 +247,7 @@ export default function FinanceTable({
   const total = localItems.reduce((acc, f) => acc + Number(f.value), 0);
   const totalPendente = localItems
     .filter(
-      (f) => !isAccountPaidInMonth(f, currentComp) && f.status !== "Cancelado"
+      (f) => !isAccountPaidInMonth(f, currentComp) && f.status !== "Cancelado",
     )
     .reduce((acc, f) => acc + Number(f.value), 0);
   const totalPago = localItems
@@ -273,16 +272,17 @@ export default function FinanceTable({
                 paid: newPaid,
                 dtPaid: dtPaidStr,
               }
-            : item
-        )
+            : item,
+        ),
       );
 
       onPaidUpdate?.(account.id, newPaid);
-      setToast(`Finança marcada como ${newPaid ? "paga" : "não paga"} ✅`);
-      setTimeout(() => setToast(null), 2000);
+      notify(
+        `Finança marcada como ${newPaid ? "paga" : "não paga"} ✅`,
+        "success",
+      );
     } catch (e) {
-      setToast("Erro ao marcar como pago");
-      setTimeout(() => setToast(null), 2000);
+      notify("Erro ao marcar como pago", "error");
     }
   }
 
@@ -290,16 +290,12 @@ export default function FinanceTable({
     await deleteCollab(collaboratorId);
     onCollabDeleted(collaboratorId);
     setShowConfirm(false);
-    setToast(`Colaborador "${title}" excluído com sucesso ✅`);
-    setTimeout(() => setToast(null), 3000);
   }
 
   async function confirmDeleteFinanca() {
     if (!financaToDelete) return;
     await onDelete(financaToDelete.id);
     setFinancaToDelete(null);
-    setToast(`Finança excluída com sucesso ✅`);
-    setTimeout(() => setToast(null), 3000);
   }
 
   function getStatusBadge(account: Account): React.JSX.Element {
@@ -762,7 +758,7 @@ export default function FinanceTable({
                               <button
                                 onClick={() =>
                                   setExpandedCancel(
-                                    expandedCancel === f.id ? null : f.id
+                                    expandedCancel === f.id ? null : f.id,
                                   )
                                 }
                                 className="text-red-500 underline"
@@ -777,7 +773,7 @@ export default function FinanceTable({
                                     {
                                       year: "numeric",
                                       month: "2-digit",
-                                    }
+                                    },
                                   )}
                                 </div>
                               )}
@@ -796,7 +792,7 @@ export default function FinanceTable({
                             <button
                               onClick={() =>
                                 setExpandedCancel(
-                                  expandedCancel === f.id ? null : f.id
+                                  expandedCancel === f.id ? null : f.id,
                                 )
                               }
                               className="text-red-500"
@@ -816,7 +812,7 @@ export default function FinanceTable({
                               {
                                 year: "numeric",
                                 month: "2-digit",
-                              }
+                              },
                             )}
                           </div>
                         )}
@@ -832,7 +828,7 @@ export default function FinanceTable({
                                 setSelectedAction(
                                   selectedAction && selectedAction.id === f.id
                                     ? null
-                                    : f
+                                    : f,
                                 )
                               }
                               aria-label="Ações"
@@ -1191,12 +1187,6 @@ export default function FinanceTable({
             </>
           )}
         </ModalBase>
-
-        {toast && (
-          <div className="fixed bottom-5 right-5 bg-green-600 text-white px-4 py-2 rounded shadow-lg z-50">
-            {toast}
-          </div>
-        )}
       </section>
     </>
   );

@@ -13,6 +13,7 @@ import {
 import { useMemo, useState, useEffect } from "react";
 import { deleteCollab } from "../../lib/api";
 import ModalBase from "../ModalBase";
+import { useNotification } from "../../context/NotificationContext";
 
 // Funções para persistir a ordenação no localStorage
 const getSortState = (collaboratorId: string) => {
@@ -30,11 +31,11 @@ const getSortState = (collaboratorId: string) => {
 const setSortState = (
   collaboratorId: string,
   sortKey: string,
-  sortOrder: string
+  sortOrder: string,
 ) => {
   localStorage.setItem(
     `sort_${collaboratorId}`,
-    JSON.stringify({ sortKey, sortOrder })
+    JSON.stringify({ sortKey, sortOrder }),
   );
 };
 
@@ -65,17 +66,17 @@ export default function oldFinanceTable({
   onPaidUpdate,
   dragHandleProps,
 }: FinanceTableProps) {
+  const { notify } = useNotification();
   const [localItems, setLocalItems] = useState<Account[]>(items);
 
   // Inicializa a ordenação com os valores salvos para este colaborador
   const savedSort = getSortState(collaboratorId);
   const [sortKey, setSortKey] = useState<SortKey>(savedSort.sortKey as SortKey);
   const [sortOrder, setSortOrder] = useState<"asc" | "desc">(
-    savedSort.sortOrder
+    savedSort.sortOrder,
   );
 
   const [showConfirm, setShowConfirm] = useState(false);
-  const [toast, setToast] = useState<string | null>(null);
   const [financaToDelete, setFinancaToDelete] = useState<Account | null>(null);
 
   // Função helper para atualizar ordenação e salvar no localStorage
@@ -103,12 +104,12 @@ export default function oldFinanceTable({
     return false;
   };
   const [isCollapsed, _setIsCollapsed] = useState(
-    getCollapseState(collaboratorId)
+    getCollapseState(collaboratorId),
   );
   const setIsCollapsed = (value: boolean) => {
     localStorage.setItem(
       `collapse_${collaboratorId}`,
-      value ? "true" : "false"
+      value ? "true" : "false",
     );
     _setIsCollapsed(value);
   };
@@ -144,7 +145,7 @@ export default function oldFinanceTable({
 
   const handleBulkPaidToggle = async (markAsPaid: boolean) => {
     const selectedAccounts = localItems.filter((item) =>
-      selectedItems.has(item.id)
+      selectedItems.has(item.id),
     );
 
     const accountIds = selectedAccounts.map((a) => a.id);
@@ -159,38 +160,36 @@ export default function oldFinanceTable({
                 paid: markAsPaid,
                 dtPaid: markAsPaid ? new Date().toISOString() : undefined,
               }
-            : item
-        )
+            : item,
+        ),
       );
 
       accountIds.forEach((id) => onPaidUpdate?.(id, markAsPaid));
-      setToast(
+      notify(
         `${accountIds.length} finança(s) marcada(s) como ${
           markAsPaid ? "paga(s)" : "não paga(s)"
-        } ✅`
+        } ✅`,
+        "success",
       );
     } catch (error) {
-      setToast("Erro ao marcar contas");
+      notify("Erro ao marcar contas", "error");
     }
     clearSelection();
-    setTimeout(() => setToast(null), 3000);
   };
 
   const handleBulkDelete = async () => {
     const selectedAccounts = localItems.filter((item) =>
-      selectedItems.has(item.id)
+      selectedItems.has(item.id),
     );
 
     const accountIds = selectedAccounts.map((a) => a.id);
     try {
       await onDelete(accountIds);
-      setToast(`${accountIds.length} finança(s) excluída(s) com sucesso ✅`);
     } catch (error) {
-      setToast("Erro ao excluir contas");
+      notify("Erro ao excluir contas", "error");
     }
     clearSelection();
     setShowBulkDeleteConfirm(false);
-    setTimeout(() => setToast(null), 3000);
   };
 
   // Atualiza localItems quando items mudar
@@ -204,7 +203,7 @@ export default function oldFinanceTable({
       // Caso contrário, atualiza item por item preservando mudanças locais importantes
       const updatedItems = items.map((newItem) => {
         const existingItem = prev.find(
-          (prevItem) => prevItem && prevItem.id === newItem.id
+          (prevItem) => prevItem && prevItem.id === newItem.id,
         );
         if (
           existingItem &&
@@ -247,7 +246,7 @@ export default function oldFinanceTable({
   const total = localItems.reduce((acc, f) => acc + Number(f.value), 0);
   const totalPendente = localItems
     .filter(
-      (f) => !isAccountPaidInMonth(f, currentComp) && f.status !== "Cancelado"
+      (f) => !isAccountPaidInMonth(f, currentComp) && f.status !== "Cancelado",
     ) // Exclui itens cancelados
     .reduce((acc, f) => acc + Number(f.value), 0);
   const totalPago = localItems
@@ -269,16 +268,17 @@ export default function oldFinanceTable({
                 paid: newPaid,
                 dtPaid: newPaid ? new Date().toISOString() : undefined,
               }
-            : item
-        )
+            : item,
+        ),
       );
 
       onPaidUpdate?.(account.id, newPaid);
-      setToast(`Finança marcada como ${newPaid ? "paga" : "não paga"} ✅`);
-      setTimeout(() => setToast(null), 2000);
+      notify(
+        `Finança marcada como ${newPaid ? "paga" : "não paga"} ✅`,
+        "success",
+      );
     } catch (e) {
-      setToast("Erro ao marcar como pago");
-      setTimeout(() => setToast(null), 2000);
+      notify("Erro ao marcar como pago", "error");
     }
   }
 
@@ -286,16 +286,12 @@ export default function oldFinanceTable({
     await deleteCollab(collaboratorId);
     onCollabDeleted(collaboratorId);
     setShowConfirm(false);
-    setToast(`Colaborador "${title}" excluído com sucesso ✅`);
-    setTimeout(() => setToast(null), 3000);
   }
 
   async function confirmDeleteFinanca() {
     if (!financaToDelete) return;
     await onDelete(financaToDelete.id);
     setFinancaToDelete(null);
-    setToast(`Finança excluída com sucesso ✅`);
-    setTimeout(() => setToast(null), 3000);
   }
 
   function getStatusBadge(account: Account): React.JSX.Element {
@@ -1182,12 +1178,6 @@ export default function oldFinanceTable({
           </>
         )}
       </ModalBase>
-
-      {toast && (
-        <div className="fixed bottom-5 right-5 bg-green-600 text-white px-4 py-2 rounded shadow-lg z-50">
-          {toast}
-        </div>
-      )}
     </section>
   );
 }

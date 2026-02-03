@@ -25,7 +25,7 @@ type Props = {
       year: number;
       status: Status;
     },
-    idToUpdate?: string
+    idToUpdate?: string,
   ) => void;
   onClose: () => void;
 };
@@ -86,11 +86,14 @@ export default function AddFinanceDialog({
       value:
         initial?.value !== undefined && initial?.value !== null
           ? String(initial.value.toFixed(2)).replace(".", ",")
-          : "",
-      parcelasTotal:
-        initial?.parcelasTotal !== undefined && initial?.parcelasTotal !== null
-          ? String(initial.parcelasTotal)
-          : "-",
+          : "0,00",
+      parcelasTotal: !initial
+        ? "-"
+        : initial.parcelasTotal === null || initial.parcelasTotal === undefined
+          ? "X"
+          : initial.parcelasTotal === 0 || initial.parcelasTotal === 1
+            ? "-"
+            : String(initial.parcelasTotal),
       month: initial?.month || defaultMonth,
       year: initial?.year || defaultYear,
       status: toFormStatus(initial?.status),
@@ -104,22 +107,23 @@ export default function AddFinanceDialog({
   }, []);
 
   const handleValueChange = (e: ChangeEvent<HTMLInputElement>) => {
-    let value = e.target.value.replace(/[^\d,]/g, "");
-
-    if (value.includes(",")) {
-      const [int, dec] = value.split(",");
-      value = int + "," + dec.slice(0, 2);
-    }
-    setValue("value", value, { shouldDirty: true, shouldValidate: true });
+    const digits = String(e.target.value).replace(/\D/g, "").slice(0, 12);
+    const cents = digits.length ? Number.parseInt(digits, 10) : 0;
+    const formatted = (cents / 100).toFixed(2).replace(".", ",");
+    setValue("value", formatted, { shouldDirty: true, shouldValidate: true });
   };
 
   const submit: SubmitHandler<FormData> = (data) => {
     let valueNumber = parseBRL(data.value);
     if (isNaN(valueNumber)) valueNumber = 0;
     let parcelasTotal: number | null = null;
-    if (data.parcelasTotal !== "X" && data.parcelasTotal !== "-") {
+    if (data.parcelasTotal === "X") {
+      parcelasTotal = null;
+    } else if (data.parcelasTotal === "-") {
+      parcelasTotal = 0;
+    } else {
       const parsedParcelas = Number(data.parcelasTotal);
-      parcelasTotal = Number.isFinite(parsedParcelas) ? parsedParcelas : null;
+      parcelasTotal = Number.isFinite(parsedParcelas) ? parsedParcelas : 0;
     }
     onSave(
       {
@@ -131,7 +135,7 @@ export default function AddFinanceDialog({
         year: data.year,
         status: data.status,
       },
-      initial?.id
+      initial?.id,
     );
     reset();
     onClose();
@@ -151,8 +155,8 @@ export default function AddFinanceDialog({
         {mode === "duplicate"
           ? "Duplicar Finança"
           : mode === "editAccount"
-          ? "Editar Finança"
-          : "Adicionar Finança"}
+            ? "Editar Finança"
+            : "Adicionar Finança"}
       </h3>
 
       <hr className="py-2 border-[#334155]"></hr>
@@ -227,7 +231,9 @@ export default function AddFinanceDialog({
               disabled={disabled}
               defaultValue="-"
             >
-              <option value="-">Avulsa</option>
+              <option value="-" selected>
+                Avulsa
+              </option>
               <option value="X">Fixo</option>
               {Array.from({ length: 48 }, (_, i) => i + 1).map((n) => (
                 <option key={n} value={String(n)}>
@@ -283,8 +289,8 @@ export default function AddFinanceDialog({
             {mode === "duplicate"
               ? "Duplicar"
               : initial
-              ? "Salvar alterações"
-              : "Salvar"}
+                ? "Salvar alterações"
+                : "Salvar"}
           </button>
         </div>
       </form>

@@ -947,7 +947,7 @@ export default function FinanceTable({
             maxWidth="sm"
             labelledBy="titulo-acoes-mobile"
           >
-            <div className="pb-1">
+            <div className="mobile-actions-modal pb-1">
               <h3
                 id="titulo-acoes-mobile"
                 className="text-lg font-normal mb-6 text-slate-800 dark:text-slate-100 text-center"

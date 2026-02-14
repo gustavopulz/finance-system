@@ -30,6 +30,8 @@ model User {
   sharesReceived  CardAccess[]  @relation("GrantedTo")
   tokensCreated   ShareToken[]  @relation("TokenCreator")
   tokensClaimed   ShareToken[]  @relation("TokenClaimer")
+  ownerLinks   UserLink[] @relation("OwnerLinks")
+  linkedUsers  UserLink[] @relation("LinkedUsers")
 }
 
 model RefreshSession {
@@ -165,6 +167,21 @@ model Payment {
 //////////////////////////////////////////////////////
 // COMPARTILHAMENTO REAL DE CARDS
 //////////////////////////////////////////////////////
+
+model UserLink {
+  id            String   @id @default(uuid()) @db.Uuid
+  ownerId       String   @db.Uuid
+  linkedUserId  String   @db.Uuid
+
+  createdAt     DateTime @default(now())
+  revokedAt     DateTime?
+
+  owner         User     @relation("OwnerLinks", fields: [ownerId], references: [id])
+  linkedUser    User     @relation("LinkedUsers", fields: [linkedUserId], references: [id])
+
+  @@unique([ownerId, linkedUserId])
+  @@index([linkedUserId])
+}
 
 model CardAccess {
   id           String   @id @default(uuid()) @db.Uuid

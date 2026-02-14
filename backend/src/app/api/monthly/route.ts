@@ -54,6 +54,9 @@ export async function GET(req: Request) {
           },
         },
       },
+      orderBy: {
+        dueDate: "asc",
+      },
     });
 
     const grouped: Record<string, any> = {};
@@ -74,20 +77,28 @@ export async function GET(req: Request) {
         };
       }
 
-      const amount = Number(instance.amount);
+      const effectiveAmount =
+        instance.overriddenAmount !== null &&
+        instance.overriddenAmount !== undefined
+          ? Number(instance.overriddenAmount)
+          : Number(instance.amount);
 
-      grouped[cardId].totals.total += amount;
+      const effectiveDueDate =
+        instance.overriddenDueDate ?? instance.dueDate;
+
+      grouped[cardId].totals.total += effectiveAmount;
 
       if (instance.status === "pago") {
-        grouped[cardId].totals.totalPaid += amount;
+        grouped[cardId].totals.totalPaid += effectiveAmount;
       } else {
-        grouped[cardId].totals.totalPending += amount;
+        grouped[cardId].totals.totalPending += effectiveAmount;
       }
 
       grouped[cardId].bills.push({
         billInstanceId: instance.id,
         description: instance.bill.description,
-        amount,
+        amount: effectiveAmount,
+        dueDate: effectiveDueDate,
         status: instance.status,
         installmentLabel:
           instance.installmentNumber &&

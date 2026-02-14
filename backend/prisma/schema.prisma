@@ -117,51 +117,31 @@ model Bill {
 //////////////////////////////////////////////////////
 
 model BillInstance {
-  id                 String        @id @default(uuid()) @db.Uuid
-  billId             String        @db.Uuid
+  id                 String   @id @default(uuid()) @db.Uuid
+  billId             String   @db.Uuid
 
   referenceYear      Int
   referenceMonth     Int
 
   dueDate            DateTime
-  amount             Decimal       @db.Decimal(14,2)
+  amount             Decimal   @db.Decimal(14,2)
 
-  status             BillStatus    @default(pendente)
-  installmentNumber  Int?          // se parcelada
+  installmentNumber  Int?
+
+  status             BillStatus @default(pendente)
+
+  paidAt             DateTime?
+  paidByUserId       String? @db.Uuid
 
   cancelledAt        DateTime?
 
-  createdAt          DateTime      @default(now())
-  updatedAt          DateTime      @updatedAt
+  createdAt          DateTime  @default(now())
+  updatedAt          DateTime  @updatedAt
 
-  bill               Bill          @relation(fields: [billId], references: [id])
-  payments           Payment[]
+  bill               Bill      @relation(fields: [billId], references: [id])
 
   @@unique([billId, referenceYear, referenceMonth])
-  @@index([referenceYear, referenceMonth, status])
   @@index([referenceYear, referenceMonth])
-  @@index([status])
-  @@index([billId])
-}
-
-//////////////////////////////////////////////////////
-// PAYMENT (PAGAMENTOS REALIZADOS)
-//////////////////////////////////////////////////////
-
-model Payment {
-  id               String        @id @default(uuid()) @db.Uuid
-  billInstanceId   String        @db.Uuid
-
-  amount           Decimal       @db.Decimal(14,2)
-  method           PaymentMethod?
-  paidAt           DateTime      @default(now())
-
-  createdAt        DateTime      @default(now())
-
-  billInstance     BillInstance  @relation(fields: [billInstanceId], references: [id])
-
-  @@index([billInstanceId])
-  @@index([paidAt])
 }
 
 //////////////////////////////////////////////////////
@@ -257,13 +237,5 @@ enum BillType {
 enum BillStatus {
   pendente
   pago
-  parcial
   cancelado
-}
-
-enum PaymentMethod {
-  pix
-  cartao
-  dinheiro
-  transferencia
 }

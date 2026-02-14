@@ -1,0 +1,252 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+//////////////////////////////////////////////////////
+// USERS e SESSIONS
+//////////////////////////////////////////////////////
+
+model User {
+  id          String   @id @default(uuid()) @db.Uuid
+  email       String   @unique
+  username    String   @unique
+  name        String
+  password    String
+  phone       String?
+  role        Role     @default(user)
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  deletedAt   DateTime?
+
+  refreshSessions RefreshSession[]
+  cardsOwned      Card[]
+  billsCreated    Bill[]        @relation("BillCreatedBy")
+  sharesGranted   CardAccess[]  @relation("GrantedBy")
+  sharesReceived  CardAccess[]  @relation("GrantedTo")
+  tokensCreated   ShareToken[]  @relation("TokenCreator")
+  tokensClaimed   ShareToken[]  @relation("TokenClaimer")
+}
+
+model RefreshSession {
+  id           String   @id @default(uuid()) @db.Uuid
+  userId       String   @db.Uuid
+
+  tokenHash    String   @db.VarChar(255)
+  createdAt    DateTime @default(now())
+  expiresAt    DateTime
+  revokedAt    DateTime?
+
+  replacedById String?  @db.Uuid
+  replacedBy   RefreshSession? @relation("RefreshReplace", fields: [replacedById], references: [id])
+  replaces     RefreshSession[] @relation("RefreshReplace")
+
+  user         User @relation(fields: [userId], references: [id])
+
+  @@index([userId])
+  @@index([tokenHash])
+  @@index([expiresAt])
+}
+
+//////////////////////////////////////////////////////
+// CARDS (AGRUPADOR)
+//////////////////////////////////////////////////////
+
+model Card {
+  id          String   @id @default(uuid()) @db.Uuid
+  name        String
+  ownerId     String   @db.Uuid
+  isArchived  Boolean  @default(false)
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  owner       User     @relation(fields: [ownerId], references: [id])
+  bills       Bill[]
+  access      CardAccess[]
+
+  @@index([ownerId])
+}
+
+//////////////////////////////////////////////////////
+// BILL (REGRA DA CONTA)
+//////////////////////////////////////////////////////
+
+model Bill {
+  id                  String    @id @default(uuid()) @db.Uuid
+  cardId              String    @db.Uuid
+  createdById         String    @db.Uuid
+
+  description         String?
+  category            String?
+  amount              Decimal   @db.Decimal(14,2)
+
+  type                BillType
+  recurrenceDay       Int?
+  totalInstallments   Int?
+
+  startDate           DateTime
+  endDate             DateTime?
+
+  createdDate         DateTime  // ← NOVO (editável)
+
+  isActive            Boolean   @default(true)
+
+  createdAt           DateTime  @default(now())  // técnico
+  updatedAt           DateTime  @updatedAt
+  deletedAt           DateTime?
+
+  card                Card      @relation(fields: [cardId], references: [id])
+  createdBy           User      @relation("BillCreatedBy", fields: [createdById], references: [id])
+  instances           BillInstance[]
+
+  @@index([cardId])
+  @@index([createdById])
+  @@index([createdDate])
+}
+
+
+//////////////////////////////////////////////////////
+// BILL INSTANCE (OCORRÊNCIA MENSAL)
+//////////////////////////////////////////////////////
+
+model BillInstance {
+  id                 String        @id @default(uuid()) @db.Uuid
+  billId             String        @db.Uuid
+
+  referenceYear      Int
+  referenceMonth     Int
+
+  dueDate            DateTime
+  amount             Decimal       @db.Decimal(14,2)
+
+  status             BillStatus    @default(pendente)
+  installmentNumber  Int?          // se parcelada
+
+  cancelledAt        DateTime?
+
+  createdAt          DateTime      @default(now())
+  updatedAt          DateTime      @updatedAt
+
+  bill               Bill          @relation(fields: [billId], references: [id])
+  payments           Payment[]
+
+  @@unique([billId, referenceYear, referenceMonth])
+  @@index([referenceYear, referenceMonth, status])
+  @@index([referenceYear, referenceMonth])
+  @@index([status])
+  @@index([billId])
+}
+
+//////////////////////////////////////////////////////
+// PAYMENT (PAGAMENTOS REALIZADOS)
+//////////////////////////////////////////////////////
+
+model Payment {
+  id               String        @id @default(uuid()) @db.Uuid
+  billInstanceId   String        @db.Uuid
+
+  amount           Decimal       @db.Decimal(14,2)
+  method           PaymentMethod?
+  paidAt           DateTime      @default(now())
+
+  createdAt        DateTime      @default(now())
+
+  billInstance     BillInstance  @relation(fields: [billInstanceId], references: [id])
+
+  @@index([billInstanceId])
+  @@index([paidAt])
+}
+
+//////////////////////////////////////////////////////
+// COMPARTILHAMENTO REAL DE CARDS
+//////////////////////////////////////////////////////
+
+model CardAccess {
+  id           String   @id @default(uuid()) @db.Uuid
+  cardId       String   @db.Uuid
+  grantedById  String   @db.Uuid
+  grantedToId  String   @db.Uuid
+
+  createdAt    DateTime @default(now())
+  revokedAt    DateTime?
+
+  card         Card     @relation(fields: [cardId], references: [id])
+  grantedBy    User     @relation("GrantedBy", fields: [grantedById], references: [id])
+  grantedTo    User     @relation("GrantedTo", fields: [grantedToId], references: [id])
+
+  @@unique([cardId, grantedToId])
+  @@index([cardId, grantedToId])
+  @@index([grantedToId])
+}
+
+//////////////////////////////////////////////////////
+// TOKEN DE COMPARTILHAMENTO
+//////////////////////////////////////////////////////
+
+model ShareToken {
+  id            String   @id @default(uuid()) @db.Uuid
+  token         String   @unique
+  creatorId     String   @db.Uuid
+  expiresAt     DateTime?
+  claimedById   String?  @db.Uuid
+  claimedAt     DateTime?
+
+  createdAt     DateTime @default(now())
+
+  creator       User     @relation("TokenCreator", fields: [creatorId], references: [id])
+  claimer       User?    @relation("TokenClaimer", fields: [claimedById], references: [id])
+
+  @@index([creatorId])
+}
+
+//////////////////////////////////////////////////////
+// OUTBOX (EVENTOS PARA CLICKHOUSE / WORKER)
+//////////////////////////////////////////////////////
+
+model OutboxEvent {
+  id            String   @id @default(uuid()) @db.Uuid
+  aggregate     String
+  aggregateId   String
+  type          String
+  payload       Json
+
+  processed     Boolean  @default(false)
+  createdAt     DateTime @default(now())
+  processedAt   DateTime?
+
+  @@index([processed])
+}
+
+//////////////////////////////////////////////////////
+// ENUMS
+//////////////////////////////////////////////////////
+
+enum Role {
+  user
+  admin
+}
+
+enum BillType {
+  recorrente
+  avulsa
+  parcelada
+}
+
+enum BillStatus {
+  pendente
+  pago
+  parcial
+  cancelado
+}
+
+enum PaymentMethod {
+  pix
+  cartao
+  dinheiro
+  transferencia
+}

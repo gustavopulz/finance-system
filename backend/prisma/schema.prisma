@@ -67,6 +67,8 @@ model Card {
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
+  version   Int      @default(1)
+
   owner       User     @relation(fields: [ownerId], references: [id])
   bills       Bill[]
   access      CardAccess[]
@@ -102,6 +104,8 @@ model Bill {
   updatedAt           DateTime  @updatedAt
   deletedAt           DateTime?
 
+  version   Int      @default(1)
+
   card                Card      @relation(fields: [cardId], references: [id])
   createdBy           User      @relation("BillCreatedBy", fields: [createdById], references: [id])
   instances           BillInstance[]
@@ -130,19 +134,24 @@ model BillInstance {
 
   status             BillStatus @default(pendente)
 
+  overriddenAmount   Decimal?   @db.Decimal(14,2)
+  overriddenDueDate  DateTime?
+
   paidAt             DateTime?
   paidByUserId       String? @db.Uuid
-
   cancelledAt        DateTime?
 
   createdAt          DateTime  @default(now())
   updatedAt          DateTime  @updatedAt
+
+  version   Int      @default(1)
 
   bill               Bill      @relation(fields: [billId], references: [id])
 
   @@unique([billId, referenceYear, referenceMonth])
   @@index([referenceYear, referenceMonth])
 }
+
 
 //////////////////////////////////////////////////////
 // COMPARTILHAMENTO REAL DE CARDS
